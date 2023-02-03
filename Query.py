@@ -8,6 +8,7 @@ class Query:
         self.name = name
         self.variable_order = variable_order
 
+
     def is_q_hierarchical(self) -> bool:
         variables = set()
         all_relations = self.variable_order.all_relations()
@@ -42,13 +43,13 @@ class Query:
         filtered_child_partitions = [partition for partition in child_partitions if len(partition) >= 2]
         for partition in filtered_child_partitions:
             if len(partition) >= 2:
-                self.views.add(Relation(f"V_{self.name}", all_variables, None, all_relations))
+                self.views.add(Relation(f"V_{self.name}", all_variables, self, all_relations))
 
     def __str__(self):
         return self.name + " = " + "*".join(map(lambda x: str(x), self.variable_order.all_relations()))
 
     def __hash__(self):
-        return hash(f"{self.name}-{'/'.join(map(lambda x: str(x), self.variable_order.all_relations()))}")
+        return hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(x), self.variable_order.all_relations())))}")
 
     def __eq__(self, other):
         return self.name == other.name

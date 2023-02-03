@@ -11,11 +11,15 @@ class VariableOrderNode:
         self.relations = relations
         self.parent = parent
 
-    def all_relations(self):
+    def all_relations(self, source_only = False):
         res = set()
-        res.update(self.relations)
+        if source_only:
+            for rel in self.relations:
+                res.update(rel.root_sources())
+        else:
+            res.update(self.relations)
         for child in self.children:
-            res.update(child.all_relations())
+            res.update(child.all_relations(source_only))
         return res
 
     def copy(self, parent: "VariableOrderNode|None"):

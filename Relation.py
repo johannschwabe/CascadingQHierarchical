@@ -7,6 +7,14 @@ class Relation:
         self.sources = sources
         self.name = name
 
+    def root_sources(self):
+        res = set()
+        if not self.sources:
+            return {self}
+        for source in self.sources:
+            res.update(source.root_sources())
+        return res
+
     def __eq__(self, other):
         if not self.sources and not other.sources:
             return self.variables == other.variables and self.name == other.name
