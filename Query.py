@@ -45,6 +45,14 @@ class Query:
             if len(partition) >= 2:
                 self.views.add(Relation(f"V_{self.name}", all_variables, self, all_relations))
 
+    def dependant_on(self):
+        res: "set[Query]" = set()
+        for relation in self.variable_order.all_relations(False):
+            if relation.dependentOn:
+                res.add(relation.dependentOn)
+                res.update(relation.dependentOn.dependant_on())
+        return res
+
     def __str__(self):
         return self.name + " = " + "*".join(map(lambda x: str(x), self.variable_order.all_relations()))
 
@@ -53,3 +61,19 @@ class Query:
 
     def __eq__(self, other):
         return self.name == other.name
+
+class QuerySet:
+    def __init__(self):
+        self.queries: "set[Query]" = set()
+
+    def __hash__(self):
+        return hash(",".join(sorted(map(lambda x: str(hash(x)), self.queries))))
+
+    def __repr__(self):
+        return ",".join(sorted(map(lambda x: str(x), self.queries)))
+
+    def add(self, other: "Query"):
+        self.queries.add(other)
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
