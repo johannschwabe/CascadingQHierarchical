@@ -3,10 +3,11 @@ from Relation import Relation
 
 class Query:
 
-    def __init__(self, name: str, variable_order: "VariableOrderNode"):
+    def __init__(self, name: str, relations: "set[Relation]", free_variables: "set[str]"):
         self.views: "set[Relation]" = set()
         self.name = name
-        self.variable_order = variable_order
+        self.free_variables = free_variables
+        self.variable_order = VariableOrderNode.generate(relations, free_variables)
 
 
     def is_q_hierarchical(self) -> bool:
@@ -27,23 +28,8 @@ class Query:
                     return False
         return True
 
-    def generate_views(self, variable_order_root: "VariableOrderNode"):
-        all_relations = variable_order_root.all_relations()
-        all_variables = set()
-        for relation in all_relations:
-            all_variables.update(relation.variables)
-        self.views = set()
-        child_partitions = []
-        for relation in all_relations:
-            old_child_partition = child_partitions.copy()
-            for child_partition in child_partitions:
-                child_partition.append(relation)
-            child_partitions.extend(old_child_partition)
-            child_partitions.append([relation])
-        filtered_child_partitions = [partition for partition in child_partitions if len(partition) >= 2]
-        for partition in filtered_child_partitions:
-            if len(partition) >= 2:
-                self.views.add(Relation(f"V_{self.name}", all_variables, self, all_relations))
+    def generate_views(self):
+        self.views = self.variable_order.generate_views(self)
 
     def dependant_on(self):
         res: "set[Query]" = set()
@@ -60,7 +46,7 @@ class Query:
         return hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(x), self.variable_order.all_relations())))}")
 
     def __eq__(self, other):
-        return self.name == other.name
+        return hash(self) == hash(other)
 
 class QuerySet:
     def __init__(self):

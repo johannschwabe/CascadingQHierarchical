@@ -7,7 +7,7 @@ def run(queries: "set[Query]"):
     q_hierarchical = set()
     non_q_hierarchical = set()
     for query in queries:
-        query.generate_views(query.variable_order)
+        query.generate_views()
         if query.is_q_hierarchical():
             q_hierarchical.add(query)
         else:
@@ -20,16 +20,27 @@ def run(queries: "set[Query]"):
             for q_hierarchical_query in q_hierarchical:
                 if non_q_hierarchical_query.name == q_hierarchical_query.name:
                     continue
+
+                non_q_dependants = non_q_hierarchical_query.dependant_on()
+                non_q_dependants.add(non_q_hierarchical_query)
+                q_dependants = q_hierarchical_query.dependant_on()
+                invalid = False
+                for non_q_dependant in non_q_dependants:
+                    if any(map(lambda x: x != non_q_dependant and x.name == non_q_dependant.name, q_dependants)):
+                        invalid = True
+                        break
+                if invalid:
+                    continue
                 for view in q_hierarchical_query.views:
                     all_relations = non_q_hierarchical_query.variable_order.all_relations(True)     # Resolve sub views # Verify different query origin
                     if view.root_sources().issubset(all_relations):
                         new_relations = non_q_hierarchical_query.variable_order.all_relations().difference(view.root_sources())
                         new_relations.add(view)
-                        new_query = Query(non_q_hierarchical_query.name, VariableOrderNode.generate(new_relations))
+                        new_query = Query(non_q_hierarchical_query.name, new_relations, non_q_hierarchical_query.free_variables)
                         if new_query in q_hierarchical or new_query in non_q_hierarchical:
                             continue
                         if new_query.is_q_hierarchical():
-                            new_query.generate_views(new_query.variable_order)
+                            new_query.generate_views()
                             new_q_hierarchical.add(new_query)
                         else:
                             new_non_q_hierarchical.add(new_query)
@@ -63,32 +74,36 @@ def find_compatible_reductions(options: list[Query]) -> list[QuerySet]:
         res.extend(sub_solutions)
     return list(set(res))
 
+def example_0():
+    R1 = Relation("R1", {"x", "y"})
+    R2 = Relation("R2", {"y", "z"})
+    R3 = Relation("R3", {"z", "w"})
+    Q1 = Query("Q1", {R1, R2}, {'x', 'y','z'})
+    Q2 = Query("Q2", {R1, R2, R3}, {'x', 'y','z', 'w'})
+    res = run({Q1, Q2})
+    return res
+
 def example_1():
     R1 = Relation("R1", {"x","y"})
     R2 = Relation("R2", {"y","z"})
     R3 = Relation("R3", {"z","w"})
     R4 = Relation("R4", {"w","q"})
 
-    VOQ1 = VariableOrderNode.generate({R1, R2})
-    VOQ2 = VariableOrderNode.generate({R1, R2, R3})
-    VOQ3 = VariableOrderNode.generate({R1, R2, R3, R4})
-    Q1 = Query("Q1", VOQ1)
-    Q2 = Query("Q2", VOQ2)
-    Q3 = Query("Q3", VOQ3)
+    Q1 = Query("Q1", {R1, R2}, {'x', 'y', 'z'})
+    Q2 = Query("Q2", {R1, R2, R3}, {'x', 'y', 'z', 'w'})
+    Q3 = Query("Q3", {R1, R2, R3, R4}, {'x', 'y', 'z', 'w', 'q'})
     res = run({Q1, Q2, Q3})
     return res
+
 def example_2():
     R1 = Relation("R1", {"x", "y"})
     R2 = Relation("R2", {"y", "z"})
     R3 = Relation("R3", {"z", "w"})
     R4 = Relation("R4", {"w", "q"})
 
-    VOQ1 = VariableOrderNode.generate({R1, R2})
-    VOQ2 = VariableOrderNode.generate({R3, R4})
-    VOQ3 = VariableOrderNode.generate({R1, R2, R3, R4})
-    Q1 = Query("Q1", VOQ1)
-    Q2 = Query("Q2", VOQ2)
-    Q3 = Query("Q3", VOQ3)
+    Q1 = Query("Q1", {R1, R2},{'x', 'y', 'z'})
+    Q2 = Query("Q2", {R3, R4},{'z', 'w', 'q'})
+    Q3 = Query("Q3", {R1, R2, R3, R4},{'x', 'y', 'z', 'w', 'q'})
     res = run({Q1, Q2, Q3})
     return res
 def example_3():
@@ -98,17 +113,38 @@ def example_3():
     R4 = Relation("R4", {"w", "a"})
     R5 = Relation("R5", {"a", "b"})
 
-    VOQ1 = VariableOrderNode.generate({R2,R3})
-    VOQ2 = VariableOrderNode.generate({R4,R3})
-    VOQ3 = VariableOrderNode.generate({R1,R2,R3})
-    VOQ4 = VariableOrderNode.generate({R3,R4,R5})
-    VOQ5 = VariableOrderNode.generate({R1,R2,R3,R4,R5})
-    Q1 = Query("Q1", VOQ1)
-    Q2 = Query("Q2", VOQ2)
-    Q3 = Query("Q3", VOQ3)
-    Q4 = Query("Q4", VOQ4)
-    Q5 = Query("Q5", VOQ5)
+    Q1 = Query("Q1", {R2,R3},{'y', 'z', 'w'})
+    Q2 = Query("Q2", {R4,R3},{'z', 'w', 'a'})
+    Q3 = Query("Q3", {R1,R2,R3},{'x', 'y', 'z', 'w',})
+    Q4 = Query("Q4", {R3,R4,R5},{'z', 'w', 'a', 'b'})
+    Q5 = Query("Q5", {R1,R2,R3,R4,R5},{'x', 'y', 'z', 'w', 'a', 'b'})
     res = run({Q1, Q2, Q3, Q4, Q5})
+    return res
+
+def example_4():
+    R1 = Relation("R1", {"x", "y"})
+    R2 = Relation("R2", {"y", "z"})
+    R3 = Relation("R3", {"z", "w"})
+    R4 = Relation("R4", {"w", "a"})
+
+    Q1 = Query("Q1", {R1, R2, R3},{'x', 'y', 'z', 'w'})
+    Q2 = Query("Q2", {R1, R2, R3, R4},{'x', 'y', 'z', 'w', 'a'})
+    Q3 = Query("Q3", {R2, R1},{'x', 'y', 'z'})
+    res = run({Q1, Q2, Q3})
+    return res
+
+# example_3()
+def example_5():
+    R0 = Relation("R0", {"x"})
+    R1 = Relation("R1", {"x", "y"})
+    R2 = Relation("R2", {"x", "y"})
+    R3 = Relation("R3", {"x", "y", "a"})
+    R4 = Relation("R4", {"x", "y", "b"})
+    R5 = Relation("R5", {"x", "y", "a", "c"})
+    R6 = Relation("R6", {"x", "y", "b", "d"})
+    Q1 = Query("Q1", {R0, R1, R2, R3, R4, R5, R6}, {"x", "y", "z", "a", "b", "c", "d"})
+    print(Q1.is_q_hierarchical())
+    res = Q1.variable_order.generate_views(Q1)
     return res
 
 example_3()
