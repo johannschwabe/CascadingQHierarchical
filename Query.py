@@ -24,6 +24,9 @@ class Query:
                 c1 = atoms_a.issubset(atoms_b)
                 c2 = atoms_b.issubset(atoms_a)
                 c3 = atoms_a.isdisjoint(atoms_b)
+
+                if atoms_a < atoms_b and variable_a in self.free_variables and variable_b not in self.free_variables:
+                    return False
                 if not (c1 or c2 or c3):
                     return False
         return True
