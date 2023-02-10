@@ -142,7 +142,7 @@ def example_5():
     R4 = Relation("R4", {"x", "y", "b"})
     R5 = Relation("R5", {"x", "y", "a", "c"})
     R6 = Relation("R6", {"x", "y", "b", "d"})
-    Q1 = Query("Q1", {R0, R1, R2, R3, R4, R5, R6}, {"x", "y", "z", "a", "b", "c", "d"})
+    Q1 = Query("Q1", {R0, R1, R2, R3, R4, R5, R6},  {"x","y", "z", "a", "b", "c", "d"})
     print(Q1.is_q_hierarchical())
     res = Q1.variable_order.generate_views(Q1)
     return res

@@ -71,14 +71,15 @@ class VariableOrderNode:
     @staticmethod
     def generate(relations: "set[Relation]", free_variables: "set[str]"):
 
-        if len(free_variables) > 0:
-            variable_list = list(free_variables)
-        else:
-            variables = set()
-            for relation in relations:
-                variables.update(relation.variables)
-            variable_list = list(variables)
-        variable_list.sort(key=lambda x: sum([1 for rel in relations if x in rel.variables]), reverse=False)
+        variables = set()
+        for relation in relations:
+            variables.update(relation.variables)
+        variable_list = list(variables)
+
+        variable_list.sort(key=lambda x: sum([1 for rel in relations if x in rel.variables]) + (
+            0.1 if x in free_variables else 0), reverse=False)
+
+
         next_var = variable_list.pop()
         root = VariableOrderNode(next_var, set(),set(), None)
         VariableOrderNode.generate_recursion(relations, root, free_variables)
@@ -93,15 +94,13 @@ class VariableOrderNode:
         if not ungenerateable_relations:
             return
 
-        if parent_vars.issuperset(free_variables):
-            variables = set()
-            for relation in ungenerateable_relations:
-                variables.update(relation.variables)
-            variables.difference_update(parent_vars)
-            variable_list = list(variables)
-        else:
-            variable_list = list(free_variables.difference(parent_vars))
-        variable_list.sort(key=lambda x: sum([1 for rel in ungenerateable_relations if x in rel.variables]), reverse=False)
+        variables = set()
+        for relation in ungenerateable_relations:
+            variables.update(relation.variables)
+        variables.difference_update(parent_vars)
+        variable_list = list(variables)
+
+        variable_list.sort(key=lambda x: sum([1 for rel in ungenerateable_relations if x in rel.variables]) + (0.1 if x in free_variables else 0), reverse=False)
 
         next_var = variable_list.pop()
         next_node = VariableOrderNode(next_var, set(), set(), node)
