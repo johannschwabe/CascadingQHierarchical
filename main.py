@@ -136,6 +136,8 @@ def example_4():
     Q2 = Query("Q2", {R1, R2, R3, R4},{'x', 'y', 'z', 'w', 'a'})
     Q3 = Query("Q3", {R2, R1},{'x', 'y', 'z'})
     res = run({Q1, Q2, Q3})
+    res.pop().graph_viz()
+
     return res
 
 # example_3()
@@ -148,8 +150,8 @@ def example_5():
     R5 = Relation("R5", {"x", "y", "a", "c"})
     R6 = Relation("R6", {"x", "y", "b", "d"})
     Q1 = Query("Q1", {R0, R1, R2, R3, R4, R5, R6},  {"x","y", "z", "a", "b", "c", "d"})
-    print(Q1.is_q_hierarchical())
     res = Q1.variable_order.generate_views(Q1)
+
     return res
 
 def example_6(nr_attempts: int):
@@ -176,7 +178,9 @@ def example_6(nr_attempts: int):
             res = run(resi)
             if len(res) > 0:
                 nr_success += 1
-
+                first_res = res.pop()
+                first_res.graph_viz()
+                return
     #            for reduction in res:
     #                print("-------------")
     #                for query in reduction.queries:
@@ -184,6 +188,66 @@ def example_6(nr_attempts: int):
 
     print(f"{nr_attempts} groups generated, {nr_valid} valid, {nr_success} successfull reduction")
 
+def example_7():
+    Census = Relation("Census", {
+        "Zip",
+        "Population",
+        "White",
+        "Asian",
+        "Pacific",
+        "Black",
+        "Hispanic",
+        "Males",
+        "Females",
+        "HusbWife",
+        "MedianAge",
+        "HouseUnits",
+        "OccupiedHouseUnits",
+        "Families",
+        "Housholds",
+        "HousholdsChildren"
+
+    })
+    Item = Relation("Item",{
+        "Ksn",
+        "SubCategory",
+        "Category"
+        "CategoryCluster",
+        "Prize"
+    })
+    Inventory = Relation("Inventory", {
+        "InventoryUnits",
+        "Ksn",
+        "DateId",
+        "Locn"
+    })
+    Weather = Relation("Weather", {
+        "DateId",
+        "Locn",
+        "MaxTemp",
+        "MinTemp",
+        "MeanWind",
+        "Snow",
+        "Rain",
+        "Thunder",
+    })
+    Location = Relation("Location", {
+        "Locn",
+        "Zip",
+        "RgnCd",
+        "ClimbZnNbr",
+        "TotalAreaSqFt",
+        "SellAreaSqFt",
+        "AvgHigh",
+        "SuperTargetDistance",
+        "SuperTargetDriveTime",
+        "TargetDistance",
+        "TargetDriveTime",
+        "WalmartDistance",
+        "WalmartDriveTime",
+        "WalmartSuperCenterDistance",
+        "WalmartSuperCenterDriveTime"
+    })
 
 # example_0()
 # example_1()

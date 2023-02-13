@@ -1,5 +1,8 @@
 import itertools
 from typing import TYPE_CHECKING
+
+from graphviz import Graph, Digraph
+
 from Relation import Relation
 
 
@@ -13,6 +16,31 @@ class VariableOrderNode:
         self.name = name
         self.relations = relations
         self.parent = parent
+
+    def graph_viz(self, graph: "Digraph|None" = None, rootname: str = ""):
+        own_name = f"{rootname}_{self.name}"
+        graph.node(own_name, label=self.name)
+        graph.node(rootname, style="invis")
+        for child in self.children:
+            child_name = f"{rootname}_{child.name}"
+            graph.node(child_name, label=child.name)
+
+            graph.edge(own_name, child_name)
+
+        for child in self.children:
+            child.graph_viz(graph, rootname)
+
+
+        for relation in self.relations:
+            relation_name = f"{rootname}_{relation.name}"
+            graph.node(relation_name, shape="rectangle", label=str(relation))
+            graph.edge(own_name, relation_name)
+            if relation.dependentOn:
+                for source in relation.root_sources():
+                    source_name = f"{rootname}_{source.name}"
+                    graph.node(source_name, label=str(source), shape="diamond")
+                    graph.edge(relation_name, source_name)
+        return graph
 
     def all_relations(self, source_only = False) -> "set[Relation]":
         res = set()

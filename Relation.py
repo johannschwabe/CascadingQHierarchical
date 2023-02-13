@@ -1,9 +1,15 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Query import Query
+
+
 class Relation:
 
 
     def __init__(self, name: str, variables: "set[str]", dependantOn = None, sources: "set[Relation] | None" = None):
         self.variables = variables if variables else set()
-        self.dependentOn = dependantOn
+        self.dependentOn: "Query|None" = dependantOn
         self.sources = sources
         self.name = name
 

@@ -1,5 +1,12 @@
+import random
+
+from graphviz import Graph, Digraph
+
 from VariableOrder import VariableOrderNode
 from Relation import Relation
+import graphviz
+import colors
+from random import shuffle
 
 class Query:
 
@@ -7,7 +14,7 @@ class Query:
         self.views: "set[Relation]" = set()
         self.name = name
         self.free_variables = free_variables
-        self.variable_order = VariableOrderNode.generate(relations, free_variables)
+        self.variable_order: "VariableOrderNode" = VariableOrderNode.generate(relations, free_variables)
 
 
     def is_q_hierarchical(self) -> bool:
@@ -51,6 +58,7 @@ class Query:
     def __eq__(self, other):
         return hash(self) == hash(other)
 
+
 class QuerySet:
     def __init__(self):
         self.queries: "set[Query]" = set()
@@ -66,3 +74,18 @@ class QuerySet:
 
     def __eq__(self, other):
         return hash(self) == hash(other)
+
+    def graph_viz(self):
+        graph = Digraph(name="base", graph_attr={"compound": "true", "spline":"false"})
+        ress= []
+        for query in self.queries:
+            res = query.variable_order.graph_viz(Digraph(name=f"cluster_{query.name}", graph_attr={"label": f"{query.name}({','.join(query.free_variables)})"}), query.name)
+            ress.append(res)
+        for res in ress:
+            graph.subgraph(res)
+        for query in self.queries:
+            dependant_on = query.dependant_on()
+            for dep in dependant_on:
+                graph.edge(query.name, dep.name, _attributes={"ltail": f"cluster_{query.name}", "lhead": f"cluster_{dep.name}"})
+        graph.view()
+        print(graph.source)
