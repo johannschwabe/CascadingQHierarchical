@@ -43,7 +43,7 @@ class Query:
         return res
 
     def __str__(self):
-        return self.name + " = " + "*".join(map(lambda x: str(x), self.variable_order.all_relations()))
+        return self.name + "(" + ",".join(self.free_variables) +")" + " = " + "*".join(map(lambda x: str(x), self.variable_order.all_relations()))
 
     def __hash__(self):
         return hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(x), self.variable_order.all_relations())))}")

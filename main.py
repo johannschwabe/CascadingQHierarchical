@@ -1,8 +1,11 @@
+import random
+
+from QueryGenerator import generate
 from Relation import Relation
 from Query import Query, QuerySet
 from VariableOrder import VariableOrderNode
 
-
+random.seed(2)
 def run(queries: "set[Query]"):
     q_hierarchical = set()
     non_q_hierarchical = set()
@@ -40,12 +43,14 @@ def run(queries: "set[Query]"):
                         if new_query in q_hierarchical or new_query in non_q_hierarchical:
                             continue
                         if new_query.is_q_hierarchical():
+                            #print(f".. {new_query}")
                             new_query.generate_views()
                             new_q_hierarchical.add(new_query)
                         else:
                             new_non_q_hierarchical.add(new_query)
         if len(new_q_hierarchical) == 0 and len(new_non_q_hierarchical) == 0:
-            return find_compatible_reductions(list(q_hierarchical))
+            compatible_solutions = find_compatible_reductions(list(q_hierarchical))
+            return list(filter(lambda x: len(x.queries) == len(queries), compatible_solutions))
         q_hierarchical.update(new_q_hierarchical)
         non_q_hierarchical.update(new_non_q_hierarchical)
 
@@ -147,12 +152,45 @@ def example_5():
     res = Q1.variable_order.generate_views(Q1)
     return res
 
+def example_6(nr_attempts: int):
+    nr_valid = 0
+    nr_success = 0
+    for _ in range(nr_attempts):
+        resi = generate(nr_queries=3,
+                        avg_nr_relations=5,
+                        std_nr_relations=3,
+                        avg_total_relations=10,
+                        std_total_relations=3,
+                        avg_nr_variables=3,
+                        std_nr_variables=1,
+                        avg_total_variables=8,
+                        std_total_variables=3)
+        q_hierarchical = map(lambda x: x.is_q_hierarchical(), resi)
+        not_q_hierarchical = map(lambda x: not x, q_hierarchical)
+        if any(q_hierarchical) and any(not_q_hierarchical):
+            print(_)
+            nr_valid += 1
+    #        print("=============")
+    #        for query in resi:
+    #            print(f"{query} - {query.is_q_hierarchical()}")
+            res = run(resi)
+            if len(res) > 0:
+                nr_success += 1
+
+    #            for reduction in res:
+    #                print("-------------")
+    #                for query in reduction.queries:
+    #                    print(query)
+
+    print(f"{nr_attempts} groups generated, {nr_valid} valid, {nr_success} successfull reduction")
+
+
 # example_0()
 # example_1()
 # example_2()
 # example_3()
 # example_4()
-example_5()
-# example_6()
+# example_5()
+example_6(200)
 # example_7()
 print("done")
