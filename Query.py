@@ -41,12 +41,13 @@ class Query:
     def generate_views(self):
         self.views = self.variable_order.generate_views(self)
 
-    def dependant_on(self):
+    def dependant_on(self, deep:bool = True):
         res: "set[Query]" = set()
         for relation in self.variable_order.all_relations(False):
             if relation.dependentOn:
                 res.add(relation.dependentOn)
-                res.update(relation.dependentOn.dependant_on())
+                if deep:
+                    res.update(relation.dependentOn.dependant_on())
         return res
 
     def __str__(self):
@@ -84,7 +85,7 @@ class QuerySet:
         for res in ress:
             graph.subgraph(res)
         for query in self.queries:
-            dependant_on = query.dependant_on()
+            dependant_on = query.dependant_on(False)
             for dep in dependant_on:
                 graph.edge(query.name, dep.name, _attributes={"ltail": f"cluster_{query.name}", "lhead": f"cluster_{dep.name}"})
         graph.view()

@@ -17,6 +17,8 @@ def run(queries: "set[Query]"):
             non_q_hierarchical.add(query)
 
     while True:
+        if len(non_q_hierarchical) + len(q_hierarchical) > 2000:
+            return []
         new_q_hierarchical = set()
         new_non_q_hierarchical = set()
         for non_q_hierarchical_query in non_q_hierarchical:
@@ -158,10 +160,10 @@ def example_6(nr_attempts: int):
     nr_valid = 0
     nr_success = 0
     for _ in range(nr_attempts):
-        resi = generate(nr_queries=3,
+        resi = generate(nr_queries=5,
                         avg_nr_relations=5,
                         std_nr_relations=3,
-                        avg_total_relations=10,
+                        avg_total_relations=12,
                         std_total_relations=3,
                         avg_nr_variables=3,
                         std_nr_variables=1,
@@ -208,7 +210,7 @@ def example_7():
         "HousholdsChildren"
 
     })
-    Item = Relation("Item",{
+    Item = Relation("Item", {
         "Ksn",
         "SubCategory",
         "Category"
@@ -225,29 +227,88 @@ def example_7():
         "DateId",
         "Locn",
         "MaxTemp",
-        "MinTemp",
-        "MeanWind",
-        "Snow",
         "Rain",
-        "Thunder",
     })
     Location = Relation("Location", {
         "Locn",
         "Zip",
-        "RgnCd",
-        "ClimbZnNbr",
-        "TotalAreaSqFt",
         "SellAreaSqFt",
-        "AvgHigh",
-        "SuperTargetDistance",
-        "SuperTargetDriveTime",
-        "TargetDistance",
-        "TargetDriveTime",
-        "WalmartDistance",
-        "WalmartDriveTime",
-        "WalmartSuperCenterDistance",
-        "WalmartSuperCenterDriveTime"
+
     })
+    # Census = Relation("Census", {
+    #     "Zip",
+    #     "Population",
+    #     "White",
+    #     "Asian",
+    #     "Pacific",
+    #     "Black",
+    #     "Hispanic",
+    #     "Males",
+    #     "Females",
+    #     "HusbWife",
+    #     "MedianAge",
+    #     "HouseUnits",
+    #     "OccupiedHouseUnits",
+    #     "Families",
+    #     "Housholds",
+    #     "HousholdsChildren"
+    #
+    # })
+    # Item = Relation("Item",{
+    #     "Ksn",
+    #     "SubCategory",
+    #     "Category"
+    #     "CategoryCluster",
+    #     "Prize"
+    # })
+    # Inventory = Relation("Inventory", {
+    #     "InventoryUnits",
+    #     "Ksn",
+    #     "DateId",
+    #     "Locn"
+    # })
+    # Weather = Relation("Weather", {
+    #     "DateId",
+    #     "Locn",
+    #     "MaxTemp",
+    #     "MinTemp",
+    #     "MeanWind",
+    #     "Snow",
+    #     "Rain",
+    #     "Thunder",
+    # })
+    # Location = Relation("Location", {
+    #     "Locn",
+    #     "Zip",
+    #     "RgnCd",
+    #     "ClimbZnNbr",
+    #     "TotalAreaSqFt",
+    #     "SellAreaSqFt",
+    #     "AvgHigh",
+    #     "SuperTargetDistance",
+    #     "SuperTargetDriveTime",
+    #     "TargetDistance",
+    #     "TargetDriveTime",
+    #     "WalmartDistance",
+    #     "WalmartDriveTime",
+    #     "WalmartSuperCenterDistance",
+    #     "WalmartSuperCenterDriveTime"
+    # })
+
+    Q1 = Query("Q1", {Inventory, Item, Weather, Location}, {"Ksn","Category", "Zip", "Rain"})          # Select Ksn, Category, Zip, Rain, Avg(Price)
+    Q2 = Query("Q2", {Inventory, Weather, Item}, {"Locn", "DateId", "Ksn", "Category"})
+    Q3 = Query("Q3", {Inventory, Weather, Location}, {"Ksn","Locn", "DateId", "MaxTemp", "Zip"})
+
+    print(Q1.is_q_hierarchical())
+    print(Q2.is_q_hierarchical())
+    print(Q3.is_q_hierarchical())
+    # res = run({Q1, Q3})
+    res = run({Q1, Q2, Q3})
+    if res:
+        res.pop().graph_viz()
+    else:
+        print("no reduction")
+
 
 # example_0()
 # example_1()
