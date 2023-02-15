@@ -17,8 +17,6 @@ def run(queries: "set[Query]"):
             non_q_hierarchical.add(query)
 
     while True:
-        if len(non_q_hierarchical) + len(q_hierarchical) > 2000:
-            return []
         new_q_hierarchical = set()
         new_non_q_hierarchical = set()
         for non_q_hierarchical_query in non_q_hierarchical:
@@ -50,7 +48,7 @@ def run(queries: "set[Query]"):
                             new_q_hierarchical.add(new_query)
                         else:
                             new_non_q_hierarchical.add(new_query)
-        if len(new_q_hierarchical) == 0 and len(new_non_q_hierarchical) == 0:
+        if len(new_q_hierarchical) == 0 and len(new_non_q_hierarchical) == 0 or len(non_q_hierarchical) + len(q_hierarchical) > 2000:
             compatible_solutions = find_compatible_reductions(list(q_hierarchical))
             return list(filter(lambda x: len(x.queries) == len(queries), compatible_solutions))
         q_hierarchical.update(new_q_hierarchical)
@@ -316,6 +314,6 @@ def example_7():
 # example_3()
 # example_4()
 # example_5()
-example_6(200)
-# example_7()
+# example_6(200)
+example_7()
 print("done")
