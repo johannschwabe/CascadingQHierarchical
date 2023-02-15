@@ -11,7 +11,7 @@ from random import shuffle
 class Query:
 
     def __init__(self, name: str, relations: "set[Relation]", free_variables: "set[str]"):
-        self.views: "set[Relation]" = set()
+        self.views: "set[Relation]" = []
         self.name = name
         self.free_variables = free_variables
         self.variable_order: "VariableOrderNode" = VariableOrderNode.generate(relations, free_variables)
@@ -21,13 +21,13 @@ class Query:
         variables = set()
         all_relations = self.variable_order.all_relations()
         for rel in all_relations:
-            variables = variables.union(rel.variables)
+            variables = variables.union(rel.free_variables)
         for variable_a in variables:
             for variable_b in variables:
                 if variable_a == variable_b:
                     continue
-                atoms_a = set(filter(lambda x: variable_a in x.variables, all_relations))
-                atoms_b = set(filter(lambda x: variable_b in x.variables, all_relations))
+                atoms_a = set(filter(lambda x: variable_a in x.free_variables, all_relations))
+                atoms_b = set(filter(lambda x: variable_b in x.free_variables, all_relations))
                 c1 = atoms_a.issubset(atoms_b)
                 c2 = atoms_b.issubset(atoms_a)
                 c3 = atoms_a.isdisjoint(atoms_b)
@@ -40,6 +40,7 @@ class Query:
 
     def generate_views(self):
         self.views = self.variable_order.generate_views(self)
+        a = 0
 
     def dependant_on(self, deep:bool = True):
         res: "set[Query]" = set()
@@ -76,7 +77,7 @@ class QuerySet:
     def __eq__(self, other):
         return hash(self) == hash(other)
 
-    def graph_viz(self):
+    def graph_viz(self, name = 0):
         graph = Digraph(name="base", graph_attr={"compound": "true", "spline":"false"})
         ress= []
         for query in self.queries:
@@ -88,5 +89,5 @@ class QuerySet:
             dependant_on = query.dependant_on(False)
             for dep in dependant_on:
                 graph.edge(query.name, dep.name, _attributes={"ltail": f"cluster_{query.name}", "lhead": f"cluster_{dep.name}"})
-        graph.view()
-        print(graph.source)
+        graph.view(f"Viz_{name}")
+        #print(graph.source)

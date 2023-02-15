@@ -49,7 +49,7 @@ def generate(nr_queries: int,
 
         variables = set()
         for rel in selected_rels:
-            variables.update(rel.variables)
+            variables.update(rel.free_variables)
 
         variable_list = list(variables)
         random.shuffle(variable_list)

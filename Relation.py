@@ -8,7 +8,7 @@ class Relation:
 
 
     def __init__(self, name: str, variables: "set[str]", dependantOn = None, sources: "set[Relation] | None" = None):
-        self.variables = variables if variables else set()
+        self.free_variables = variables if variables else set()
         self.dependentOn: "Query|None" = dependantOn
         self.sources = sources
         self.name = name
@@ -21,18 +21,24 @@ class Relation:
             res.update(source.root_sources())
         return res
 
+    def all_variables(self):
+        res = self.free_variables.copy()
+        for source in self.sources:
+            res.update(source.free_variables)
+        return res
+
     def __eq__(self, other):
         if not self.sources and not other.sources:
-            return self.variables == other.variables and self.name == other.name
-        return self.variables == other.variables and self.sources == other.sources
+            return self.free_variables == other.free_variables and self.name == other.name
+        return self.free_variables == other.free_variables and self.sources == other.sources
 
     def __hash__(self):
         if not self.sources:
-            return hash(f"{self.name}{','.join(self.variables)}")
-        return hash(",".join(self.variables) + "".join(list(map(lambda x: str(hash(x) if x != self else "GUGUS"), self.sources))))
+            return hash(f"{self.name}{','.join(self.free_variables)}")
+        return hash(",".join(self.free_variables) + "".join(list(map(lambda x: str(hash(x) if x != self else "GUGUS"), self.sources))))
 
     def __str__(self):
-        return self.name + "(" + ",".join(self.variables) + ")"
+        return self.name + "(" + ",".join(self.free_variables) + ")"
 
     def __repr__(self):
         return str(self)

@@ -69,42 +69,57 @@ class VariableOrderNode:
         return self.relations
 
     def generate_views(self, query: "Query"):
-        res = set()
-        branches = self.generate_views_recurse(query)
-        for branch in branches:
-            for i in range(0, len(branch[0])+1):
-                for combination in itertools.combinations(branch[0], i):
-                    variables = set()
-                    relations = set(combination).union(branch[1])
-                    if len(relations) < 2:
-                        continue
-                    for rel in relations:
-                        variables.update(rel.variables)
-                    res.add(Relation(f"V_{query.name}-{len(res)}", variables, query, relations))
-        return res
+        if len(query.free_variables) == 0:
+            return []
+        _, views = self.generate_views_recurse(query)
+        views = sorted(views, key=lambda x: len(x.sources), reverse=True)
+        for i, view in enumerate(views):
+            view.name = f"V_{query.name}_{i}"
+        return views
+
     def generate_views_recurse(self, query: "Query"):
-        res = []
-        parent_relations = self.parent_relations()
-
-        if len(self.children) == 0:
-            return [(parent_relations, set())]
-        if len(self.children) > 1:
-            complete_sub_relations = self.all_relations(False).difference(self.relations)
-            res.append((parent_relations.union(self.relations), complete_sub_relations))
-        for child in self.children:
-            res.extend(child.generate_views_recurse(query))
-        return res
-
+        sub_rel = []
+        views = []
+        if len(self.children) + len(self.relations) > 1:
+            all_child_relations = []
+            for child in self.children:
+                child_relations, child_views = child.generate_views_recurse(query)
+                views.extend(child_views)
+                all_child_relations.append(child_relations)
+                sub_rel.extend(child_relations)
+            all_child_relations.extend(self.relations)
+            sub_rel.extend(self.relations)
+            for i in range(1, len(all_child_relations) + 1):
+                for combination in itertools.combinations(all_child_relations, i):
+                    rel_views = set()
+                    for selection in combination:
+                        if type(selection) == Relation:
+                            rel_views.add(selection)
+                        else:
+                            rel_views.update(selection)
+                    if len(rel_views) < 2:
+                        continue
+                    variables = set()
+                    for rel in rel_views:
+                        variables.update(rel.free_variables)
+                    views.append(Relation(f"V_{query.name}_{len(query.views)}", variables.intersection(query.free_variables), query, rel_views))
+        else:
+            for child in self.children:
+                child_relations, child_views = child.generate_views_recurse(query)
+                sub_rel.extend(child_relations)
+                views.extend(child_views)
+            sub_rel.extend(self.relations)
+        return sub_rel, views
 
     @staticmethod
     def generate(relations: "set[Relation]", free_variables: "set[str]"):
 
         variables = set()
         for relation in relations:
-            variables.update(relation.variables)
+            variables.update(relation.free_variables)
         variable_list = list(variables)
 
-        variable_list.sort(key=lambda x: sum([1 for rel in relations if x in rel.variables]) + (
+        variable_list.sort(key=lambda x: sum([1 for rel in relations if x in rel.free_variables]) + (
             0.1 if x in free_variables else 0), reverse=False)
 
 
@@ -116,7 +131,7 @@ class VariableOrderNode:
     @staticmethod
     def generate_recursion(relations: "set[Relation]", node: "VariableOrderNode", free_variables: "set[str]"):
         parent_vars = node.parent_variables()
-        generateable_relations = {rel for rel in relations if rel.variables.issubset(parent_vars)}
+        generateable_relations = {rel for rel in relations if rel.free_variables.issubset(parent_vars)}
         node.relations.update(generateable_relations)
         ungenerateable_relations = relations.difference(generateable_relations)
         if not ungenerateable_relations:
@@ -124,17 +139,17 @@ class VariableOrderNode:
 
         variables = set()
         for relation in ungenerateable_relations:
-            variables.update(relation.variables)
+            variables.update(relation.free_variables)
         variables.difference_update(parent_vars)
         variable_list = list(variables)
 
-        variable_list.sort(key=lambda x: sum([1 for rel in ungenerateable_relations if x in rel.variables]) + (0.1 if x in free_variables else 0), reverse=False)
+        variable_list.sort(key=lambda x: sum([1 for rel in ungenerateable_relations if x in rel.free_variables]) + (0.1 if x in free_variables else 0), reverse=False)
 
         next_var = variable_list.pop()
         next_node = VariableOrderNode(next_var, set(), set(), node)
         node.children.add(next_node)
 
-        sub_relations = {rel for rel in ungenerateable_relations if next_var in rel.variables}
+        sub_relations = {rel for rel in ungenerateable_relations if next_var in rel.free_variables}
 
         VariableOrderNode.generate_recursion(sub_relations, next_node, free_variables)
         VariableOrderNode.generate_recursion(ungenerateable_relations.difference(sub_relations), node, free_variables)

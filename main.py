@@ -15,6 +15,8 @@ def run(queries: "set[Query]"):
             q_hierarchical.add(query)
         else:
             non_q_hierarchical.add(query)
+    for query in q_hierarchical:
+        query.views = list(filter(lambda _view: any(map(lambda x: _view.sources.issubset(x.variable_order.all_relations()), non_q_hierarchical)), query.views))
 
     while True:
         new_q_hierarchical = set()
@@ -37,8 +39,13 @@ def run(queries: "set[Query]"):
                 for view in q_hierarchical_query.views:
                     all_relations = non_q_hierarchical_query.variable_order.all_relations(True)     # Resolve sub views # Verify different query origin
                     if view.root_sources().issubset(all_relations):
-                        new_relations = non_q_hierarchical_query.variable_order.all_relations().difference(view.root_sources())
+                        old_relations = non_q_hierarchical_query.variable_order.all_relations()
+                        new_relations = old_relations.difference(view.root_sources())
+                        if any(map(lambda x: x not in view.free_variables and (any(map(lambda y: x in y.free_variables, new_relations)) or x in non_q_hierarchical_query.free_variables), view.all_variables())):
+                            continue
                         new_relations.add(view)
+                        if len(new_relations) >= len(old_relations): # todo check if relation is subsumed
+                            continue
                         new_query = Query(non_q_hierarchical_query.name, new_relations, non_q_hierarchical_query.free_variables)
                         if new_query in q_hierarchical or new_query in non_q_hierarchical:
                             continue
@@ -49,6 +56,8 @@ def run(queries: "set[Query]"):
                         else:
                             new_non_q_hierarchical.add(new_query)
         if len(new_q_hierarchical) == 0 and len(new_non_q_hierarchical) == 0 or len(non_q_hierarchical) + len(q_hierarchical) > 2000:
+            if len(non_q_hierarchical) + len(q_hierarchical) > 2000:
+                print("Cutoff hit")
             compatible_solutions = find_compatible_reductions(list(q_hierarchical))
             return list(filter(lambda x: len(x.queries) == len(queries), compatible_solutions))
         q_hierarchical.update(new_q_hierarchical)
@@ -150,27 +159,28 @@ def example_5():
     R5 = Relation("R5", {"x", "y", "a", "c"})
     R6 = Relation("R6", {"x", "y", "b", "d"})
     Q1 = Query("Q1", {R0, R1, R2, R3, R4, R5, R6},  {"x","y", "z", "a", "b", "c", "d"})
-    res = Q1.variable_order.generate_views(Q1)
+    Q1.variable_order.generate_views(Q1)
 
-    return res
+    return
 
 def example_6(nr_attempts: int):
     nr_valid = 0
     nr_success = 0
     for _ in range(nr_attempts):
         resi = generate(nr_queries=5,
-                        avg_nr_relations=5,
+                        avg_nr_relations=6,
                         std_nr_relations=3,
                         avg_total_relations=12,
                         std_total_relations=3,
-                        avg_nr_variables=3,
+                        avg_nr_variables=5,
                         std_nr_variables=1,
                         avg_total_variables=8,
                         std_total_variables=3)
         q_hierarchical = map(lambda x: x.is_q_hierarchical(), resi)
         not_q_hierarchical = map(lambda x: not x, q_hierarchical)
         if any(q_hierarchical) and any(not_q_hierarchical):
-            print(_)
+            if _ % 10 == 0:
+                print(_)
             nr_valid += 1
     #        print("=============")
     #        for query in resi:
@@ -178,8 +188,12 @@ def example_6(nr_attempts: int):
             res = run(resi)
             if len(res) > 0:
                 nr_success += 1
-                first_res = res.pop()
-                first_res.graph_viz()
+                print(f"nr res: {len(res)}")
+
+                res_list = list(res)
+                res_list = sorted(res_list, key= lambda x: sum(map(lambda y: len(y.variable_order.all_relations()), x.queries)), reverse=True)
+                for i, query_set in enumerate(res_list[:4]):
+                    query_set.graph_viz(i)
                 return
     #            for reduction in res:
     #                print("-------------")
@@ -314,6 +328,6 @@ def example_7():
 # example_3()
 # example_4()
 # example_5()
-# example_6(200)
-example_7()
+example_6(400)
+# example_7()
 print("done")
