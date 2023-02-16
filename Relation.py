@@ -38,7 +38,7 @@ class Relation:
         return hash(",".join(self.free_variables) + "".join(list(map(lambda x: str(hash(x) if x != self else "GUGUS"), self.sources))))
 
     def __str__(self):
-        return self.name + "(" + ",".join(self.free_variables) + ")"
+        return self.name + "(" + ",".join(sorted(self.free_variables)) + ")"
 
     def __repr__(self):
         return str(self)

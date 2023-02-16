@@ -11,7 +11,7 @@ from random import shuffle
 class Query:
 
     def __init__(self, name: str, relations: "set[Relation]", free_variables: "set[str]"):
-        self.views: "set[Relation]" = []
+        self.views: "list[Relation]" = []
         self.name = name
         self.free_variables = free_variables
         self.variable_order: "VariableOrderNode" = VariableOrderNode.generate(relations, free_variables)
@@ -52,7 +52,7 @@ class Query:
         return res
 
     def __str__(self):
-        return self.name + "(" + ",".join(self.free_variables) +")" + " = " + "*".join(map(lambda x: str(x), self.variable_order.all_relations()))
+        return self.name + "(" + ",".join(sorted(self.free_variables)) +")" + " = " + "*".join(sorted(map(lambda x: str(x), self.variable_order.all_relations())))
 
     def __hash__(self):
         return hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(x), self.variable_order.all_relations())))}")

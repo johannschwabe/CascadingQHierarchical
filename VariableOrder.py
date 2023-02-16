@@ -72,19 +72,19 @@ class VariableOrderNode:
         if len(query.free_variables) == 0:
             return []
         _, views = self.generate_views_recurse(query)
-        views = sorted(views, key=lambda x: len(x.sources), reverse=True)
+        views = sorted(list(views), key=lambda x: len(x.sources), reverse=True)
         for i, view in enumerate(views):
             view.name = f"V_{query.name}_{i}"
         return views
 
     def generate_views_recurse(self, query: "Query"):
         sub_rel = []
-        views = []
+        views = set()
         if len(self.children) + len(self.relations) > 1:
             all_child_relations = []
             for child in self.children:
                 child_relations, child_views = child.generate_views_recurse(query)
-                views.extend(child_views)
+                views.update(child_views)
                 all_child_relations.append(child_relations)
                 sub_rel.extend(child_relations)
             all_child_relations.extend(self.relations)
@@ -102,12 +102,12 @@ class VariableOrderNode:
                     variables = set()
                     for rel in rel_views:
                         variables.update(rel.free_variables)
-                    views.append(Relation(f"V_{query.name}_{len(query.views)}", variables.intersection(query.free_variables), query, rel_views))
+                    views.add(Relation(f"V_{query.name}_{len(query.views)}", variables.intersection(query.free_variables), query, rel_views))
         else:
             for child in self.children:
                 child_relations, child_views = child.generate_views_recurse(query)
                 sub_rel.extend(child_relations)
-                views.extend(child_views)
+                views.update(child_views)
             sub_rel.extend(self.relations)
         return sub_rel, views
 

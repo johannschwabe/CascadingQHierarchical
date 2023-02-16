@@ -5,7 +5,6 @@ from Relation import Relation
 from Query import Query, QuerySet
 from VariableOrder import VariableOrderNode
 
-random.seed(2)
 def run(queries: "set[Query]"):
     q_hierarchical = set()
     non_q_hierarchical = set()
@@ -166,6 +165,9 @@ def example_5():
 def example_6(nr_attempts: int):
     nr_valid = 0
     nr_success = 0
+    seeds = list(range(3,nr_attempts+3))
+    random.shuffle(seeds)
+    print(seeds)
     for _ in range(nr_attempts):
         resi = generate(nr_queries=5,
                         avg_nr_relations=6,
@@ -175,7 +177,9 @@ def example_6(nr_attempts: int):
                         avg_nr_variables=5,
                         std_nr_variables=1,
                         avg_total_variables=8,
-                        std_total_variables=3)
+                        std_total_variables=3,
+                        seed=seeds[_]
+                        )
         q_hierarchical = map(lambda x: x.is_q_hierarchical(), resi)
         not_q_hierarchical = map(lambda x: not x, q_hierarchical)
         if any(q_hierarchical) and any(not_q_hierarchical):
@@ -192,7 +196,7 @@ def example_6(nr_attempts: int):
 
                 res_list = list(res)
                 res_list = sorted(res_list, key= lambda x: sum(map(lambda y: len(y.variable_order.all_relations()), x.queries)), reverse=True)
-                for i, query_set in enumerate(res_list[:4]):
+                for i, query_set in enumerate(res_list[:1]):
                     query_set.graph_viz(i)
                 return
     #            for reduction in res:
@@ -321,6 +325,11 @@ def example_7():
     else:
         print("no reduction")
 
+def example_8():
+    for i in range(0,10000):
+        print(i)
+        random.seed(i)
+        example_6(1)
 
 # example_0()
 # example_1()
@@ -328,6 +337,7 @@ def example_7():
 # example_3()
 # example_4()
 # example_5()
-example_6(400)
+# example_6(1)
 # example_7()
+example_8()
 print("done")
