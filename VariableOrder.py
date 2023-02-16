@@ -16,6 +16,8 @@ class VariableOrderNode:
         self.name = name
         self.relations = relations
         self.parent = parent
+        self._all_relations_sources = set()
+        self._all_relations_no_sources = set()
 
     def graph_viz(self, graph: "Digraph|None" = None, rootname: str = ""):
         own_name = f"{rootname}_{self.name}"
@@ -43,6 +45,10 @@ class VariableOrderNode:
         return graph
 
     def all_relations(self, source_only = False) -> "set[Relation]":
+        if source_only and self._all_relations_sources:
+            return self._all_relations_sources
+        if not source_only and self._all_relations_no_sources:
+            return self._all_relations_no_sources
         res = set()
         if source_only:
             for rel in self.relations:
@@ -51,6 +57,10 @@ class VariableOrderNode:
             res.update(self.relations)
         for child in self.children:
             res.update(child.all_relations(source_only))
+        if source_only:
+            self._all_relations_sources = res
+        else:
+            self._all_relations_no_sources = res
         return res
 
     def copy(self, parent: "VariableOrderNode|None"):

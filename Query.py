@@ -15,6 +15,9 @@ class Query:
         self.name = name
         self.free_variables = free_variables
         self.variable_order: "VariableOrderNode" = VariableOrderNode.generate(relations, free_variables)
+        self.hash_key = hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(hash(x)), self.variable_order.all_relations())))}")
+        self._dependant_on_deep = set()
+        self._dependant_on_non_deep = set()
 
 
     def is_q_hierarchical(self) -> bool:
@@ -43,19 +46,25 @@ class Query:
         a = 0
 
     def dependant_on(self, deep:bool = True):
+        if self._dependant_on_deep and deep: return self._dependant_on_deep
+        if self._dependant_on_non_deep and not deep: return self._dependant_on_deep
         res: "set[Query]" = set()
         for relation in self.variable_order.all_relations(False):
             if relation.dependentOn:
                 res.add(relation.dependentOn)
                 if deep:
                     res.update(relation.dependentOn.dependant_on())
+        if deep:
+            self._dependant_on_deep = res
+        else:
+            self._dependant_on_non_deep = res
         return res
 
     def __str__(self):
         return self.name + "(" + ",".join(sorted(self.free_variables)) +")" + " = " + "*".join(sorted(map(lambda x: str(x), self.variable_order.all_relations())))
 
     def __hash__(self):
-        return hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(x), self.variable_order.all_relations())))}")
+        return self.hash_key
 
     def __eq__(self, other):
         return hash(self) == hash(other)
@@ -64,9 +73,10 @@ class Query:
 class QuerySet:
     def __init__(self):
         self.queries: "set[Query]" = set()
+        self.hash_key = hash(",".join(sorted(map(lambda x: str(hash(x)), self.queries))))
 
     def __hash__(self):
-        return hash(",".join(sorted(map(lambda x: str(hash(x)), self.queries))))
+        return self.hash_key
 
     def __repr__(self):
         return ",".join(sorted(map(lambda x: str(x), self.queries)))

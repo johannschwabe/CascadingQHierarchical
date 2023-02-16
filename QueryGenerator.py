@@ -60,6 +60,4 @@ def generate(nr_queries: int,
         # print(free_variables)
 
         res.append(Query(f"Q{i}", set(selected_rels), free_variables))
-    for q in res:
-        print(q)
     return res

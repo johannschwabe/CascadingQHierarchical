@@ -4,13 +4,13 @@ from QueryGenerator import generate
 from Relation import Relation
 from Query import Query, QuerySet
 from VariableOrder import VariableOrderNode
-
+random.seed(235)
 def run(queries: "set[Query]"):
     q_hierarchical = set()
     non_q_hierarchical = set()
     for query in queries:
-        query.generate_views()
         if query.is_q_hierarchical():
+            query.generate_views()
             q_hierarchical.add(query)
         else:
             non_q_hierarchical.add(query)
@@ -162,12 +162,10 @@ def example_5():
 
     return
 
-def example_6(nr_attempts: int):
+def example_6(nr_attempts: int, seed_base = 23445, _print = False):
     nr_valid = 0
     nr_success = 0
-    seeds = list(range(3,nr_attempts+3))
-    random.shuffle(seeds)
-    print(seeds)
+    random.seed(seed_base)
     for _ in range(nr_attempts):
         resi = generate(nr_queries=5,
                         avg_nr_relations=6,
@@ -178,7 +176,7 @@ def example_6(nr_attempts: int):
                         std_nr_variables=1,
                         avg_total_variables=8,
                         std_total_variables=3,
-                        seed=seeds[_]
+                        seed=seed_base + _
                         )
         q_hierarchical = map(lambda x: x.is_q_hierarchical(), resi)
         not_q_hierarchical = map(lambda x: not x, q_hierarchical)
@@ -192,17 +190,18 @@ def example_6(nr_attempts: int):
             res = run(resi)
             if len(res) > 0:
                 nr_success += 1
-                print(f"nr res: {len(res)}")
+                if _print:
+                    print(f"nr res: {len(res)}")
 
-                res_list = list(res)
-                res_list = sorted(res_list, key= lambda x: sum(map(lambda y: len(y.variable_order.all_relations()), x.queries)), reverse=True)
-                for i, query_set in enumerate(res_list[:1]):
-                    query_set.graph_viz(i)
-                return
-    #            for reduction in res:
-    #                print("-------------")
-    #                for query in reduction.queries:
-    #                    print(query)
+                    res_list = list(res)
+                    res_list = sorted(res_list, key= lambda x: sum(map(lambda y: len(y.variable_order.all_relations()), x.queries)), reverse=False)
+                    for i, query_set in enumerate(res_list[:1]):
+                       query_set.graph_viz(i)
+                    break
+        #            for reduction in res:
+        #                print("-------------")
+        #                for query in reduction.queries:
+        #                    print(query)
 
     print(f"{nr_attempts} groups generated, {nr_valid} valid, {nr_success} successfull reduction")
 
@@ -326,10 +325,10 @@ def example_7():
         print("no reduction")
 
 def example_8():
-    for i in range(0,10000):
-        print(i)
-        random.seed(i)
-        example_6(1)
+    for i in range(1000,2000):
+        seed_base =random.randint(16029,50000)
+        print(seed_base)
+        example_6(1, seed_base)
 
 # example_0()
 # example_1()
@@ -337,7 +336,7 @@ def example_8():
 # example_3()
 # example_4()
 # example_5()
-# example_6(1)
+example_6(3000, -333)
 # example_7()
-example_8()
+# example_8()
 print("done")

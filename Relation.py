@@ -7,18 +7,24 @@ if TYPE_CHECKING:
 class Relation:
 
 
-    def __init__(self, name: str, variables: "set[str]", dependantOn = None, sources: "set[Relation] | None" = None):
+    def __init__(self, name: str, variables: "set[str]", dependantOn = None, sources: "List[Relation] | None" = None):
         self.free_variables = variables if variables else set()
         self.dependentOn: "Query|None" = dependantOn
         self.sources = sources
         self.name = name
+        self.hash_val = hash(f"{'-'.join(sorted(self.free_variables))}:{','.join(map(lambda x: str(x), self.sources)) if self.sources else self.name}")
+        self.disp_name = self.name + "(" + ",".join(sorted(self.free_variables)) + ")"
+        self._root_sources = set()
 
     def root_sources(self):
+        if self._root_sources:
+            return self._root_sources
         res = set()
         if not self.sources:
             return {self}
         for source in self.sources:
             res.update(source.root_sources())
+        self._root_sources = res
         return res
 
     def all_variables(self):
@@ -28,17 +34,13 @@ class Relation:
         return res
 
     def __eq__(self, other):
-        if not self.sources and not other.sources:
-            return self.free_variables == other.free_variables and self.name == other.name
-        return self.free_variables == other.free_variables and self.sources == other.sources
+        return self.hash_val == other.hash_val
 
     def __hash__(self):
-        if not self.sources:
-            return hash(f"{self.name}{','.join(self.free_variables)}")
-        return hash(",".join(self.free_variables) + "".join(list(map(lambda x: str(hash(x) if x != self else "GUGUS"), self.sources))))
+        return self.hash_val
 
     def __str__(self):
-        return self.name + "(" + ",".join(sorted(self.free_variables)) + ")"
+        return self.disp_name
 
     def __repr__(self):
         return str(self)
