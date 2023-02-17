@@ -157,9 +157,11 @@ def example_5():
     R4 = Relation("R4", {"x", "y", "b"})
     R5 = Relation("R5", {"x", "y", "a", "c"})
     R6 = Relation("R6", {"x", "y", "b", "d"})
-    Q1 = Query("Q1", {R0, R1, R2, R3, R4, R5, R6},  {"x","y", "z", "a", "b", "c", "d"})
+    Q1 = Query("Q1", {R0, R1, R2, R3, R4, R5, R6},  {"x","y", "z"})
     Q1.variable_order.generate_views(Q1)
-
+    qs = QuerySet()
+    qs.add(Q1)
+    qs.graph_viz()
     return
 
 def example_6(nr_attempts: int, seed_base = 23445, _print = False):
@@ -335,8 +337,8 @@ def example_8():
 # example_2()
 # example_3()
 # example_4()
-# example_5()
-example_6(3000, -333)
+example_5()
+# example_6(3000, -333)
 # example_7()
 # example_8()
 print("done")

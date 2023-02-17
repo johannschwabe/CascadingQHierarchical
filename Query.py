@@ -84,6 +84,7 @@ class QuerySet:
     def add(self, other: "Query"):
         self.queries.add(other)
 
+
     def __eq__(self, other):
         return hash(self) == hash(other)
 
@@ -91,7 +92,8 @@ class QuerySet:
         graph = Digraph(name="base", graph_attr={"compound": "true", "spline":"false"})
         ress= []
         for query in self.queries:
-            res = query.variable_order.graph_viz(Digraph(name=f"cluster_{query.name}", graph_attr={"label": f"{query.name}({','.join(query.free_variables)})"}), query.name)
+            res = Digraph(name=f"cluster_{query.name}", graph_attr={"label": f"{query.name}({','.join(query.free_variables)})"})
+            query.variable_order.graph_viz_2(res, query)
             ress.append(res)
         for res in ress:
             graph.subgraph(res)
