@@ -65,6 +65,8 @@ class VariableOrderNode:
             while len(_iter.children) == 1 and len(_iter.relations) == 0:
                 _iter = list(_iter.children)[0]
                 sub_vars.add(_iter.name)
+            if len(_iter.children) == 0:
+                sub_vars.add(_iter.name)
             bounden_vars = sub_vars.difference(query.free_variables)
             child_rel_names = ""
             for rel in _iter.all_relations(True):
@@ -72,11 +74,19 @@ class VariableOrderNode:
                 sub_vars.update(rel.free_variables)
             free_vars = sub_vars.intersection(query.free_variables)
 
-            label = f"<V<SUB>{child_rel_names}</SUB><SUP>@{''.join(sorted(bounden_vars))}</SUP>({','.join(sorted(free_vars))})>"
+            if bounden_vars:
+                label = f"<V<SUB>{child_rel_names}</SUB><SUP>@{''.join(sorted(bounden_vars))}</SUP>({','.join(sorted(free_vars))})>"
+            else:
+                label = f"<V<SUB>{child_rel_names}</SUB>({','.join(sorted(free_vars))})>"
             node_name = f"{rootname}_{self.name}"
             graph.node(node_name, label=label)
-            sub_name = _iter.graph_viz_2(graph, query)
-            graph.edge(node_name, sub_name)
+            for child in _iter.children:
+                sub_name = child.graph_viz_2(graph, query)
+                graph.edge(node_name, sub_name)
+            for relation in _iter.relations:
+                rel_name = f"{rootname}_{relation.name}"
+                graph.node(rel_name, label=str(relation), shape="rectangle")
+                graph.edge(node_name,rel_name)
             return node_name
 
         if len(self.relations) > 0:
