@@ -75,9 +75,14 @@ def find_compatible(chosen: "Query", options: list[Query]):
             continue
         res.append(option)
     return res
+
 def find_compatible_reductions(options: list[Query]) -> list[QuerySet]:
     res = []
-    for option in options:
+    if len(options) == 0:
+        return []
+    next_query_name = list(set(map(lambda x: x.name,options)))[0]
+    next_queries = filter(lambda x: x.name == next_query_name, options)
+    for option in next_queries:
         compatible = find_compatible(option, options)
         sub_solutions = find_compatible_reductions(compatible)
         if len(sub_solutions) == 0:
@@ -89,6 +94,8 @@ def find_compatible_reductions(options: list[Query]) -> list[QuerySet]:
                 sub_solution.add(option)
         res.extend(sub_solutions)
     return list(set(res))
+
+
 
 def example_0():
     R1 = Relation("R1", {"x", "y"})
@@ -206,6 +213,7 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
                     res_list = sorted(res_list, key= lambda x: sum(map(lambda y: len(y.variable_order.all_relations()), x.queries)), reverse=False)
                     # for i, query_set in enumerate(res_list[:1]):
                     res_list[0].graph_viz(_)
+                    break
 
         #            for reduction in res:
         #                print("-------------")
@@ -345,7 +353,7 @@ def example_8():
 # example_3()
 # example_4()
 #example_5()
-example_6(3000, 546, _print=False)
+example_6(3000, 42, _print=True)
 # example_7()
 # example_8()
 print("done")
