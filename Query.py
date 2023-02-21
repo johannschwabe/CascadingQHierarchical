@@ -1,13 +1,10 @@
-import random
+import itertools
 
-from graphviz import Graph, Digraph
+from graphviz import Digraph
 
 from JoinOrderNode import JoinOrderNode
 from VariableOrder import VariableOrderNode
 from Relation import Relation
-import graphviz
-import colors
-from random import shuffle
 
 class Query:
 
@@ -38,24 +35,28 @@ class Query:
         all_relations = self.variable_order.all_relations()
         for rel in all_relations:
             variables = variables.union(rel.free_variables)
-        for variable_a in variables:
-            for variable_b in variables:
-                if variable_a == variable_b:
-                    continue
-                atoms_a = set(filter(lambda x: variable_a in x.free_variables, all_relations))
-                atoms_b = set(filter(lambda x: variable_b in x.free_variables, all_relations))
-                c1 = atoms_a.issubset(atoms_b)
-                c2 = atoms_b.issubset(atoms_a)
-                c3 = atoms_a.isdisjoint(atoms_b)
 
-                if atoms_a < atoms_b and variable_a in self.free_variables and variable_b not in self.free_variables:
-                    self._is_q_hierarchical = False
-                    return False
-                if not (c1 or c2 or c3):
-                    self._is_q_hierarchical = False
-                    return False
-        self._is_q_hierarchical = True
-        return True
+        def check_combination(_variables):
+            variable_a = _variables[0]
+            variable_b = _variables[1]
+            if variable_a == variable_b:
+                return True
+            atoms_a = set(filter(lambda x: variable_a in x.free_variables, all_relations))
+            atoms_b = set(filter(lambda x: variable_b in x.free_variables, all_relations))
+            c1 = atoms_a.issubset(atoms_b)
+            c2 = atoms_b.issubset(atoms_a)
+            c3 = atoms_a.isdisjoint(atoms_b)
+
+            if atoms_a < atoms_b and variable_a in self.free_variables and variable_b not in self.free_variables:
+                self._is_q_hierarchical = False
+                return False
+            if not (c1 or c2 or c3):
+                self._is_q_hierarchical = False
+                return False
+            return True
+
+        self._is_q_hierarchical = all(map(check_combination, itertools.combinations(variables, 2)))
+        return self._is_q_hierarchical
 
     def generate_views(self):
         self.views = self.variable_order.generate_views(self)
