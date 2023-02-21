@@ -7,7 +7,7 @@ from QueryGenerator import generate
 from Relation import Relation
 from Query import Query, QuerySet
 from VariableOrder import VariableOrderNode
-random.seed(235)
+random.seed(22)
 def run(queries: "set[Query]"):
     q_hierarchical = set()
     non_q_hierarchical = set()
@@ -204,9 +204,9 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
 
                     res_list = list(res)
                     res_list = sorted(res_list, key= lambda x: sum(map(lambda y: len(y.variable_order.all_relations()), x.queries)), reverse=False)
-                    for i, query_set in enumerate(res_list[:1]):
-                       query_set.graph_viz(i)
-                    break
+                    # for i, query_set in enumerate(res_list[:1]):
+                    res_list[0].graph_viz(_)
+
         #            for reduction in res:
         #                print("-------------")
         #                for query in reduction.queries:
@@ -345,7 +345,7 @@ def example_8():
 # example_3()
 # example_4()
 #example_5()
-example_6(3000, -333, _print=True)
+example_6(3000, 546, _print=False)
 # example_7()
 # example_8()
 print("done")

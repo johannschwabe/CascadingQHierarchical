@@ -15,13 +15,25 @@ class Query:
         self.views: "list[Relation]" = []
         self.name = name
         self.free_variables = free_variables
-        self.variable_order: "VariableOrderNode" = VariableOrderNode.generate(relations, free_variables)
-        self.hash_key = hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(hash(x)), self.variable_order.all_relations())))}")
+        self.relations = relations
+        self._variable_order: "VariableOrderNode | None" = None
+        self.hash_key = hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(hash(x)), relations)))}")
         self._dependant_on_deep = set()
         self._dependant_on_non_deep = set()
+        self._is_q_hierarchical: bool|None = None
 
+    @property
+    def variable_order(self):
+        if not self._variable_order:
+            self.generate_variable_order()
+        return self._variable_order
+
+    def generate_variable_order(self):
+        self._variable_order = VariableOrderNode.generate(self.relations, self.free_variables)
 
     def is_q_hierarchical(self) -> bool:
+        if self._is_q_hierarchical is not None:
+            return self._is_q_hierarchical
         variables = set()
         all_relations = self.variable_order.all_relations()
         for rel in all_relations:
@@ -37,14 +49,16 @@ class Query:
                 c3 = atoms_a.isdisjoint(atoms_b)
 
                 if atoms_a < atoms_b and variable_a in self.free_variables and variable_b not in self.free_variables:
+                    self._is_q_hierarchical = False
                     return False
                 if not (c1 or c2 or c3):
+                    self._is_q_hierarchical = False
                     return False
+        self._is_q_hierarchical = True
         return True
 
     def generate_views(self):
         self.views = self.variable_order.generate_views(self)
-        a = 0
 
     def dependant_on(self, deep:bool = True):
         if self._dependant_on_deep and deep: return self._dependant_on_deep
@@ -84,7 +98,7 @@ class QuerySet:
 
     def add(self, other: "Query"):
         self.queries.add(other)
-
+        self.hash_key = hash(",".join(sorted(map(lambda x: str(hash(x)), self.queries))))
 
     def __eq__(self, other):
         return hash(self) == hash(other)
