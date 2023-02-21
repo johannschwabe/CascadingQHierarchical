@@ -159,11 +159,11 @@ def example_5():
     R3 = Relation("R3", {"x", "y", "a"})
     # R4 = Relation("R4", {"x", "y", "b"})
     R5 = Relation("R5", {"x", "y", "a", "c"})
-    R6 = Relation("R6", {"x", "y", "b", "d"})
-    Q1 = Query("Q1", {R0, R1, R2, R3, R5, R6},  {"x","y"})
+    R6 = Relation("R6", {"x", "y", "b", "d", "e"})
+    Q1 = Query("Q1", {R0, R1, R2, R3, R5, R6},  {"x","y", "a"})
     res = JoinOrderNode.generate(Q1.variable_order, Q1)
     graphy = Digraph("Gugus")
-    res.viz(graphy)
+    res.viz(graphy, Q1)
     graphy.view()
     # Q1.variable_order.generate_views(Q1)
     # qs = QuerySet()
@@ -200,7 +200,7 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
             if len(res) > 0:
                 nr_success += 1
                 if _print:
-                    print(f"nr res: {len(res)}")
+                    print(f"Success on {_}: Nr res: {len(res)}")
 
                     res_list = list(res)
                     res_list = sorted(res_list, key= lambda x: sum(map(lambda y: len(y.variable_order.all_relations()), x.queries)), reverse=False)
@@ -344,8 +344,8 @@ def example_8():
 # example_2()
 # example_3()
 # example_4()
-example_5()
-#example_6(3000, -333, _print=True)
+#example_5()
+example_6(3000, -333, _print=True)
 # example_7()
 # example_8()
 print("done")

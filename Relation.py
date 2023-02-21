@@ -16,6 +16,10 @@ class Relation:
         self.disp_name = self.name + "(" + ",".join(sorted(self.free_variables)) + ")"
         self._root_sources = set()
 
+    def set_name(self, name: str):
+        self.name = name
+        self.disp_name = self.name + "(" + ",".join(sorted(self.free_variables)) + ")"
+
     def root_sources(self):
         if self._root_sources:
             return self._root_sources

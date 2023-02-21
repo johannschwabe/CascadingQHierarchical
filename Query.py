@@ -2,6 +2,7 @@ import random
 
 from graphviz import Graph, Digraph
 
+from JoinOrderNode import JoinOrderNode
 from VariableOrder import VariableOrderNode
 from Relation import Relation
 import graphviz
@@ -93,7 +94,10 @@ class QuerySet:
         ress= []
         for query in self.queries:
             res = Digraph(name=f"cluster_{query.name}", graph_attr={"label": f"{query.name}({','.join(sorted(query.free_variables))})"})
-            query.variable_order.graph_viz_2(res, query)
+            join_order = JoinOrderNode.generate(query.variable_order, query)
+            join_order.viz(res, query)
+            res.node(query.name, style="invis")
+
             ress.append(res)
         for res in ress:
             graph.subgraph(res)
