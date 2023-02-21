@@ -164,6 +164,12 @@ class VariableOrderNode:
             res.update(self.parent.parent_variables())
         return res
 
+    def child_vars(self):
+        res = {self.name}
+        for child in self.children:
+            res.update(child.child_vars())
+        return res
+
     def parent_relations(self):
         if self.parent:
             return self.relations.union(self.parent.parent_relations())
