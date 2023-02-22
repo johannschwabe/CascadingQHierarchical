@@ -19,6 +19,7 @@ class VariableOrderNode:
         self._all_relations_sources = set()
         self._all_relations_no_sources = set()
         self._parent_vars = set()
+        self._views: "list[Relation]" = []
 
     def graph_viz(self, graph: "Digraph|None" = None, rootname: str = ""):
         own_name = f"{rootname}_{self.name}"
@@ -38,12 +39,35 @@ class VariableOrderNode:
             relation_name = f"{rootname}_{relation.name}"
             graph.node(relation_name, shape="rectangle", label=str(relation))
             graph.edge(own_name, relation_name)
-            if relation.dependentOn:
+            if relation.sources:
                 for source in relation.root_sources():
                     source_name = f"{rootname}_{source.name}"
                     graph.node(source_name, label=str(source), shape="diamond")
                     graph.edge(relation_name, source_name)
         return graph
+
+    def views(self, query: "Query"):
+        if self._views:
+            return self._views
+        child_views: "list[Relation|list[Relation]]" = []
+        for child in self.children:
+            child_views.append(child.views(query))
+        child_views.extend(self.relations)
+
+        for i in range(len(child_views), 1, -1):
+            for j, permutation in enumerate(itertools.combinations(child_views, i)):
+                cleaned_relations = set()
+                for choice in permutation:
+                    if type(choice) == Relation:
+                        cleaned_relations.add(choice)
+                    else:
+                        cleaned_relations.update(choice)
+                varis = set()
+                for relation in cleaned_relations:
+                    varis.update(relation.free_variables)
+                self._views.append(Relation(f"V_{query.name}_{i}_{j}", varis, -1, cleaned_relations))
+        return self._views
+
 
     def all_relations(self, source_only = False) -> "set[Relation]":
         if source_only and self._all_relations_sources:
@@ -87,49 +111,6 @@ class VariableOrderNode:
         if self.parent:
             return self.relations.union(self.parent.parent_relations())
         return self.relations
-
-    def generate_views(self, query: "Query"):
-        if len(query.free_variables) == 0:
-            return []
-        _, views = self.generate_views_recurse(query)
-        views = sorted(list(views), key=lambda x: len(x.sources), reverse=True)
-        for i, view in enumerate(views):
-            view.set_name(f"V_{query.name}_{i}")
-        return views
-
-    def generate_views_recurse(self, query: "Query"):
-        sub_rel = []
-        views = set()
-        if len(self.children) + len(self.relations) > 1:
-            all_child_relations = []
-            for child in self.children:
-                child_relations, child_views = child.generate_views_recurse(query)
-                views.update(child_views)
-                all_child_relations.append(child_relations)
-                sub_rel.extend(child_relations)
-            all_child_relations.extend(self.relations)
-            sub_rel.extend(self.relations)
-            for i in range(1, len(all_child_relations) + 1):
-                for combination in itertools.combinations(all_child_relations, i):
-                    rel_views = set()
-                    for selection in combination:
-                        if type(selection) == Relation:
-                            rel_views.add(selection)
-                        else:
-                            rel_views.update(selection)
-                    if len(rel_views) < 2:
-                        continue
-                    variables = set()
-                    for rel in rel_views:
-                        variables.update(rel.free_variables)
-                    views.add(Relation(f"V_{query.name}_{len(query.views)}", variables.intersection(query.free_variables), -1, query, rel_views))
-        else:
-            for child in self.children:
-                child_relations, child_views = child.generate_views_recurse(query)
-                sub_rel.extend(child_relations)
-                views.update(child_views)
-            sub_rel.extend(self.relations)
-        return sub_rel, views
 
     @staticmethod
     def generate(relations: "set[Relation]", free_variables: "set[str]"):

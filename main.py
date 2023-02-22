@@ -110,7 +110,7 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
                         )
         bs = BitSet(resi)
         for query in resi:
-            query._bitset = bs
+            query.bitset = bs
         q_hierarchical = map(lambda x: x.is_q_hierarchical(), resi)
         not_q_hierarchical = map(lambda x: not x, q_hierarchical)
         if any(q_hierarchical) and any(not_q_hierarchical):
