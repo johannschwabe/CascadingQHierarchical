@@ -122,7 +122,7 @@ class VariableOrderNode:
                     variables = set()
                     for rel in rel_views:
                         variables.update(rel.free_variables)
-                    views.add(Relation(f"V_{query.name}_{len(query.views)}", variables.intersection(query.free_variables), query, rel_views))
+                    views.add(Relation(f"V_{query.name}_{len(query.views)}", variables.intersection(query.free_variables), -1, query, rel_views))
         else:
             for child in self.children:
                 child_relations, child_views = child.generate_views_recurse(query)

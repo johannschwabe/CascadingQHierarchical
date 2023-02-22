@@ -41,7 +41,7 @@ def generate(nr_queries: int,
             else:
                 variable_name = f"{var_names[selected_var % len(var_names)]}_{selected_var // len(var_names)}"
             variables.add(variable_name)
-        rels.add(Relation(f"R{i}", variables))
+        rels.add(Relation(f"R{i}", variables, i))
     rel_list = list(sorted(rels, key=lambda x: x.name))
 
     relation_dist_samples = relation_dist.samples(nr_queries, seed=seed+3)

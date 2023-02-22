@@ -18,6 +18,7 @@ class Query:
         self._dependant_on_deep = set()
         self._dependant_on_non_deep = set()
         self._is_q_hierarchical: bool|None = None
+        self._bitset: "BitSet | None" = None
 
 
     @property
@@ -29,6 +30,8 @@ class Query:
     def generate_variable_order(self):
         self._variable_order = VariableOrderNode.generate(self.relations, self.free_variables)
 
+
+
     def is_q_hierarchical(self) -> bool:
         if self._is_q_hierarchical is not None:
             return self._is_q_hierarchical
@@ -38,25 +41,18 @@ class Query:
             variables.extend(rel.free_variables)
         join_variables = list(filter(lambda x: variables.count(x) > 1, variables))
 
-        bit_set: "dict[str, int]" = {}
-        for join_variable in join_variables:
-            bitset = 0
-            for index, relation in enumerate(all_relations):
-                if join_variable in relation.free_variables:
-                    bitset += 2**index
-            bit_set[join_variable] = bitset
-
-
-
         def check_combination(_variables):
             variable_a = _variables[0]
             variable_b = _variables[1]
 
-            c1 = bit_set[variable_a] | bit_set[variable_b] == bit_set[variable_a]
-            c2 = bit_set[variable_a] | bit_set[variable_b] == bit_set[variable_b]
-            c3 = bit_set[variable_a] & bit_set[variable_b] == 0
+            variable_a_bitset = self._bitset.var_bitset_query(variable_a, self.name)
+            variable_b_bitset = self._bitset.var_bitset_query(variable_b, self.name)
 
-            if bit_set[variable_a] | bit_set[variable_b] == bit_set[variable_b] and bit_set[variable_a] != bit_set[variable_b]  and variable_a in self.free_variables and variable_b not in self.free_variables:
+            c1 = variable_a_bitset | variable_b_bitset == variable_a_bitset
+            c2 = variable_a_bitset | variable_b_bitset == variable_b_bitset
+            c3 = variable_a_bitset & variable_b_bitset == 0
+
+            if variable_a_bitset | variable_b_bitset == variable_b_bitset and variable_a_bitset != variable_b_bitset and variable_a in self.free_variables and variable_b not in self.free_variables:
                 self._is_q_hierarchical = False
                 return False
             if not (c1 or c2 or c3):
