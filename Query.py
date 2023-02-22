@@ -19,6 +19,7 @@ class Query:
         self._dependant_on_non_deep = set()
         self._is_q_hierarchical: bool|None = None
 
+
     @property
     def variable_order(self):
         if not self._variable_order:
@@ -31,23 +32,31 @@ class Query:
     def is_q_hierarchical(self) -> bool:
         if self._is_q_hierarchical is not None:
             return self._is_q_hierarchical
-        variables = set()
-        all_relations = self.variable_order.all_relations()
+        variables = []
+        all_relations = list(self.relations)
         for rel in all_relations:
-            variables = variables.union(rel.free_variables)
+            variables.extend(rel.free_variables)
+        join_variables = list(filter(lambda x: variables.count(x) > 1, variables))
+
+        bit_set: "dict[str, int]" = {}
+        for join_variable in join_variables:
+            bitset = 0
+            for index, relation in enumerate(all_relations):
+                if join_variable in relation.free_variables:
+                    bitset += 2**index
+            bit_set[join_variable] = bitset
+
+
 
         def check_combination(_variables):
             variable_a = _variables[0]
             variable_b = _variables[1]
-            if variable_a == variable_b:
-                return True
-            atoms_a = set(filter(lambda x: variable_a in x.free_variables, all_relations))
-            atoms_b = set(filter(lambda x: variable_b in x.free_variables, all_relations))
-            c1 = atoms_a.issubset(atoms_b)
-            c2 = atoms_b.issubset(atoms_a)
-            c3 = atoms_a.isdisjoint(atoms_b)
 
-            if atoms_a < atoms_b and variable_a in self.free_variables and variable_b not in self.free_variables:
+            c1 = bit_set[variable_a] | bit_set[variable_b] == bit_set[variable_a]
+            c2 = bit_set[variable_a] | bit_set[variable_b] == bit_set[variable_b]
+            c3 = bit_set[variable_a] & bit_set[variable_b] == 0
+
+            if bit_set[variable_a] | bit_set[variable_b] == bit_set[variable_b] and bit_set[variable_a] != bit_set[variable_b]  and variable_a in self.free_variables and variable_b not in self.free_variables:
                 self._is_q_hierarchical = False
                 return False
             if not (c1 or c2 or c3):
@@ -55,7 +64,7 @@ class Query:
                 return False
             return True
 
-        self._is_q_hierarchical = all(map(check_combination, itertools.combinations(variables, 2)))
+        self._is_q_hierarchical = all(map(check_combination, itertools.combinations(join_variables, 2)))
         return self._is_q_hierarchical
 
     def generate_views(self):

@@ -213,7 +213,7 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
                     res_list = sorted(res_list, key= lambda x: sum(map(lambda y: len(y.variable_order.all_relations()), x.queries)), reverse=False)
                     # for i, query_set in enumerate(res_list[:1]):
                     res_list[0].graph_viz(_)
-                    break
+                    #break
 
         #            for reduction in res:
         #                print("-------------")
@@ -353,7 +353,7 @@ def example_8():
 # example_3()
 # example_4()
 #example_5()
-example_6(3000, 42, _print=True)
+example_6(3000, 42, _print=False)
 # example_7()
 # example_8()
 print("done")
