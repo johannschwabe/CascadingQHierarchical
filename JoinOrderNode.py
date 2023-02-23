@@ -63,7 +63,8 @@ class JoinOrderNode:
     def generate(variable_order_node: "VariableOrderNode", query: "Query"):
         child_relations = variable_order_node.all_relations(source_only=True)
         child_relation_names = "".join(sorted(map(lambda x: x.name, child_relations)))
-        parent_vars = variable_order_node.parent_variables().union(variable_order_node.child_vars()).intersection(query.free_variables)
+        child_vars = variable_order_node.child_vars()
+        parent_vars = child_vars.intersection(query.free_variables).union(variable_order_node.parent_variables())
         if len(variable_order_node.children) + len(variable_order_node.relations) > 1:
             aggregated_vars = set()
             if variable_order_node.name in query.free_variables:

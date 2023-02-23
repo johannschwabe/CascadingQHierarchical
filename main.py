@@ -270,7 +270,7 @@ def example_8():
 # example_3()
 # example_4()
 # example_5()
-example_6(3000, 432, _print=True)
+example_6(1000, 23, _print=True)
 # example_7()
 # example_8()
 print("done")
