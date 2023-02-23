@@ -18,6 +18,7 @@ def example_0():
     Q1 = Query("Q1", {R1, R2}, {'x', 'y','z'})
     Q2 = Query("Q2", {R1, R2, R3}, {'x', 'y','z', 'w'})
     res = run({Q1, Q2})
+    res.graph_viz("ex0")
     return res
 
 def example_1():
@@ -30,6 +31,7 @@ def example_1():
     Q2 = Query("Q2", {R1, R2, R3}, {'x', 'y', 'z', 'w'})
     Q3 = Query("Q3", {R1, R2, R3, R4}, {'x', 'y', 'z', 'w', 'q'})
     res = run({Q1, Q2, Q3})
+    res.graph_viz("ex1")
     return res
 
 def example_2():
@@ -114,22 +116,20 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
         q_hierarchical = map(lambda x: x.is_q_hierarchical(), resi)
         not_q_hierarchical = map(lambda x: not x, q_hierarchical)
         if any(q_hierarchical) and any(not_q_hierarchical):
-            if _ % 10 == 0:
+            if _ % 100 == 0:
                 print(_)
             nr_valid += 1
     #        print("=============")
     #        for query in resi:
     #            print(f"{query} - {query.is_q_hierarchical()}")
             res = run(resi)
-            if len(res) > 0:
+            if res:
                 nr_success += 1
                 if _print:
-                    print(f"Success on {_}: Nr res: {len(res)}")
+                    print(f"Success on {_}")
 
-                    res_list = list(res)
-                    res_list = sorted(res_list, key= lambda x: sum(map(lambda y: len(y.variable_order.all_relations()), x.queries)), reverse=False)
                     # for i, query_set in enumerate(res_list[:1]):
-                    res_list[0].graph_viz(_)
+                    res.graph_viz(_)
                     #break
 
         #            for reduction in res:
@@ -269,8 +269,8 @@ def example_8():
 # example_2()
 # example_3()
 # example_4()
-#example_5()
-example_6(3000, 42, _print=False)
+# example_5()
+example_6(3000, 432, _print=True)
 # example_7()
 # example_8()
 print("done")

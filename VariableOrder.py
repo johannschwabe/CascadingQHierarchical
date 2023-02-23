@@ -49,9 +49,10 @@ class VariableOrderNode:
     def views(self, query: "Query"):
         if self._views:
             return self._views
-        child_views: "list[Relation|list[Relation]]" = []
+        child_views: "list[Relation|set[Relation]]" = []
         for child in self.children:
-            child_views.append(child.views(query))
+            child_views.append(child.all_relations(source_only=True))
+            self._views.extend(child.views(query))
         child_views.extend(self.relations)
 
         for i in range(len(child_views), 1, -1):
@@ -65,7 +66,9 @@ class VariableOrderNode:
                 varis = set()
                 for relation in cleaned_relations:
                     varis.update(relation.free_variables)
-                self._views.append(Relation(f"V_{query.name}_{i}_{j}", varis, -1, cleaned_relations))
+                next_view = Relation(f"V_{query.name}_{i}_{j}", varis, -1, cleaned_relations)
+                self._views.append(next_view)
+
         return self._views
 
 

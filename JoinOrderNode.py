@@ -63,7 +63,7 @@ class JoinOrderNode:
     def generate(variable_order_node: "VariableOrderNode", query: "Query"):
         child_relations = variable_order_node.all_relations(source_only=True)
         child_relation_names = "".join(sorted(map(lambda x: x.name, child_relations)))
-        parent_vars = variable_order_node.parent_variables().union(query.free_variables)
+        parent_vars = variable_order_node.parent_variables().union(variable_order_node.child_vars()).intersection(query.free_variables)
         if len(variable_order_node.children) + len(variable_order_node.relations) > 1:
             aggregated_vars = set()
             if variable_order_node.name in query.free_variables:
@@ -86,11 +86,14 @@ class JoinOrderNode:
 
             return node
         elif len(variable_order_node.children) == 0:
+            aggregated_vars = set()
+            if variable_order_node.name not in query.free_variables:
+                aggregated_vars.add(variable_order_node.name)
             node = JoinOrderNode(query_name=query.name,
                                  child_rel_names=child_relation_names,
                                  relations=variable_order_node.relations,
-                                 free_vars=parent_vars.difference({variable_order_node.name}),
-                                 aggregated_vars={variable_order_node.name})
+                                 free_vars=parent_vars.difference(aggregated_vars),
+                                 aggregated_vars=aggregated_vars)
             return node
 
         _iter = variable_order_node
@@ -122,7 +125,7 @@ class JoinOrderNode:
             rel_name = f"{query.name}_{relation.name}"
             graph.node(rel_name, label=str(relation), shape="rectangle")
             graph.edge(str(self), rel_name)
-            if relation.dependentOn:
+            if relation.sources:
                 for source in relation.root_sources():
                     source_name = f"{query.name}_{source.name}"
                     graph.node(source_name, label=str(source), shape="diamond")

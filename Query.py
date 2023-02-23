@@ -17,18 +17,14 @@ class Query:
         self.hash_key = hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(hash(x)), relations)))}")
         self._is_q_hierarchical: bool|None = None
         self.bitset: "BitSet | None" = None
-        self.dependant_on: "set[Query]" = set()
+        self.dependant_on: "None | Query" = None
 
-    def self_dependant(self, source: "Query | None" = None):
-        if not source:
-            source = self
-        elif self == source:
-            return True
-        for dep in self.dependant_on:
-            if dep.self_dependant(source):
-                return True
-        return False
-
+    def dependant_on_deep(self, res: "set[Query]"):
+        if not self.dependant_on:
+            return
+        if not self.dependant_on in res:
+            res.add(self.dependant_on)
+            self.dependant_on.dependant_on_deep(res)
 
     @property
     def variable_order(self):
@@ -85,8 +81,8 @@ class Query:
 
 
 class QuerySet:
-    def __init__(self):
-        self.queries: "set[Query]" = set()
+    def __init__(self, queries: "set[Query]"):
+        self.queries: "set[Query]" = queries
         self.hash_key = hash(",".join(sorted(map(lambda x: str(hash(x)), self.queries))))
 
     def __hash__(self):
@@ -94,10 +90,6 @@ class QuerySet:
 
     def __repr__(self):
         return ",".join(sorted(map(lambda x: str(x), self.queries)))
-
-    def add(self, other: "Query"):
-        self.queries.add(other)
-        self.hash_key = hash(",".join(sorted(map(lambda x: str(hash(x)), self.queries))))
 
     def __eq__(self, other):
         return hash(self) == hash(other)
@@ -115,7 +107,8 @@ class QuerySet:
         for res in ress:
             graph.subgraph(res)
         for query in self.queries:
-            dependant_on = query.dependant_on
+            dependant_on = set()
+            query.dependant_on_deep(dependant_on)
             for dep in dependant_on:
                 graph.edge(query.name, dep.name, _attributes={"ltail": f"cluster_{query.name}", "lhead": f"cluster_{dep.name}"})
         graph.view(f"Viz_{name}")

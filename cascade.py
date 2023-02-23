@@ -13,16 +13,22 @@ def run(queries: "set[Query]"):
             q_hierarchical.add(query)
         else:
             non_q_hierarchical.add(query)
-    for query in q_hierarchical:
-        query.views = list(filter(lambda _view: any(map(lambda x: _view.sources.issubset(x.variable_order.all_relations()), non_q_hierarchical)), query.views))
+    #for query in q_hierarchical: #todo move somewhere?
+    #    query.views = list(filter(lambda _view: any(map(lambda x: _view.sources.issubset(x.variable_order.all_relations()), non_q_hierarchical)), query.views))
 
     res = q_hierarchical.copy()
     while True:
         new_q_hierarchical = set()
         new_non_q_hierarchical = set()
-        for non_q_hierarchical_query in non_q_hierarchical:
-            for q_hierarchical_query in q_hierarchical: #todo prevent self replacements and circular replacements
-                new_replacements  = find_replacements(non_q_hierarchical_query, q_hierarchical_query, q_hierarchical_query.variable_order)
+        for q_hierarchical_query in q_hierarchical:
+            for non_q_hierarchical_query in non_q_hierarchical:
+                if non_q_hierarchical_query.name == q_hierarchical_query.name:
+                    continue
+                q_dependant_on = set()
+                q_hierarchical_query.dependant_on_deep(q_dependant_on)
+                if non_q_hierarchical_query.name in map(lambda x: x.name, q_dependant_on):
+                    continue
+                new_replacements  = find_replacements(non_q_hierarchical_query, q_hierarchical_query)
                 for new_replacement in new_replacements:
                     new_relations = non_q_hierarchical_query.relations.difference(new_replacement.root_sources())
                     new_relations.add(new_replacement)
@@ -31,56 +37,35 @@ def run(queries: "set[Query]"):
                     new_query = Query(non_q_hierarchical_query.name, new_relations,
                                       non_q_hierarchical_query.free_variables)
                     new_query.bitset = bitset
+                    new_query.dependant_on = q_hierarchical_query
                     if new_query.is_q_hierarchical():
                         new_q_hierarchical.add(new_query)
+                        break
                     else:
                         new_non_q_hierarchical.add(new_query)
         res.update(new_q_hierarchical)
-        if len(new_q_hierarchical) == 0:  #Todo check early termination
-            return res      #Todo assembly
+        if len(queries) == len(res):  #Todo check early termination
+            return QuerySet(res)
+        if len(new_q_hierarchical) == 0:
+            return None
         non_q_hierarchical.update(new_non_q_hierarchical)
         q_hierarchical = new_q_hierarchical
 
-def find_replacements(non_q_hierarchical_query: "Query", q_hierarchical_query: "Query", variable_order_node: "VariableOrderNode"):
+def find_replacements(non_q_hierarchical_query: "Query", q_hierarchical_query: "Query"):
     res = []
-    nr_children = len(variable_order_node.children)
+    nr_children = len(q_hierarchical_query.variable_order.children)
     v = 1
-    views = variable_order_node.views(q_hierarchical_query)
-    for i in range(nr_children):
-        v *= nr_children - i
+    views = q_hierarchical_query.variable_order.views(q_hierarchical_query)
+    if not views:
+        return res
+    for i in range(0, nr_children):
         for j in range(0,v):
-            if non_q_hierarchical_query.bitset.view_homomorphism(views[v+j], q_hierarchical_query.name):
-                res.append(views[v+j])
+            if v+j>len(views):
+                break
+            if non_q_hierarchical_query.bitset.view_homomorphism(views[v+j-1], q_hierarchical_query.name):
+                res.append(views[v+j-1])
         if res:
             return res
-    return res
+        v *= nr_children - i
 
-def find_compatible(chosen: "Query", options: list[Query]):
-    res = []
-    for option in options:
-        if option.name == chosen.name:
-            continue
-        dependant_ons = option.dependant_on()
-        if any(map(lambda x: x.name == chosen.name and x != chosen, dependant_ons)):
-            continue
-        res.append(option)
     return res
-
-def find_compatible_reductions(options: list[Query]) -> list[QuerySet]:
-    res = []
-    if len(options) == 0:
-        return []
-    next_query_name = list(set(map(lambda x: x.name,options)))[0]
-    next_queries = filter(lambda x: x.name == next_query_name, options)
-    for option in next_queries:
-        compatible = find_compatible(option, options)
-        sub_solutions = find_compatible_reductions(compatible)
-        if len(sub_solutions) == 0:
-            new_query_set = QuerySet()
-            new_query_set.add(option)
-            res.append(new_query_set)
-        else:
-            for sub_solution in sub_solutions:
-                sub_solution.add(option)
-        res.extend(sub_solutions)
-    return list(set(res))
