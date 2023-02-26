@@ -49,14 +49,13 @@ class VariableOrderNode:
     def views(self, query: "Query"):
         if self._views:
             return self._views
-        child_views: "list[Relation|set[Relation]]" = []
+        sub_relations: "list[Relation|set[Relation]]" = []
         for child in self.children:
-            child_views.append(child.all_relations(source_only=True))
-            self._views.extend(child.views(query))
-        child_views.extend(self.relations)
+            sub_relations.append(child.all_relations(source_only=True))
+        sub_relations.extend(self.relations)
 
-        for i in range(len(child_views), 1, -1):
-            for j, permutation in enumerate(itertools.combinations(child_views, i)):
+        for i in range(len(sub_relations), 1, -1):
+            for j, permutation in enumerate(itertools.combinations(sub_relations, i)):
                 cleaned_relations = set()
                 for choice in permutation:
                     if type(choice) == Relation:
@@ -66,7 +65,7 @@ class VariableOrderNode:
                 varis = set()
                 for relation in cleaned_relations:
                     varis.update(relation.free_variables)
-                next_view = Relation(f"V_{query.name}_{i}_{j}", varis, -1, cleaned_relations)
+                next_view = Relation(f"V_{query.name}@{self.name}_{i}_{j}", varis, cleaned_relations)
                 self._views.append(next_view)
 
         return self._views

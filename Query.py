@@ -1,10 +1,13 @@
 import itertools
+from typing import TYPE_CHECKING
 
 from graphviz import Digraph
 
 from JoinOrderNode import JoinOrderNode
 from VariableOrder import VariableOrderNode
 from Relation import Relation
+if TYPE_CHECKING:
+    from BitSet import BitSet
 
 class Query:
 
@@ -44,14 +47,14 @@ class Query:
         all_relations = list(self.relations)
         for rel in all_relations:
             variables.extend(rel.free_variables)
-        join_variables = list(filter(lambda x: variables.count(x) > 1, variables))
+        join_variables = set(filter(lambda x: variables.count(x) > 1, variables))
 
         def check_combination(_variables):
             variable_a = _variables[0]
             variable_b = _variables[1]
 
-            variable_a_bitset = self.bitset.var_bitset_query(variable_a, self.name)
-            variable_b_bitset = self.bitset.var_bitset_query(variable_b, self.name)
+            variable_a_bitset = self.bitset.var_bitset_query(variable_a, self)
+            variable_b_bitset = self.bitset.var_bitset_query(variable_b, self)
 
             c1 = variable_a_bitset | variable_b_bitset == variable_a_bitset
             c2 = variable_a_bitset | variable_b_bitset == variable_b_bitset
@@ -68,7 +71,9 @@ class Query:
         self._is_q_hierarchical = all(map(check_combination, itertools.combinations(join_variables, 2)))
         return self._is_q_hierarchical
 
-
+    def register_bitset(self, bitset: "BitSet"):
+        self.bitset = bitset
+        bitset.add_query(self)
 
     def __str__(self):
         return self.name + "(" + ",".join(sorted(self.free_variables)) +")" + " = " + "*".join(sorted(map(lambda x: str(x), self.variable_order.all_relations())))

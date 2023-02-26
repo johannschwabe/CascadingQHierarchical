@@ -6,8 +6,8 @@ if TYPE_CHECKING:
 
 class Relation:
 
-    def __init__(self, name: str, variables: "set[str]",index: int, sources: "List[Relation] | None" = None):
-        self.index = index
+    def __init__(self, name: str, variables: "set[str]", sources: "List[Relation] | None" = None):
+        self.index = -1
         self.free_variables = variables if variables else set()
         self.sources = sources
         self.name = name

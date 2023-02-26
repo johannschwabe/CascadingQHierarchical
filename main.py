@@ -22,10 +22,10 @@ def example_0():
     return res
 
 def example_1():
-    R1 = Relation("R1", {"x","y"},0)
-    R2 = Relation("R2", {"y","z"},1)
-    R3 = Relation("R3", {"z","w"},2)
-    R4 = Relation("R4", {"w","q"},3)
+    R1 = Relation("R1", {"x","y"})
+    R2 = Relation("R2", {"y","z"})
+    R3 = Relation("R3", {"z","w"})
+    R4 = Relation("R4", {"w","q"})
 
     Q1 = Query("Q1", {R1, R2}, {'x', 'y', 'z'})
     Q2 = Query("Q2", {R1, R2, R3}, {'x', 'y', 'z', 'w'})
@@ -35,22 +35,24 @@ def example_1():
     return res
 
 def example_2():
-    R1 = Relation("R1", {"x", "y"},0)
-    R2 = Relation("R2", {"y", "z"},1)
-    R3 = Relation("R3", {"z", "w"},2)
-    R4 = Relation("R4", {"w", "q"},3)
+    R1 = Relation("R1", {"x", "y"})
+    R2 = Relation("R2", {"y", "z"})
+    R3 = Relation("R3", {"z", "w"})
+    R4 = Relation("R4", {"w", "q"})
 
     Q1 = Query("Q1", {R1, R2},{'x', 'y', 'z'})
     Q2 = Query("Q2", {R3, R4},{'z', 'w', 'q'})
     Q3 = Query("Q3", {R1, R2, R3, R4},{'x', 'y', 'z', 'w', 'q'})
     res = run({Q1, Q2, Q3})
+    res.graph_viz()
+
     return res
 def example_3():
-    R1 = Relation("R1", {"x", "y"},1)
-    R2 = Relation("R2", {"y", "z"},2)
-    R3 = Relation("R3", {"z", "w"},3)
-    R4 = Relation("R4", {"w", "a"},4)
-    R5 = Relation("R5", {"a", "b"},5)
+    R1 = Relation("R1", {"x", "y"})
+    R2 = Relation("R2", {"y", "z"})
+    R3 = Relation("R3", {"z", "w"})
+    R4 = Relation("R4", {"w", "a"})
+    R5 = Relation("R5", {"a", "b"})
 
     Q1 = Query("Q1", {R2,R3},{'y', 'z', 'w'})
     Q2 = Query("Q2", {R4,R3},{'z', 'w', 'a'})
@@ -58,36 +60,39 @@ def example_3():
     Q4 = Query("Q4", {R3,R4,R5},{'z', 'w', 'a', 'b'})
     Q5 = Query("Q5", {R1,R2,R3,R4,R5},{'x', 'y', 'z', 'w', 'a', 'b'})
     res = run({Q1, Q2, Q3, Q4, Q5})
+    res.graph_viz()
+
     return res
 
 def example_4():
-    R1 = Relation("R1", {"x", "y"},1)
-    R2 = Relation("R2", {"y", "z"},2)
-    R3 = Relation("R3", {"z", "w"},3)
-    R4 = Relation("R4", {"w", "a"},4)
+    R1 = Relation("R1", {"x", "y"})
+    R2 = Relation("R2", {"y", "z"})
+    R3 = Relation("R3", {"z", "w"})
+    R4 = Relation("R4", {"w", "a"})
 
     Q1 = Query("Q1", {R1, R2, R3},{'x', 'y', 'z', 'w'})
     Q2 = Query("Q2", {R1, R2, R3, R4},{'x', 'y', 'z', 'w', 'a'})
     Q3 = Query("Q3", {R2, R1},{'x', 'y', 'z'})
     res = run({Q1, Q2, Q3})
-    res.pop().graph_viz()
+    res.graph_viz()
 
     return res
 
 # example_3()
 def example_5():
-    R0 = Relation("R0", {"x"},0)
-    R1 = Relation("R1", {"x", "y"},1)
-    R2 = Relation("R2", {"x", "y"},2)
-    R3 = Relation("R3", {"x", "y", "a"},3)
+    R0 = Relation("R0", {"x"})
+    R1 = Relation("R1", {"x", "y"})
+    R2 = Relation("R2", {"x", "y"})
+    R3 = Relation("R3", {"x", "y", "a"})
     # R4 = Relation("R4", {"x", "y", "b"},4)
-    R5 = Relation("R5", {"x", "y", "a", "c"},5)
-    R6 = Relation("R6", {"x", "y", "b", "d", "e"},6)
+    R5 = Relation("R5", {"x", "y", "a", "c"})
+    R6 = Relation("R6", {"x", "y", "b", "d", "e"})
+    R7 = Relation("R7", {"f", "b"})
+
     Q1 = Query("Q1", {R0, R1, R2, R3, R5, R6},  {"x","y", "a"})
-    res = JoinOrderNode.generate(Q1.variable_order, Q1)
-    graphy = Digraph("Gugus")
-    res.viz(graphy, Q1)
-    graphy.view()
+    Q2 = Query("Q2", {R1, R2, R3, R5, R6, R7},  {"x","y", "a"})
+    res = run({Q1, Q2})
+    res.graph_viz()
     # Q1.variable_order.generate_views(Q1)
     # qs = QuerySet()
     # qs.add(Q1)
@@ -267,10 +272,10 @@ def example_8():
 # example_0()
 # example_1()
 # example_2()
-# example_3()
+example_3()
 # example_4()
 # example_5()
-example_6(1000, 23, _print=True)
+# example_6(8000, 900, _print=True)
 # example_7()
 # example_8()
 print("done")
