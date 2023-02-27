@@ -20,14 +20,16 @@ class Query:
         self.hash_key = hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(hash(x)), relations)))}")
         self._is_q_hierarchical: bool|None = None
         self.bitset: "BitSet | None" = None
-        self.dependant_on: "None | Query" = None
+        self.dependant_on: "set[Query]" = set()
 
     def dependant_on_deep(self, res: "set[Query]"):
         if not self.dependant_on:
             return
-        if not self.dependant_on in res:
-            res.add(self.dependant_on)
-            self.dependant_on.dependant_on_deep(res)
+        if not self.dependant_on.issubset(res):
+            for dep in self.dependant_on:
+                if dep not in res:
+                    res.add(dep)
+                    dep.dependant_on_deep(res)
 
     @property
     def variable_order(self):
@@ -37,8 +39,6 @@ class Query:
 
     def generate_variable_order(self):
         self._variable_order = VariableOrderNode.generate(self.relations, self.free_variables)
-
-
 
     def is_q_hierarchical(self) -> bool:
         if self._is_q_hierarchical is not None:
@@ -53,8 +53,8 @@ class Query:
             variable_a = _variables[0]
             variable_b = _variables[1]
 
-            variable_a_bitset = self.bitset.var_bitset_query(variable_a, self)
-            variable_b_bitset = self.bitset.var_bitset_query(variable_b, self)
+            variable_a_bitset = self.bitset[variable_a] & self.bitset[hash(self)]
+            variable_b_bitset = self.bitset[variable_b] & self.bitset[hash(self)]
 
             c1 = variable_a_bitset | variable_b_bitset == variable_a_bitset
             c2 = variable_a_bitset | variable_b_bitset == variable_b_bitset
@@ -112,9 +112,7 @@ class QuerySet:
         for res in ress:
             graph.subgraph(res)
         for query in self.queries:
-            dependant_on = set()
-            query.dependant_on_deep(dependant_on)
-            for dep in dependant_on:
+            for dep in query.dependant_on:
                 graph.edge(query.name, dep.name, _attributes={"ltail": f"cluster_{query.name}", "lhead": f"cluster_{dep.name}"})
         graph.view(f"Viz_{name}", "./viz")
         #print(graph.source)

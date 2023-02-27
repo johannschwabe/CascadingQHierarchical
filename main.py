@@ -12,9 +12,9 @@ from cascade import run
 random.seed(22)
 
 def example_0():
-    R1 = Relation("R1", {"x", "y"},0)
-    R2 = Relation("R2", {"y", "z"},1)
-    R3 = Relation("R3", {"z", "w"},2)
+    R1 = Relation("R1", {"x", "y"})
+    R2 = Relation("R2", {"y", "z"})
+    R3 = Relation("R3", {"z", "w"})
     Q1 = Query("Q1", {R1, R2}, {'x', 'y','z'})
     Q2 = Query("Q2", {R1, R2, R3}, {'x', 'y','z', 'w'})
     res = run({Q1, Q2})
@@ -127,6 +127,9 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
     #        print("=============")
     #        for query in resi:
     #            print(f"{query} - {query.is_q_hierarchical()}")
+            for q in resi:
+                for rel in q.relations:
+                    rel.index = -1
             res = run(resi)
             if res:
                 nr_success += 1
@@ -163,32 +166,32 @@ def example_7():
         "Housholds",
         "HousholdsChildren"
 
-    },0)
+    })
     Item = Relation("Item", {
         "Ksn",
         "SubCategory",
         "Category"
         "CategoryCluster",
         "Prize"
-    },1)
+    })
     Inventory = Relation("Inventory", {
         "InventoryUnits",
         "Ksn",
         "DateId",
         "Locn"
-    },2)
+    })
     Weather = Relation("Weather", {
         "DateId",
         "Locn",
         "MaxTemp",
         "Rain",
-    },3)
+    })
     Location = Relation("Location", {
         "Locn",
         "Zip",
         "SellAreaSqFt",
 
-    },4)
+    })
     # Census = Relation("Census", {
     #     "Zip",
     #     "Population",
@@ -272,10 +275,10 @@ def example_8():
 # example_0()
 # example_1()
 # example_2()
-example_3()
+# example_3()
 # example_4()
 # example_5()
-# example_6(8000, 900, _print=True)
+example_6(8000, 900, _print=False)
 # example_7()
 # example_8()
 print("done")

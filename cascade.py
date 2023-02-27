@@ -39,7 +39,9 @@ def run(queries: "set[Query]"):
                     new_query = Query(non_q_hierarchical_query.name, new_relations,
                                       non_q_hierarchical_query.free_variables)
                     new_query.register_bitset(bitset)
-                    new_query.dependant_on = q_hierarchical_query
+                    # new_query.dependant_on = non_q_hierarchical_query.dependant_on.union(q_hierarchical_query.dependant_on)
+                    new_query.dependant_on.add(q_hierarchical_query)
+                    new_query.dependant_on.update(non_q_hierarchical_query.dependant_on)
                     if new_query.is_q_hierarchical():
                         new_q_hierarchical.add(new_query)
                         past_comparisons.add((q_hierarchical_query, non_q_hierarchical_query))
@@ -67,7 +69,7 @@ def find_replacements(non_q_hierarchical_query: "Query", q_hierarchical_query: "
         for j in range(0, v):
             if v + j > len(views):
                 break
-            if non_q_hierarchical_query.bitset.view_homomorphism(views[v + j - 1], non_q_hierarchical_query):
+            if non_q_hierarchical_query.bitset.is_homomorphism(views[v + j - 1], non_q_hierarchical_query):
                 res.append(views[v + j - 1])
         if res:
             return res

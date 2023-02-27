@@ -6,10 +6,10 @@ if TYPE_CHECKING:
 
 class Relation:
 
-    def __init__(self, name: str, variables: "set[str]", sources: "List[Relation] | None" = None):
+    def __init__(self, name: str, variables: "set[str]", sources: "list[Relation] | None" = None):
         self.index = -1
         self.free_variables = variables if variables else set()
-        self.sources = sources
+        self.sources: "list[Relation]" = sources if sources else []
         self.name = name
         self.hash_val = hash(f"{'-'.join(sorted(self.free_variables))}:{','.join(map(lambda x: str(x), self.sources)) if self.sources else self.name}")
         self.disp_name = self.name + "(" + ",".join(sorted(self.free_variables)) + ")"
@@ -33,7 +33,7 @@ class Relation:
     def all_variables(self):
         res = self.free_variables.copy()
         for source in self.sources:
-            res.update(source.free_variables)
+            res.update(source.all_variables())
         return res
 
     def __eq__(self, other):

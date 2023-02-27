@@ -8,48 +8,41 @@ if TYPE_CHECKING:
 
 class BitSet:
     def __init__(self, queries: "set[Query] | list[Query]"):
-        self.variable_bitset: "dict[str, int]" = {}
-        self.query_bitset: "dict[int, int]" = {}
-        self.view_bitset: "dict[str, int]" = {}
+        self.bitset: "dict[str|int, int]" = {}
         self.next_index: int = 0
-        relations = set()
         for query in queries:
-            self.query_bitset[hash(query)] = 0
-            for relation in query.relations:
-                if relation.index == -1:
-                    relation.index = self.next_index
-                    self.next_index += 1
-                self.query_bitset[hash(query)] += 2 ** relation.index
-                relations.add(relation)
-        for relation in relations:
-            for variable in relation.free_variables:
-                if variable not in self.variable_bitset:
-                    self.variable_bitset[variable] = 0
-                self.variable_bitset[variable] += 2**relation.index
-
-    def var_bitset_query(self, vari: str, query: "Query"):
-        return self.query_bitset[hash(query)] & self.variable_bitset[vari]
-
-    def rel_bitset(self, query: "Query"):
-        return self.query_bitset[hash(query)]
+            self.add_query(query)
 
     def add_query(self, query: "Query"):
-        self.query_bitset[hash(query)] = 0
         for relation in query.relations:
             if relation.index == -1:
                 relation.index = self.next_index
                 self.next_index += 1
                 for variable in relation.free_variables:
-                    self.variable_bitset[variable] += 2 ** relation.index
-            self.query_bitset[hash(query)] += 2 ** relation.index
+                    if variable not in self.bitset:
+                        self.bitset[variable] = 0
+                    self.bitset[variable] += 2**relation.index          # Var-name
 
-    def add_view(self, view: "Relation"):
-        self.view_bitset[view.name] = 0
-        for relation in view.root_sources():
-            self.view_bitset[view.name] += 2 ** relation.index
+                if relation.sources:
+                    self.bitset[relation.name] = 0
+                    for source in relation.sources:
+                        self.bitset[relation.name] = 2 ** source.index  # View-name
+        if query.name not in self.bitset:
+            self.bitset[query.name] = 0
+            for relation in query.relations:
+                self.bitset[query.name] += 2**relation.index            # Query-name
 
-    def view_homomorphism(self, view: "Relation", query: "Query"):
-        if not view.name in self.view_bitset:
-            self.add_view(view)
-        return self.query_bitset[hash(query)] | self.view_bitset[view.name] == self.query_bitset[hash(query)]
-    #Gugus: root sources for homomorphism, direct sources for q-hierarchical
+        self.bitset[hash(query)] = 0
+        for relation in query.relations:
+            self.bitset[hash(query)] += 2 ** relation.index             # Query-hash
+
+
+    def is_homomorphism(self, view: "Relation", non_q_query: "Query"):
+        if view.name not in self.bitset:
+            self.bitset[view.name] = 0
+            for source in view.sources:
+                self.bitset[view.name] += 2 ** source.index
+        return self.bitset[non_q_query.name] | self.bitset[view.name] == self.bitset[non_q_query.name]
+
+    def __getitem__(self, item):
+        return self.bitset[item]
