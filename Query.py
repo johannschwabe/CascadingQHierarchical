@@ -47,7 +47,7 @@ class Query:
         all_relations = list(self.relations)
         for rel in all_relations:
             variables.extend(rel.free_variables)
-        join_variables = set(filter(lambda x: variables.count(x) > 1, variables))
+        join_variables = set(filter(lambda x: variables.count(x) > 1, variables)).union(self.free_variables)
 
         def check_combination(_variables):
             variable_a = _variables[0]
@@ -60,7 +60,12 @@ class Query:
             c2 = variable_a_bitset | variable_b_bitset == variable_b_bitset
             c3 = variable_a_bitset & variable_b_bitset == 0
 
-            if variable_a_bitset | variable_b_bitset == variable_b_bitset and variable_a_bitset != variable_b_bitset and variable_a in self.free_variables and variable_b not in self.free_variables:
+            different_relations = variable_a_bitset != variable_b_bitset
+            a_free = variable_a in self.free_variables
+            b_free = variable_b in self.free_variables
+
+            if (c2 and different_relations and a_free and not b_free) or \
+                    (c1 and different_relations and b_free and not a_free):
                 self._is_q_hierarchical = False
                 return False
             if not (c1 or c2 or c3):

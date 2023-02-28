@@ -51,8 +51,11 @@ def run(queries: "set[Query]"):
                 past_comparisons.add((q_hierarchical_query, non_q_hierarchical_query))
 
         res.update(new_q_hierarchical)
-        if len(queries) == len(res):
-            return QuerySet(res)
+        if len(queries) <= len(res):
+            compatible = list(map(lambda x: QuerySet(x), filter(lambda x: len(x) == len(queries), find_compatible_reductions(list(res)))))
+            if len(compatible) > 0:
+                return compatible[0]
+
         if len(new_q_hierarchical) + len(new_non_q_hierarchical) == 0:
             return None
         non_q_hierarchical.update(new_non_q_hierarchical)   # todo could this lead to double solutions?
@@ -63,8 +66,6 @@ def find_replacements(non_q_hierarchical_query: "Query", q_hierarchical_query: "
     nr_children = len(node.children)
     v = 1
     views = node.views(q_hierarchical_query)
-    if not views:
-        return res
     for i in range(0, nr_children):
         for j in range(0, v):
             if v + j > len(views):
@@ -77,4 +78,33 @@ def find_replacements(non_q_hierarchical_query: "Query", q_hierarchical_query: "
     for child in node.children:
         res.extend(find_replacements(non_q_hierarchical_query, q_hierarchical_query, child))
 
+    return res
+
+def find_compatible(chosen: "Query", options: list[Query]):
+    res = []
+    for option in options:
+        if option.name == chosen.name:
+            continue
+        dependant_ons = set()
+        option.dependant_on_deep(dependant_ons)
+        if any(map(lambda x: x.name == chosen.name and x != chosen, dependant_ons)):
+            continue
+        res.append(option)
+    return res
+
+def find_compatible_reductions(options: list[Query]) -> list[set[Query]]:
+    res = []
+    if len(options) == 0:
+        return []
+    next_query_name = sorted(list(set(map(lambda x: x.name,options))))[0]
+    next_queries = filter(lambda x: x.name == next_query_name, options)
+    for option in next_queries:
+        compatible = find_compatible(option, options)
+        sub_solutions = find_compatible_reductions(compatible)
+        if len(sub_solutions) == 0:
+            res.append({option})
+        else:
+            for sub_solution in sub_solutions:
+                sub_solution.add(option)
+        res.extend(sub_solutions)
     return res
