@@ -4,7 +4,7 @@ from VariableOrder import VariableOrderNode
 
 def find_replacements(non_q_hierarchical_query: "Query", q_hierarchical_query: "Query", node: "VariableOrderNode"):
     res = []
-    nr_children = len(node.children)
+    nr_children = len(node.children) + len(node.relations)
     v = 1
     views = node.views(q_hierarchical_query)
     for i in range(0, nr_children):
