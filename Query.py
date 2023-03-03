@@ -1,4 +1,5 @@
 import itertools
+import math
 from typing import TYPE_CHECKING
 
 from graphviz import Digraph
@@ -79,6 +80,33 @@ class Query:
     def register_bitset(self, bitset: "BitSet"):
         self.bitset = bitset
         bitset.add_query(self)
+
+
+    def resolving_views(self):
+        if self.is_q_hierarchical():
+            return []
+        res = set()
+        for relation in self.relations:
+            combs = itertools.combinations(relation.free_variables, 2)
+            for var_a, var_b in combs:
+                bs_a = self.bitset[var_a] & self.bitset[hash(self)]
+                bs_b = self.bitset[var_b] & self.bitset[hash(self)]
+                if bs_a & bs_b > 0 and not (bs_a | bs_b == bs_a or bs_a | bs_b == bs_b):
+                    res.add(bs_a)
+                    res.add(bs_b)
+        index_map = {}
+        for relation in self.relations:
+            index_map[relation.index] = str(relation)
+        res_strs = []
+        for resi in res:
+            res_str = []
+            for i in range(math.ceil(math.log2(resi))):
+                if 2**i & resi > 0:
+                    res_str.append(index_map[i])
+            res_strs.append(', '.join(res_str))
+        nl = "\n"
+        print(f"{str(self)}:\n{nl.join(res_strs)}")
+
 
     def __str__(self):
         return self.name + "(" + ",".join(sorted(self.free_variables)) +")" + " = " + "*".join(sorted(map(lambda x: str(x), self.variable_order.all_relations())))

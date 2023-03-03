@@ -12,9 +12,8 @@ def run(queries: "set[Query]"):
         if query.is_q_hierarchical():
             q_hierarchical.add(query)
         else:
+            query.resolving_views()
             non_q_hierarchical.add(query)
-    #for query in q_hierarchical: #todo move somewhere?
-    #    query.views = list(filter(lambda _view: any(map(lambda x: _view.sources.issubset(x.variable_order.all_relations()), non_q_hierarchical)), query.views))
     past_comparisons: "set[tuple[Query, Query]]" = set()
     res = q_hierarchical.copy()
     while True:

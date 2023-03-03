@@ -17,6 +17,7 @@ def example_0():
     R3 = Relation("R3", {"z", "w"})
     Q1 = Query("Q1", {R1, R2}, {'x', 'y','z'})
     Q2 = Query("Q2", {R1, R2, R3}, {'x', 'y','z', 'w'})
+
     res = run({Q1, Q2})
     res.graph_viz("ex0")
     return res
@@ -303,9 +304,9 @@ def example_10():
 # example_0()
 # example_1()
 # example_2()
-# example_3()
+example_3()
 # example_4()
-example_5()
+# example_5()
 # example_6(30000, 900, _print=False)
 # example_7()
 # example_8()
