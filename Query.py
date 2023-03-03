@@ -107,6 +107,12 @@ class Query:
         nl = "\n"
         print(f"{str(self)}:\n{nl.join(res_strs)}")
 
+    def clean_copy(self):
+        for rel in self.relations:
+            rel.index = -1
+            rel._root_sources = set()
+        return Query(self.name, self.relations, self.free_variables)
+
 
     def __str__(self):
         return self.name + "(" + ",".join(sorted(self.free_variables)) +")" + " = " + "*".join(sorted(map(lambda x: str(x), self.variable_order.all_relations())))

@@ -1,9 +1,10 @@
 from BitSet import BitSet
+from Helpers import find_replacements
 from Query import Query, QuerySet
 from VariableOrder import VariableOrderNode
 
 
-def run(queries: "set[Query]"):
+def run(queries: "list[Query]"):
     bitset = BitSet(queries)
     q_hierarchical = set()
     non_q_hierarchical = set()
@@ -12,7 +13,6 @@ def run(queries: "set[Query]"):
         if query.is_q_hierarchical():
             q_hierarchical.add(query)
         else:
-            query.resolving_views()
             non_q_hierarchical.add(query)
     past_comparisons: "set[tuple[Query, Query]]" = set()
     res = q_hierarchical.copy()
@@ -60,24 +60,7 @@ def run(queries: "set[Query]"):
         non_q_hierarchical.update(new_non_q_hierarchical)   # todo could this lead to double solutions?
         q_hierarchical.update(new_q_hierarchical)
 
-def find_replacements(non_q_hierarchical_query: "Query", q_hierarchical_query: "Query", node: "VariableOrderNode"):
-    res = []
-    nr_children = len(node.children)
-    v = 1
-    views = node.views(q_hierarchical_query)
-    for i in range(0, nr_children):
-        for j in range(0, v):
-            if v + j > len(views):
-                break
-            if non_q_hierarchical_query.bitset.is_homomorphism(views[v + j - 1], non_q_hierarchical_query):
-                res.append(views[v + j - 1])
-        if res:
-            return res
-        v *= nr_children - i
-    for child in node.children:
-        res.extend(find_replacements(non_q_hierarchical_query, q_hierarchical_query, child))
 
-    return res
 
 def find_compatible(chosen: "Query", options: list[Query]):
     res = []

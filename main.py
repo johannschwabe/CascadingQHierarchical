@@ -8,6 +8,7 @@ from QueryGenerator import generate
 from Relation import Relation
 from Query import Query
 from cascade import run
+from greedy import greedy
 
 random.seed(22)
 
@@ -18,7 +19,8 @@ def example_0():
     Q1 = Query("Q1", {R1, R2}, {'x', 'y','z'})
     Q2 = Query("Q2", {R1, R2, R3}, {'x', 'y','z', 'w'})
 
-    res = run({Q1, Q2})
+    # res = run({Q1, Q2})
+    res = greedy([Q2, Q1])
     res.graph_viz("ex0")
     return res
 
@@ -31,7 +33,9 @@ def example_1():
     Q1 = Query("Q1", {R1, R2}, {'x', 'y', 'z'})
     Q2 = Query("Q2", {R1, R2, R3}, {'x', 'y', 'z', 'w'})
     Q3 = Query("Q3", {R1, R2, R3, R4}, {'x', 'y', 'z', 'w', 'q'})
-    res = run({Q1, Q2, Q3})
+    # res = run({Q1, Q2, Q3})
+    # res = greedy([Q1, Q2, Q3])
+    res = greedy([Q3, Q2, Q1])
     res.graph_viz("ex1")
     return res
 
@@ -105,10 +109,11 @@ def example_5():
 
 def example_6(nr_attempts: int, seed_base = 23445, _print = False):
     nr_valid = 0
-    nr_success = 0
+    nr_run_success = 0
+    nr_greedy_success = 0
     random.seed(seed_base)
     for _ in range(nr_attempts):
-        resi = generate(nr_queries=5,
+        resi: "list[Query]" = generate(nr_queries=5,
                         avg_nr_relations=6,
                         std_nr_relations=3,
                         avg_total_relations=12,
@@ -128,28 +133,31 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
             if _ % 100 == 0:
                 print(_)
             nr_valid += 1
-    #        print("=============")
-    #        for query in resi:
-    #            print(f"{query} - {query.is_q_hierarchical()}")
+            #        print("=============")
+            #        for query in resi:
+            #            print(f"{query} - {query.is_q_hierarchical()}")
             for q in resi:
                 for rel in q.relations:
                     rel.index = -1
-            res = run(resi)
-            if res:
-                nr_success += 1
+            res_greedy = greedy(resi)
+            res_run = run([q.clean_copy() for q in resi])
+            queries = [q.clean_copy() for q in resi]
+            random.shuffle(queries)
+            res_run_2 = run(queries)
+            if (res_run is None) != (res_run_2 is None):
+                print("gugus happened")
+            if res_run:
+
+                nr_run_success += 1
                 if _print:
                     print(f"Success on {_}")
+                    res_run.graph_viz(_)
+            if res_greedy:
+                nr_greedy_success += 1
 
-                    # for i, query_set in enumerate(res_list[:1]):
-                    res.graph_viz(_)
-                    #break
 
-        #            for reduction in res:
-        #                print("-------------")
-        #                for query in reduction.queries:
-        #                    print(query)
 
-    print(f"{nr_attempts} groups generated, {nr_valid} valid, {nr_success} successfull reduction")
+    print(f"{nr_attempts} groups generated, {nr_valid} valid, {nr_greedy_success}/{nr_run_success} successfull reduction")
 
 def example_7():
     Census = Relation("Census", {
@@ -264,7 +272,7 @@ def example_7():
     print(Q2.is_q_hierarchical())
     print(Q3.is_q_hierarchical())
     # res = run({Q1, Q3})
-    res = run({Q1, Q2, Q3})
+    res = run([Q1, Q2, Q3])
     if res:
         res.pop().graph_viz()
     else:
@@ -304,10 +312,10 @@ def example_10():
 # example_0()
 # example_1()
 # example_2()
-example_3()
+# example_3()
 # example_4()
 # example_5()
-# example_6(30000, 900, _print=False)
+example_6(30000, 900, _print=False)
 # example_7()
 # example_8()
 # example_9()
