@@ -6,7 +6,7 @@ from BitSet import BitSet
 from JoinOrderNode import JoinOrderNode
 from QueryGenerator import generate
 from Relation import Relation
-from Query import Query
+from Query import Query, QuerySet
 from cascade import run
 from greedy import greedy
 
@@ -132,6 +132,7 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
         if any(q_hierarchical) and any(not_q_hierarchical):
             if _ % 100 == 0:
                 print(_)
+
             nr_valid += 1
             #        print("=============")
             #        for query in resi:
@@ -140,44 +141,22 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
                 for rel in q.relations:
                     rel.index = -1
             run_1_queries = [q.clean_copy() for q in resi]
-            run_1_query_string = ", ".join([str(q) for q in run_1_queries])
+            if _ >= 4298:
+                print(", ".join([str(q) for q in run_1_queries]))
             res_run_1 = run(run_1_queries)
             run_2_queries = [q.clean_copy() for q in resi]
             random.shuffle(run_2_queries)
-            run_2_query_string = ", ".join([str(q) for q in run_2_queries])
-            res_run_2 = run(run_2_queries)
-            if (res_run_1 is not None) and (res_run_2 is None):
-                print("gugus happened")
-
-                res_run_1.graph_viz()
-                run_1_query_string_after = ", ".join([str(q) for q in run_1_queries])
-                run_2_query_string_after = ", ".join([str(q) for q in run_2_queries])
-                print(f"Run 1: {run_1_query_string} ->\n       {run_1_query_string_after}")
-                print(f"Run 2: {run_2_query_string} ->\n       {run_2_query_string_after}")
-
-                rerun_queries = [q.clean_copy() for q in run_2_queries]
-                rerun = run(rerun_queries)
-                break
-
-            if (res_run_1 is None) and (res_run_2 is not None):
-                print("gugus happened")
-
-                res_run_2.graph_viz()
-                run_1_query_string_after = ", ".join([str(q) for q in run_1_queries])
-                run_2_query_string_after = ", ".join([str(q) for q in run_2_queries])
-                print(f"Run 1: {run_1_query_string} ->\n       {run_1_query_string_after}")
-                print(f"Run 2: {run_2_query_string} ->\n       {run_2_query_string_after}")
-
-                rerun_queries = [q.clean_copy() for q in run_1_queries]
-                rerun = run(rerun_queries)
-                break
+            res_run_2 = greedy(run_2_queries)
             if res_run_1:
-
                 nr_run_success += 1
                 if _print:
                     print(f"Success on {_}")
                     res_run_1.graph_viz(_)
+            if res_run_2:
+                nr_greedy_success += 1
 
+            if not res_run_1 and res_run_2:
+                print("ALARM")
 
     print(f"{nr_attempts} groups generated, {nr_valid} valid, {nr_greedy_success}/{nr_run_success} successfull reduction")
 
@@ -321,14 +300,14 @@ def example_9():
     Q2 = Query("Q2", {R0, R1, R2,R3, R4, R5, R6, R7}, {"b", "c"})
     Q3 = Query("Q3", {R0, R1, R2, R3, R5, R6,}, {"a"})
     Q4 = Query("Q4", {R0, R4, R6}, {"a"})
-    res = run({Q0,Q1,Q2,Q3,Q4})
+    res = run([Q0, Q1, Q2, Q3, Q4])
     res.graph_viz("??")
 
 def example_10():
     R0 = Relation("R0", {"a","c"})
     R1 = Relation("R1", {"a","b","c"})
     Q0 = Query("Q0", {R0, R1}, {"b", "c"})
-    res = run({Q0})
+    res = run([Q0])
     res.graph_viz("sdf")
 
 def example_11():
@@ -375,17 +354,47 @@ def example_11():
     else:
         print("res_2 failed")
 
+def example_12():
+    R0 = Relation("R0", {'a', 'b',  'c'})
+    R1 = Relation("R1", {'a', 'b',  'c'})
+    R2 = Relation("R2", {'a', 'b',  'c'})
+    R3 = Relation("R3", {'a', 'b',  'c'})
+    R4 = Relation("R4", {'a', 'b',  'c'})
+    R5 = Relation("R5", {'a', 'b',  'c'})
+    R6 = Relation("R6", {'a', 'b',  'c'})
+    R7 = Relation("R7", {'a', 'b',  'c'})
+    R8 = Relation("R8", {'a', 'b',  'c'})
+    R9 = Relation("R9", {'a', 'b',  'c'})
+    R10 = Relation("R10", {'a', 'b',  'c'})
+    R11 = Relation("R11", {'a', 'b',  'c'})
+    R12 = Relation("R12", {'a', 'b'})
+    R13 = Relation("R13", {'a', 'b',  'c'})
+    R14 = Relation("R14", {'a', 'b',  'c'})
 
+
+    Q0 = Query("Q0", {R0, R1, R10, R11, R12, R13, R14, R2, R4, R5, R6, R7, R8, R9}, {'a', 'b', 'c'})
+    Q1 = Query("Q1", {R0, R1, R11, R6, R7, R8, R9}, set())
+    Q2 = Query("Q2", {R0, R10, R12, R13, R2, R3, R6, R7, R8}, {'b', 'c'})
+
+    not_res = QuerySet({Q0, Q1, Q2})
+    not_res.graph_viz("problematic Example")
+
+    res = greedy([Q0, Q1, Q2])
+    if res:
+        res.graph_viz(12)
+    else:
+        print("ex12 failed")
 # example_0()
 # example_1()
 # example_2()
 # example_3()
 # example_4()
 # example_5()
-# example_6(30000, 41, _print=False)
+# example_6(30000, 984, _print=False)
 # example_7()
 # example_8()
 # example_9()
 # example_10()
-example_11()
+# example_11()
+example_12()
 print("done")

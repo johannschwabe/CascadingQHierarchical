@@ -7,12 +7,12 @@ def find_replacements(non_q_hierarchical_query: "Query", q_hierarchical_query: "
     nr_children = len(node.children) + len(node.relations)
     v = 1
     views = node.views(q_hierarchical_query)
-    for i in range(0, nr_children):
+    for i in range(0, nr_children - 1):
         for j in range(0, v):
-            if v + j > len(views):
+            if i + j >= len(views):
                 break
-            if non_q_hierarchical_query.bitset.is_homomorphism(views[v + j - 1], non_q_hierarchical_query):
-                res.append(views[v + j - 1])
+            if non_q_hierarchical_query.bitset.is_homomorphism(views[i + j], non_q_hierarchical_query):
+                res.append(views[i + j])
         if res:
             return res
         v *= nr_children - i

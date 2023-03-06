@@ -65,7 +65,7 @@ class VariableOrderNode:
                 varis = set()
                 for relation in cleaned_relations:
                     varis.update(relation.free_variables)
-                next_view = Relation(f"V_{query.name}@{self.name}_{i}_{j}", varis, cleaned_relations)
+                next_view = Relation(f"V_{query.name}@{self.name}_{i}_{j}", varis, list(cleaned_relations))
                 self._views.append(next_view)
 
         return self._views

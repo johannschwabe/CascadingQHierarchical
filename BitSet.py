@@ -38,11 +38,12 @@ class BitSet:
 
 
     def is_homomorphism(self, view: "Relation", non_q_query: "Query"):
+        view_name = f"View_{view.name}"
         if view.name not in self.bitset:
-            self.bitset[view.name] = 0
+            self.bitset[view_name] = 0
             for source in view.sources:
-                self.bitset[view.name] += 2 ** source.index
-        return self.bitset[non_q_query.name] | self.bitset[view.name] == self.bitset[non_q_query.name]
+                self.bitset[view_name] += 2 ** source.index
+        return self.bitset[non_q_query.name] | self.bitset[view_name] == self.bitset[non_q_query.name]
 
     def __getitem__(self, item):
         return self.bitset[item]
