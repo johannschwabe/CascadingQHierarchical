@@ -11,10 +11,10 @@ def run(queries: "list[Query]"):
     for query in queries:
         query.bitset = bitset
         if query.is_q_hierarchical():
-            print(f"{query.name}: q-hierarchical")
+            # print(f"{query.name}: q-hierarchical")
             q_hierarchical.add(query)
         else:
-            print(f"{query.name}: non-q-hierarchical")
+            # print(f"{query.name}: non-q-hierarchical")
             non_q_hierarchical.add(query)
     past_comparisons: "set[tuple[Query, Query]]" = set()
     res = q_hierarchical.copy()

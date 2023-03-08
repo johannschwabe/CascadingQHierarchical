@@ -25,17 +25,21 @@ def example_0():
     return res
 
 def example_1():
-    R1 = Relation("R1", {"x","y"})
-    R2 = Relation("R2", {"y","z"})
-    R3 = Relation("R3", {"z","w"})
-    R4 = Relation("R4", {"w","q"})
+    R1 = Relation("R1", {"a","b"})
+    R2 = Relation("R2", {"b","c"})
+    R3 = Relation("R3", {"c","d"})
+    R4 = Relation("R4", {"b","e"})
+    R5 = Relation("R5", {"f","e"})
 
-    Q1 = Query("Q1", {R1, R2}, {'x', 'y', 'z'})
-    Q2 = Query("Q2", {R1, R2, R3}, {'x', 'y', 'z', 'w'})
-    Q3 = Query("Q3", {R1, R2, R3, R4}, {'x', 'y', 'z', 'w', 'q'})
+    Q1 = Query("Q1", {R1, R2, R4}, {'a', 'b', 'c'})
+    Q2 = Query("Q2", {R1, R2, R3}, {'a', 'b', 'c', 'd'})
+    Q3 = Query("Q3", {R4, R1, R5}, {'a', 'b', 'e', 'f'})
+    # Q3 = Query("Q3", {R1, R2, R3, R4}, {'a', 'b', 'c', 'd', 'e'})
     # res = run({Q1, Q2, Q3})
     # res = greedy([Q1, Q2, Q3])
-    res = greedy([Q3, Q2, Q1])
+    QS = QuerySet({Q1, Q2, Q3})
+    QS.graph_viz()
+    res = run([Q2, Q1, Q3])
     res.graph_viz("ex1")
     return res
 
@@ -48,7 +52,7 @@ def example_2():
     Q1 = Query("Q1", {R1, R2},{'x', 'y', 'z'})
     Q2 = Query("Q2", {R3, R4},{'z', 'w', 'q'})
     Q3 = Query("Q3", {R1, R2, R3, R4},{'x', 'y', 'z', 'w', 'q'})
-    res = run({Q1, Q2, Q3})
+    res = run([Q1, Q2, Q3])
     res.graph_viz()
 
     return res
@@ -78,7 +82,7 @@ def example_4():
     Q1 = Query("Q1", {R1, R2, R3},{'x', 'y', 'z', 'w'})
     Q2 = Query("Q2", {R1, R2, R3, R4},{'x', 'y', 'z', 'w', 'a'})
     Q3 = Query("Q3", {R2, R1},{'x', 'y', 'z'})
-    res = run({Q1, Q2, Q3})
+    res = run([Q1, Q2, Q3])
     res.graph_viz()
 
     return res
@@ -99,7 +103,7 @@ def example_5():
     Q1.variable_order.graph_viz(graph,"-")
     graph.view()
     Q2 = Query("Q2", {R1, R2, R3, R5, R6, R7},  {"x","y", "a"})
-    res = run({Q1, Q2})
+    res = run([Q1, Q2])
     res.graph_viz()
     # Q1.variable_order.generate_views(Q1)
     # qs = QuerySet()
@@ -113,10 +117,10 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
     nr_greedy_success = 0
     random.seed(seed_base)
     for _ in range(nr_attempts):
-        resi: "list[Query]" = generate(nr_queries=3,
-                        avg_nr_relations=6,
+        resi: "list[Query]" = generate(nr_queries=6,
+                        avg_nr_relations=4,
                         std_nr_relations=3,
-                        avg_total_relations=12,
+                        avg_total_relations=10,
                         std_total_relations=3,
                         avg_nr_variables=5,
                         std_nr_variables=1,
@@ -141,8 +145,6 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
                 for rel in q.relations:
                     rel.index = -1
             run_1_queries = [q.clean_copy() for q in resi]
-            if _ >= 4298:
-                print(", ".join([str(q) for q in run_1_queries]))
             res_run_1 = run(run_1_queries)
             run_2_queries = [q.clean_copy() for q in resi]
             random.shuffle(run_2_queries)
@@ -373,28 +375,66 @@ def example_12():
 
 
     Q0 = Query("Q0", {R0, R1, R10, R11, R12, R13, R14, R2, R4, R5, R6, R7, R8, R9}, {'a', 'b', 'c'})
-    Q1 = Query("Q1", {R0, R1, R11, R6, R7, R8, R9}, set())
+    # Q1 = Query("Q1", {R0, R1, R11, R6, R7, R8, R9}, set())
     Q2 = Query("Q2", {R0, R10, R12, R13, R2, R3, R6, R7, R8}, {'b', 'c'})
 
-    not_res = QuerySet({Q0, Q1, Q2})
+    not_res = QuerySet({Q0, Q2})
     not_res.graph_viz("problematic Example")
 
-    res = greedy([Q0, Q1, Q2])
-    if res:
-        res.graph_viz(12)
-    else:
-        print("ex12 failed")
+    # res = greedy([Q0, Q1, Q2])
+    # if res:
+    #     res.graph_viz(12)
+    # else:
+    #     print("ex12 failed")
+def example_13():
+    R1 = Relation('R1', {'a', 'b'})
+    R2 = Relation('R2', {'c', 'b'})
+    R3 = Relation('R3', {'a', 'b', 'd', 'e'})
+    Q0 = Query('Q0', {R1, R2, R3}, {'a', 'b', 'c'})
+    graph = Digraph()
+    Q0.variable_order.graph_viz(graph)
+    graph.view()
+    QS = QuerySet({Q0})
+    QS.graph_viz("View Tree")
+
+def example_14():
+    R1 = Relation('R1', {'a', 'b', 'c'})
+    R2 = Relation('R2', {'a', 'b', 'd'})
+    R3 = Relation('R3', {'a', 'e'})
+    Q1 = Query('Q1', {R1, R2, R3}, {'a', 'b', 'c', 'd', 'e'})
+    graph = Digraph()
+    Q1.variable_order.graph_viz(graph)
+    graph.view()
+    QS = QuerySet({Q1})
+    QS.graph_viz("View Tree")
+
+def example_15():
+    R1 = Relation('R1', {'x','y'})
+    R2 = Relation('R2', {'x','y'})
+    R3 = Relation('R3', {'x', 'y', 'a'})
+    R4 = Relation('R4', {'x', 'y', 'b'})
+    R5 = Relation('R5', {'x', 'y', 'a', 'c'})
+    R6 = Relation('R6', {'x', 'y', 'b', 'd'})
+
+    Q1 = Query('Q1', {R1, R2, R3, R4, R5, R6,}, {'x', 'y','a', 'b', 'c', 'd'})
+    graph = Digraph()
+    Q1.variable_order.graph_viz(graph)
+    graph.view()
+    # QS = QuerySet({Q1})
+    # QS.graph_viz("View Tree")
 # example_0()
 # example_1()
 # example_2()
 # example_3()
 # example_4()
 # example_5()
-# example_6(30000, 984, _print=False)
+# example_6(30000, 99, _print=False)
 # example_7()
 # example_8()
-# example_9()
+example_9()
 # example_10()
 # example_11()
-example_12()
+# example_12()
+# example_13()
+# example_15()
 print("done")

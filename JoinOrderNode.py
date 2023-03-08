@@ -63,15 +63,10 @@ class JoinOrderNode:
     def generate(variable_order_node: "VariableOrderNode", query: "Query"):
         child_relations = variable_order_node.all_relations(source_only=True)
         child_relation_names = "".join(sorted(map(lambda x: x.name, child_relations)))
-        child_vars = variable_order_node.child_vars()
-        parent_vars = child_vars.intersection(query.free_variables).union(variable_order_node.parent_variables())
+        parent_vars = variable_order_node.parent_variables()
         if len(variable_order_node.children) + len(variable_order_node.relations) > 1:
-            aggregated_vars = set()
-            if variable_order_node.name in query.free_variables:
-                free_vars = parent_vars
-            else:
-                free_vars = parent_vars.difference({variable_order_node.name})
-                aggregated_vars = {variable_order_node.name}
+            free_vars = parent_vars.difference({variable_order_node.name})
+            aggregated_vars = {variable_order_node.name}
             node = JoinOrderNode(query_name=query.name,
                                  child_rel_names=child_relation_names,
                                  relations=variable_order_node.relations,
@@ -87,9 +82,8 @@ class JoinOrderNode:
 
             return node
         elif len(variable_order_node.children) == 0:
-            aggregated_vars = set()
-            if variable_order_node.name not in query.free_variables:
-                aggregated_vars.add(variable_order_node.name)
+            aggregated_vars = {variable_order_node.name}
+
             node = JoinOrderNode(query_name=query.name,
                                  child_rel_names=child_relation_names,
                                  relations=variable_order_node.relations,
@@ -98,19 +92,23 @@ class JoinOrderNode:
             return node
 
         _iter = variable_order_node
-        bounded_vars = set()
-        if _iter.name not in query.free_variables:
-            bounded_vars.add(_iter.name)
+        simple_vars = {_iter.name}
         while len(_iter.children) == 1 and len(_iter.relations) == 0:
             _iter = list(_iter.children)[0]
-            if _iter.name not in query.free_variables:
-                bounded_vars.add(_iter.name)
+            simple_vars.add(_iter.name)
+        if len(_iter.children) + len(_iter.relations) > 1:
+            free_vars = simple_vars.intersection(query.free_variables)
+            bound_vars = simple_vars.difference(query.free_variables)
+        else:
+            bound_vars = simple_vars
+            free_vars = parent_vars.difference(bound_vars)
+
 
         node = JoinOrderNode(query_name=query.name,
                              child_rel_names=child_relation_names,
                              relations=_iter.relations,
-                             free_vars=parent_vars.difference(bounded_vars),
-                             aggregated_vars=bounded_vars)
+                             free_vars=free_vars,
+                             aggregated_vars=bound_vars)
         for child in _iter.children:
             sub = JoinOrderNode.generate(child, query)
             sub.parent = node
