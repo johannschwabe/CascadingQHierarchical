@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from graphviz import Digraph
 
+from RelationPattern import RelationPattern
 from JoinOrderNode import JoinOrderNode
 from VariableOrder import VariableOrderNode
 from Relation import Relation
@@ -81,37 +82,57 @@ class Query:
         self.bitset = bitset
         bitset.add_query(self)
 
-
-    def resolving_views(self):
-        if self.is_q_hierarchical():
-            return []
-        res = set()
-        for relation in self.relations:
-            combs = itertools.combinations(relation.free_variables, 2)
-            for var_a, var_b in combs:
-                bs_a = self.bitset[var_a] & self.bitset[hash(self)]
-                bs_b = self.bitset[var_b] & self.bitset[hash(self)]
-                if bs_a & bs_b > 0 and not (bs_a | bs_b == bs_a or bs_a | bs_b == bs_b):
-                    res.add(bs_a)
-                    res.add(bs_b)
-        index_map = {}
-        for relation in self.relations:
-            index_map[relation.index] = str(relation)
-        res_strs = []
-        for resi in res:
-            res_str = []
-            for i in range(math.ceil(math.log2(resi))):
-                if 2**i & resi > 0:
-                    res_str.append(index_map[i])
-            res_strs.append(', '.join(res_str))
-        nl = "\n"
-        print(f"{str(self)}:\n{nl.join(res_strs)}")
-
     def clean_copy(self):
         for rel in self.relations:
             rel.index = -1
             rel._root_sources = set()
         return Query(self.name, self.relations, self.free_variables)
+
+    def resolving_views(self):
+        if self.is_q_hierarchical():
+            return []
+        res = set()
+
+        # Non-Hierarchical
+        all_vars = set()
+        for relation in self.relations:
+            all_vars.update(relation.free_variables)
+
+        bs_query = self.bitset[hash(self)]
+
+        problematic_join_vars = set()
+        def check_two_join(var_a, var_b):
+            rel_a = bs_query & self.bitset[var_a]
+            rel_b = bs_query & self.bitset[var_b]
+            a_sub_b = rel_a | rel_b == rel_b
+            b_sub_a = rel_a | rel_b == rel_a
+            disjoint = rel_a & rel_b == 0
+            if not (a_sub_b or b_sub_a or disjoint):
+                problematic_join_vars.add( var_b)
+                problematic_join_vars.add(var_a)
+
+        for comb in itertools.combinations(all_vars, 2):
+            check_two_join(comb[0], comb[1])
+
+        for prob in problematic_join_vars:
+            rels = bs_query & self.bitset[prob]
+            pattern = RelationPattern(rels, 0, bs_query)
+            res.add(pattern)
+
+        # Non Q
+        def check_non_q(free_var_a, bound_var_b):
+            rel_a = bs_query & self.bitset[free_var_a]
+            rel_b = bs_query & self.bitset[bound_var_b]
+            a_sub_b = rel_a | rel_b == rel_b and rel_a != rel_b
+            disjoint = rel_a & rel_b == 0
+            if not (a_sub_b or disjoint):
+                res.add(RelationPattern(rel_a ^ rel_b, rel_b, bs_query))
+
+        for free_var in self.free_variables:
+            for bound_var in all_vars.difference(self.free_variables):
+                check_non_q(free_var, bound_var)
+
+        return list(res)
 
 
     def __str__(self):

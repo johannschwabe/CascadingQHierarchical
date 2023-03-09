@@ -3,8 +3,9 @@ from typing import TYPE_CHECKING
 
 from graphviz import Graph, Digraph
 
+from BitSet import BitSet
 from Relation import Relation
-
+from RelationPattern import RelationPattern
 
 if TYPE_CHECKING:
     from Query import Query
@@ -156,3 +157,29 @@ class VariableOrderNode:
 
         VariableOrderNode.generate_recursion(sub_relations, next_node, free_variables)
         VariableOrderNode.generate_recursion(ungenerateable_relations.difference(sub_relations), node, free_variables)
+
+    def find_view(self, pattern: RelationPattern, bitset: "BitSet", name: str):
+        relevant_relations = pattern.maximal & bitset[self.name]
+        if relevant_relations | pattern.required == relevant_relations:
+            for child in self.children:
+                child_res =child.find_view(pattern, bitset, name)
+                if child_res:
+                    return child_res
+            found_bs = 0
+            found = []
+            for child in self.children:
+                child_relations_bs = 0
+                for rel in  child.all_relations():
+                    child_relations_bs += 2 ** rel.index
+                if child_relations_bs | relevant_relations == relevant_relations:
+                    found_bs += child_relations_bs
+                    found.extend(child.all_relations())
+            if found_bs | relevant_relations == found_bs and (found_bs & pattern.optional > 0 or pattern.optional == 0):
+                variables = set()
+                for rel in found:
+                    variables.update(rel.free_variables)
+                return Relation(f"V_{name}", variables, found)
+            return None
+        return None
+
+

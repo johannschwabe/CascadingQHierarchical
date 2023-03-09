@@ -7,6 +7,7 @@ from JoinOrderNode import JoinOrderNode
 from QueryGenerator import generate
 from Relation import Relation
 from Query import Query, QuerySet
+from backward import backward_search
 from cascade import run
 from greedy import greedy
 
@@ -20,7 +21,8 @@ def example_0():
     Q2 = Query("Q2", {R1, R2, R3}, {'x', 'y','z', 'w'})
 
     # res = run({Q1, Q2})
-    res = greedy([Q2, Q1])
+    # res = greedy([Q2, Q1])
+    res = backward_search([Q2, Q1])
     res.graph_viz("ex0")
     return res
 
@@ -37,9 +39,9 @@ def example_1():
     # Q3 = Query("Q3", {R1, R2, R3, R4}, {'a', 'b', 'c', 'd', 'e'})
     # res = run({Q1, Q2, Q3})
     # res = greedy([Q1, Q2, Q3])
-    QS = QuerySet({Q1, Q2, Q3})
-    QS.graph_viz()
-    res = run([Q2, Q1, Q3])
+    # QS = QuerySet({Q1, Q2, Q3})
+    # QS.graph_viz()
+    res = backward_search([Q2, Q1, Q3])
     res.graph_viz("ex1")
     return res
 
@@ -52,7 +54,7 @@ def example_2():
     Q1 = Query("Q1", {R1, R2},{'x', 'y', 'z'})
     Q2 = Query("Q2", {R3, R4},{'z', 'w', 'q'})
     Q3 = Query("Q3", {R1, R2, R3, R4},{'x', 'y', 'z', 'w', 'q'})
-    res = run([Q1, Q2, Q3])
+    res = backward_search([Q1, Q2, Q3])
     res.graph_viz()
 
     return res
@@ -68,7 +70,7 @@ def example_3():
     Q3 = Query("Q3", {R1,R2,R3},{'x', 'y', 'z', 'w',})
     Q4 = Query("Q4", {R3,R4,R5},{'z', 'w', 'a', 'b'})
     Q5 = Query("Q5", {R1,R2,R3,R4,R5},{'x', 'y', 'z', 'w', 'a', 'b'})
-    res = run({Q1, Q2, Q3, Q4, Q5})
+    res = run([Q1, Q2, Q3, Q4, Q5])
     res.graph_viz()
 
     return res
@@ -147,8 +149,7 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
             run_1_queries = [q.clean_copy() for q in resi]
             res_run_1 = run(run_1_queries)
             run_2_queries = [q.clean_copy() for q in resi]
-            random.shuffle(run_2_queries)
-            res_run_2 = greedy(run_2_queries)
+            res_run_2 = backward_search(run_2_queries)
             if res_run_1:
                 nr_run_success += 1
                 if _print:
@@ -378,14 +379,14 @@ def example_12():
     # Q1 = Query("Q1", {R0, R1, R11, R6, R7, R8, R9}, set())
     Q2 = Query("Q2", {R0, R10, R12, R13, R2, R3, R6, R7, R8}, {'b', 'c'})
 
-    not_res = QuerySet({Q0, Q2})
-    not_res.graph_viz("problematic Example")
+    # not_res = QuerySet({Q0, Q2})
+    # not_res.graph_viz("problematic Example")
 
-    # res = greedy([Q0, Q1, Q2])
-    # if res:
-    #     res.graph_viz(12)
-    # else:
-    #     print("ex12 failed")
+    res = backward_search([Q0, Q2])
+    if res:
+        res.graph_viz(12)
+    else:
+        print("ex12 failed")
 def example_13():
     R1 = Relation('R1', {'a', 'b'})
     R2 = Relation('R2', {'c', 'b'})
@@ -422,19 +423,48 @@ def example_15():
     graph.view()
     # QS = QuerySet({Q1})
     # QS.graph_viz("View Tree")
+
+def example_16(nr_attempts: int, seed_base = 23445, _print = False):
+    random.seed(seed_base)
+    for _ in range(nr_attempts):
+        resi: "list[Query]" = generate(nr_queries=6,
+                        avg_nr_relations=3,
+                        std_nr_relations=1,
+                        avg_total_relations=5,
+                        std_total_relations=3,
+                        avg_nr_variables=4,
+                        std_nr_variables=1,
+                        avg_total_variables=7,
+                        std_total_variables=2,
+                        seed=seed_base + _
+                        )
+        for query in resi:
+            for rel in query.relations:
+                rel.index = -1
+            bs = BitSet([query])
+            query.bitset = bs
+            if not query.is_q_hierarchical():
+                graph = Digraph()
+                query.variable_order.graph_viz(graph)
+                graph.view()
+                query.resolving_views()
+
 # example_0()
 # example_1()
 # example_2()
 # example_3()
 # example_4()
 # example_5()
-# example_6(30000, 99, _print=False)
+example_6(30000, 99, _print=False)
 # example_7()
 # example_8()
-example_9()
+# example_9()
 # example_10()
 # example_11()
 # example_12()
 # example_13()
 # example_15()
+# example_16(30000, 99,)
+
+
 print("done")
