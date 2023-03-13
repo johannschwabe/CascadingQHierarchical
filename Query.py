@@ -23,6 +23,7 @@ class Query:
         self._is_q_hierarchical: bool|None = None
         self.bitset: "BitSet | None" = None
         self.dependant_on: "set[Query]" = set()
+        self._resolving_views: "list[RelationPattern]" = []
 
     def dependant_on_deep(self, res: "set[Query]"):
         if not self.dependant_on:
@@ -84,13 +85,14 @@ class Query:
 
     def clean_copy(self):
         for rel in self.relations:
-            rel.index = -1
             rel._root_sources = set()
         return Query(self.name, self.relations, self.free_variables)
 
     def resolving_views(self):
         if self.is_q_hierarchical():
             return []
+        if self._resolving_views:
+            return self._resolving_views
         res = set()
 
         # Non-Hierarchical
@@ -100,7 +102,7 @@ class Query:
 
         bs_query = self.bitset[hash(self)]
 
-        problematic_join_vars = set()
+        problematic_join_var_tuple = set()
         def check_two_join(var_a, var_b):
             rel_a = bs_query & self.bitset[var_a]
             rel_b = bs_query & self.bitset[var_b]
@@ -108,16 +110,18 @@ class Query:
             b_sub_a = rel_a | rel_b == rel_a
             disjoint = rel_a & rel_b == 0
             if not (a_sub_b or b_sub_a or disjoint):
-                problematic_join_vars.add( var_b)
-                problematic_join_vars.add(var_a)
+                problematic_join_var_tuple.add((var_a, var_b))
+                problematic_join_var_tuple.add((var_b, var_a))
 
         for comb in itertools.combinations(all_vars, 2):
             check_two_join(comb[0], comb[1])
 
-        for prob in problematic_join_vars:
-            rels = bs_query & self.bitset[prob]
+        for prob_a, prob_b in problematic_join_var_tuple:
+            rels = bs_query & self.bitset[prob_a]
             pattern = RelationPattern(rels, 0, bs_query)
             res.add(pattern)
+            pattern_2 = RelationPattern( ~ rels & bs_query, rels, bs_query)
+            res.add(pattern_2)
 
         # Non Q
         def check_non_q(free_var_a, bound_var_b):
@@ -131,8 +135,8 @@ class Query:
         for free_var in self.free_variables:
             for bound_var in all_vars.difference(self.free_variables):
                 check_non_q(free_var, bound_var)
-
-        return list(res)
+        self._resolving_views = list(res)
+        return self._resolving_views
 
 
     def __str__(self):

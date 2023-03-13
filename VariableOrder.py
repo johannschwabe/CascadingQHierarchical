@@ -115,6 +115,9 @@ class VariableOrderNode:
             return self.relations.union(self.parent.parent_relations())
         return self.relations
 
+    def __repr__(self):
+        return f"{self.name}-{','.join([rel.name for rel in self.relations])}-{','.join([child.name for child in self.children])}"
+
     @staticmethod
     def generate(relations: "set[Relation]", free_variables: "set[str]"):
 
@@ -158,27 +161,35 @@ class VariableOrderNode:
         VariableOrderNode.generate_recursion(sub_relations, next_node, free_variables)
         VariableOrderNode.generate_recursion(ungenerateable_relations.difference(sub_relations), node, free_variables)
 
-    def find_view(self, pattern: RelationPattern, bitset: "BitSet", name: str):
-        relevant_relations = pattern.maximal & bitset[self.name]
+    def find_view(self, pattern: RelationPattern, bitset: "BitSet", query: "Query"):
+        relevant_relations = 0
+        for child_rel in self.all_relations(True):
+            relevant_relations += 2 ** child_rel.index
         if relevant_relations | pattern.required == relevant_relations:
             for child in self.children:
-                child_res =child.find_view(pattern, bitset, name)
+                child_res =child.find_view(pattern, bitset, query)
                 if child_res:
                     return child_res
             found_bs = 0
             found = []
             for child in self.children:
                 child_relations_bs = 0
-                for rel in  child.all_relations():
+                for rel in  child.all_relations(True):
                     child_relations_bs += 2 ** rel.index
                 if child_relations_bs | relevant_relations == relevant_relations:
                     found_bs += child_relations_bs
                     found.extend(child.all_relations())
-            if found_bs | relevant_relations == found_bs and (found_bs & pattern.optional > 0 or pattern.optional == 0):
+            for rel in self.relations:
+                if 2**rel.index | relevant_relations == relevant_relations:
+                    found_bs += 2**rel.index
+                    found.append(rel)
+            if found_bs | pattern.required == found_bs and (found_bs & pattern.optional > 0 or pattern.optional == 0):
                 variables = set()
+                relations_names = ""
                 for rel in found:
                     variables.update(rel.free_variables)
-                return Relation(f"V_{name}", variables, found)
+                    relations_names += rel.name
+                return Relation(f"V_{query.name}-{relations_names}", variables, found)
             return None
         return None
 

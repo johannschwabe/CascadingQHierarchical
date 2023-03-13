@@ -9,15 +9,18 @@ if TYPE_CHECKING:
 class BitSet:
     def __init__(self, queries: "set[Query] | list[Query]"):
         self.bitset: "dict[str|int, int]" = {}
+        self.reverse: "dict[int, Relation]" = {}
         self.next_index: int = 0
         for query in queries:
             self.add_query(query)
 
     def add_query(self, query: "Query"):
         for relation in query.relations:
-            if relation.index == -1:
-                relation.index = self.next_index
-                self.next_index += 1
+            if relation.index not in self.reverse:
+                if relation.index == -1:
+                    relation.index = self.next_index
+                    self.next_index += 1
+                self.reverse[relation.index] = relation
                 for variable in relation.free_variables:
                     if variable not in self.bitset:
                         self.bitset[variable] = 0

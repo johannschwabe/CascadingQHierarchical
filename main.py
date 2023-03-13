@@ -119,14 +119,14 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
     nr_greedy_success = 0
     random.seed(seed_base)
     for _ in range(nr_attempts):
-        resi: "list[Query]" = generate(nr_queries=6,
-                        avg_nr_relations=4,
-                        std_nr_relations=3,
-                        avg_total_relations=10,
-                        std_total_relations=3,
-                        avg_nr_variables=5,
+        resi: "list[Query]" = generate(nr_queries=3,
+                        avg_nr_relations=3,
+                        std_nr_relations=2,
+                        avg_total_relations=5,
+                        std_total_relations=2,
+                        avg_nr_variables=4,
                         std_nr_variables=1,
-                        avg_total_variables=8,
+                        avg_total_variables=7,
                         std_total_variables=3,
                         seed=seed_base + _
                         )
@@ -157,6 +157,10 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
                     res_run_1.graph_viz(_)
             if res_run_2:
                 nr_greedy_success += 1
+
+            if res_run_1 and not res_run_2:
+                print('\n'.join([str(q) for q in resi]))
+                return
 
             if not res_run_1 and res_run_2:
                 print("ALARM")
@@ -448,6 +452,63 @@ def example_16(nr_attempts: int, seed_base = 23445, _print = False):
                 query.variable_order.graph_viz(graph)
                 graph.view()
                 query.resolving_views()
+def example_17():
+    R0 = Relation("R0", {'a', 'c', 'd'})
+    R1 = Relation("R1", {'c', 'e'})
+    R2 = Relation("R2", {'a', 'b', 'c', 'f', 'e'})
+    Q0 = Query("Q0", {R0, R1}, {'a', 'c', 'd', 'e'})
+    Q1 = Query("Q1", {R0, R1, R2}, {'c', 'd', 'e'})
+    Q2 = Query("Q2", {R0, R1, R2}, {'b', 'd'})
+    Q3 = Query("Q3", {R0, R1, R2}, {'e', 'f'})
+    Q4 = Query("Q4", {R0, R1, R2}, {'a', 'c', 'd', 'f', 'e'})
+    Q5 = Query("Q5", {R0, R1, R2, }, {'b', 'f'})
+
+    resi = [Q0, Q1, Q2, Q3, Q4, Q5]
+    # resi = [Q2, Q3]
+    run_1_queries = [q.clean_copy() for q in resi]
+    res_run_1 = run(run_1_queries)
+    res_run_1.graph_viz("success")
+    run_2_queries = [q.clean_copy() for q in resi]
+    res_run_2 = backward_search(run_2_queries)
+    if res_run_2:
+        print("backward success")
+
+def example_18():
+    R0 = Relation("R0", {'a', 'b', 'c', 'd'}, index=0)
+    R1 = Relation("R1", {'b', 'c', 'd'}, index=1)
+    R2 = Relation("R2", {'a','b', 'c', 'd'}, index=2)
+    R3 = Relation("R3", {'d','e'}, index=3)
+    R4 = Relation("R4", {'a', 'b', 'd', 'e', 'f'}, index=4)
+
+    Q0 = Query("Q0", {R3, R4}, {'a', 'b', 'd', 'e', 'f'})
+    # Q1 = Query("Q1", {R0, R1}, {'a', 'b', 'c', 'd'})
+    Q2 = Query("Q2", {R0, R1, R2, R3, R4}, {'a', 'b', 'c', 'd', 'f'})
+    queries = [Q0, Q2]
+    # queries = [Q0, Q1, Q2]
+    run_1_queries = [q.clean_copy() for q in queries]
+    res_run_1 = run(run_1_queries)
+    res_run_1.graph_viz("success")
+    run_2_queries = [q.clean_copy() for q in queries]
+    res_run_2 = backward_search(run_2_queries)
+    if res_run_2:
+        print("backward success")
+        res_run_2.graph_viz("Backward")
+
+def example_19():
+    R0 = Relation("R0", {'b', 'c', 'f', 'g', 'h'})
+    R1 = Relation("R1", {'c', 'd', 'e'})
+    Q0 = Query('Q0', {R0, R1}, {'c'})
+    Q1 = Query('Q1', {R0, R1}, {'b', 'd', 'e', 'g', 'h'})
+    Q2 = Query('Q2', {R0, R1}, set())
+    queries = [Q0, Q1, Q2]
+    run_1_queries = [q.clean_copy() for q in queries]
+    res_run_1 = run(run_1_queries)
+    res_run_1.graph_viz("success")
+    run_2_queries = [q.clean_copy() for q in queries]
+    res_run_2 = backward_search(run_2_queries)
+    if res_run_2:
+        print("backward success")
+        res_run_2.graph_viz("Backward")
 
 # example_0()
 # example_1()
@@ -455,7 +516,7 @@ def example_16(nr_attempts: int, seed_base = 23445, _print = False):
 # example_3()
 # example_4()
 # example_5()
-example_6(30000, 99, _print=False)
+# example_6(30000, 99, _print=False)
 # example_7()
 # example_8()
 # example_9()
@@ -465,6 +526,9 @@ example_6(30000, 99, _print=False)
 # example_13()
 # example_15()
 # example_16(30000, 99,)
+# example_17()
+# example_18()
+example_19()
 
 
 print("done")
