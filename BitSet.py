@@ -10,12 +10,17 @@ class BitSet:
     def __init__(self, queries: "set[Query] | list[Query]"):
         self.bitset: "dict[str|int, int]" = {}
         self.reverse: "dict[int, Relation]" = {}
-        self.next_index: int = 0
+        self.next_index: int = 1 + max(map(lambda x: max(map(lambda y: y.index, x.relations)), queries))
         for query in queries:
             self.add_query(query)
 
     def add_query(self, query: "Query"):
         for relation in query.relations:
+            if relation.index not in self.reverse and relation.name in self.bitset:
+                for (key, value) in self.reverse.items():
+                    if value == relation:
+                        relation.index = key
+                        break
             if relation.index not in self.reverse:
                 if relation.index == -1:
                     relation.index = self.next_index
@@ -44,7 +49,7 @@ class BitSet:
         view_name = f"View_{view.name}"
         if view.name not in self.bitset:
             self.bitset[view_name] = 0
-            for source in view.sources:
+            for source in view.root_sources():
                 self.bitset[view_name] += 2 ** source.index
         return self.bitset[non_q_query.name] | self.bitset[view_name] == self.bitset[non_q_query.name]
 

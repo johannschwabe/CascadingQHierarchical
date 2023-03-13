@@ -23,7 +23,13 @@ def backward_search(queries: "list[Query]"):
             patterns = non_q_hierarchical_query.resolving_views()
             for pattern in patterns:
                 for q_hierarchical_query in q_hierarchical:
-                    if (pattern, q_hierarchical_query) in past_comparisons:
+                    if non_q_hierarchical_query.name == q_hierarchical_query.name or \
+                            (pattern, q_hierarchical_query) in past_comparisons:
+                        continue
+                    q_dependant_on = set()
+                    q_hierarchical_query.dependant_on_deep(q_dependant_on)
+                    if non_q_hierarchical_query.name in map(lambda x: x.name, q_dependant_on):
+                        past_comparisons.add((pattern,q_hierarchical_query))
                         continue
                     past_comparisons.add((pattern, q_hierarchical_query))
 
@@ -32,10 +38,11 @@ def backward_search(queries: "list[Query]"):
                         new_replacement = q_hierarchical_query.variable_order.find_view(pattern, bitset, q_hierarchical_query)
                         if not new_replacement:
                             continue
+                        if new_replacement in non_q_hierarchical_query.relations:
+                            continue
                         new_relations = non_q_hierarchical_query.relations.difference(new_replacement.root_sources())
                         new_relations.add(new_replacement)
-                        if len(new_relations) >= len(non_q_hierarchical_query.relations):
-                            continue
+
                         new_query = Query(non_q_hierarchical_query.name, new_relations,
                                           non_q_hierarchical_query.free_variables)
                         new_query.register_bitset(bitset)
@@ -44,11 +51,9 @@ def backward_search(queries: "list[Query]"):
                         new_query.dependant_on.update(non_q_hierarchical_query.dependant_on)
                         if new_query.is_q_hierarchical():
                             new_q_hierarchical.add(new_query)
-                            # past_comparisons.add((q_hierarchical_query, non_q_hierarchical_query))
                             break
                         else:
                             new_non_q_hierarchical.add(new_query)
-                    # past_comparisons.add((q_hierarchical_query, non_q_hierarchical_query))
         res.update(new_q_hierarchical)
         if len(queries) <= len(res):
             compatible = list(map(lambda x: QuerySet(x),
@@ -59,4 +64,4 @@ def backward_search(queries: "list[Query]"):
         if len(new_q_hierarchical) + len(new_non_q_hierarchical) == 0:
             return None
         non_q_hierarchical.update(new_non_q_hierarchical)  # todo could this lead to double solutions?
-        q_hierarchical = new_q_hierarchical
+        q_hierarchical.update(new_q_hierarchical)

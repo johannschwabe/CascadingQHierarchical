@@ -33,10 +33,11 @@ def run(queries: "list[Query]"):
                     continue
                 new_replacements  = find_replacements(non_q_hierarchical_query, q_hierarchical_query, q_hierarchical_query.variable_order)
                 for new_replacement in new_replacements:
+                    if new_replacement in non_q_hierarchical_query.relations:
+                        continue
                     new_relations = non_q_hierarchical_query.relations.difference(new_replacement.root_sources())
                     new_relations.add(new_replacement)
-                    if len(new_relations) >= len(non_q_hierarchical_query.relations):
-                        continue
+
                     new_query = Query(non_q_hierarchical_query.name, new_relations,
                                       non_q_hierarchical_query.free_variables)
                     new_query.register_bitset(bitset)

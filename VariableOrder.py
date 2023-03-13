@@ -176,11 +176,11 @@ class VariableOrderNode:
                 child_relations_bs = 0
                 for rel in  child.all_relations(True):
                     child_relations_bs += 2 ** rel.index
-                if child_relations_bs | relevant_relations == relevant_relations:
+                if child_relations_bs | pattern.maximal == pattern.maximal:
                     found_bs += child_relations_bs
                     found.extend(child.all_relations())
             for rel in self.relations:
-                if 2**rel.index | relevant_relations == relevant_relations:
+                if 2**rel.index | pattern.maximal == pattern.maximal:
                     found_bs += 2**rel.index
                     found.append(rel)
             if found_bs | pattern.required == found_bs and (found_bs & pattern.optional > 0 or pattern.optional == 0):

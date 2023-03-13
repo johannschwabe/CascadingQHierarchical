@@ -46,13 +46,26 @@ def generate(nr_queries: int,
 
     relation_dist_samples = relation_dist.samples(nr_queries, seed=seed+3)
     for i in range(nr_queries):
-        random.shuffle(rel_list)
-        nr_rels = max(2,int(relation_dist_samples[i]))
-        selected_rels = rel_list[:nr_rels]
-        variables = set()
-        for rel in selected_rels:
-            variables.update(rel.free_variables)
-
+        count = 0
+        while True:
+            random.shuffle(rel_list)
+            nr_rels = max(2,int(relation_dist_samples[i]))
+            selected_rels = rel_list[:nr_rels]
+            variables = set()
+            var_list = []
+            for rel in selected_rels:
+                variables.update(rel.free_variables)
+                var_list.extend(rel.free_variables)
+            join_variables: "set[str]" = set(filter(lambda x: var_list.count(x) > 1, variables))
+            connected = any(map(lambda x: join_variables.isdisjoint(x.free_variables), selected_rels))
+            # if connected:
+            #     print("gugus")
+            if not connected:
+                break
+            count += 1
+            if count % 20 == 0:
+                for selected_rel in selected_rels:
+                    selected_rel.free_variables.add(random.choice(list(variables)))
         variable_list = list(sorted(variables))
         random.shuffle(variable_list)
         #print(len(variable_list))

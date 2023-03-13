@@ -118,19 +118,23 @@ class Query:
 
         for prob_a, prob_b in problematic_join_var_tuple:
             rels = bs_query & self.bitset[prob_a]
-            pattern = RelationPattern(rels, 0, bs_query)
+            pattern = RelationPattern(rels, 0, bs_query, f"Remove {prob_a}")
             res.add(pattern)
-            pattern_2 = RelationPattern( ~ rels & bs_query, rels, bs_query)
-            res.add(pattern_2)
+            if prob_a in self.free_variables:
+                pattern_2 = RelationPattern( ~ rels & bs_query, rels, bs_query, f"Expand {prob_a}")
+                res.add(pattern_2)
 
         # Non Q
         def check_non_q(free_var_a, bound_var_b):
             rel_a = bs_query & self.bitset[free_var_a]
             rel_b = bs_query & self.bitset[bound_var_b]
-            a_sub_b = rel_a | rel_b == rel_b and rel_a != rel_b
-            disjoint = rel_a & rel_b == 0
-            if not (a_sub_b or disjoint):
-                res.add(RelationPattern(rel_a ^ rel_b, rel_b, bs_query))
+            a_sub_b = rel_a | rel_b == rel_b
+            equal = rel_a == rel_b
+            if a_sub_b and not equal:
+                res.add(RelationPattern((rel_a ^ rel_b) & rel_b,
+                                        rel_a,
+                                        bs_query,
+                                        f"Distribute free {free_var_a} to bounded {bound_var_b}"))
 
         for free_var in self.free_variables:
             for bound_var in all_vars.difference(self.free_variables):

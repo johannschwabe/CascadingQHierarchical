@@ -13,6 +13,28 @@ from greedy import greedy
 
 random.seed(22)
 
+def test_queries(queries: "list[Query]", var_tree = False):
+    run_1_queries = [q.clean_copy() for q in queries]
+    res_run_1 = run(run_1_queries)
+    if res_run_1:
+        print('forward success')
+        res_run_1.graph_viz("success")
+    else:
+        print('Forward Failed')
+    run_2_queries = [q.clean_copy() for q in queries]
+    res_run_2 = backward_search(run_2_queries)
+    if res_run_2:
+        print("backward success")
+        res_run_2.graph_viz("Backward")
+        if var_tree:
+            for q in res_run_2.queries:
+                graphy = Digraph()
+                q.variable_order.graph_viz(graphy, q.name)
+                graphy.view(q.name)
+    else:
+        print("Backward Failed")
+
+
 def example_0():
     R1 = Relation("R1", {"x", "y"})
     R2 = Relation("R2", {"y", "z"})
@@ -113,7 +135,7 @@ def example_5():
     # qs.graph_viz()
     return
 
-def example_6(nr_attempts: int, seed_base = 23445, _print = False):
+def example_6(nr_attempts: int, seed_base = 23445, _print = False, _break = False):
     nr_valid = 0
     nr_run_success = 0
     nr_greedy_success = 0
@@ -158,12 +180,13 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False):
             if res_run_2:
                 nr_greedy_success += 1
 
-            if res_run_1 and not res_run_2:
+            if _break and res_run_1 and not res_run_2:
                 print('\n'.join([str(q) for q in resi]))
                 return
 
             if not res_run_1 and res_run_2:
                 print("ALARM")
+                res_run_2.graph_viz('OHNO')
 
     print(f"{nr_attempts} groups generated, {nr_valid} valid, {nr_greedy_success}/{nr_run_success} successfull reduction")
 
@@ -383,14 +406,19 @@ def example_12():
     # Q1 = Query("Q1", {R0, R1, R11, R6, R7, R8, R9}, set())
     Q2 = Query("Q2", {R0, R10, R12, R13, R2, R3, R6, R7, R8}, {'b', 'c'})
 
-    # not_res = QuerySet({Q0, Q2})
-    # not_res.graph_viz("problematic Example")
-
-    res = backward_search([Q0, Q2])
-    if res:
-        res.graph_viz(12)
+    queries = [Q0, Q2]
+    run_1_queries = [q.clean_copy() for q in queries]
+    run_2_queries = [q.clean_copy() for q in queries]
+    res_run_2 = backward_search(run_2_queries)
+    print("Back Done")
+    res_run_1 = run(run_1_queries)
+    if res_run_1:
+        res_run_1.graph_viz("success")
+    if res_run_2:
+        print("backward success")
+        res_run_2.graph_viz("Backward")
     else:
-        print("ex12 failed")
+        print("Backward Failed")
 def example_13():
     R1 = Relation('R1', {'a', 'b'})
     R2 = Relation('R2', {'c', 'b'})
@@ -463,15 +491,8 @@ def example_17():
     Q4 = Query("Q4", {R0, R1, R2}, {'a', 'c', 'd', 'f', 'e'})
     Q5 = Query("Q5", {R0, R1, R2, }, {'b', 'f'})
 
-    resi = [Q0, Q1, Q2, Q3, Q4, Q5]
-    # resi = [Q2, Q3]
-    run_1_queries = [q.clean_copy() for q in resi]
-    res_run_1 = run(run_1_queries)
-    res_run_1.graph_viz("success")
-    run_2_queries = [q.clean_copy() for q in resi]
-    res_run_2 = backward_search(run_2_queries)
-    if res_run_2:
-        print("backward success")
+    test_queries([Q0,Q1,Q2, Q3, Q4, Q5])
+
 
 def example_18():
     R0 = Relation("R0", {'a', 'b', 'c', 'd'}, index=0)
@@ -481,34 +502,97 @@ def example_18():
     R4 = Relation("R4", {'a', 'b', 'd', 'e', 'f'}, index=4)
 
     Q0 = Query("Q0", {R3, R4}, {'a', 'b', 'd', 'e', 'f'})
-    # Q1 = Query("Q1", {R0, R1}, {'a', 'b', 'c', 'd'})
+    Q1 = Query("Q1", {R0, R1}, {'a', 'b', 'c', 'd'})
     Q2 = Query("Q2", {R0, R1, R2, R3, R4}, {'a', 'b', 'c', 'd', 'f'})
-    queries = [Q0, Q2]
-    # queries = [Q0, Q1, Q2]
-    run_1_queries = [q.clean_copy() for q in queries]
-    res_run_1 = run(run_1_queries)
-    res_run_1.graph_viz("success")
-    run_2_queries = [q.clean_copy() for q in queries]
-    res_run_2 = backward_search(run_2_queries)
-    if res_run_2:
-        print("backward success")
-        res_run_2.graph_viz("Backward")
+
+    test_queries([Q0,Q1,Q2])
 
 def example_19():
-    R0 = Relation("R0", {'b', 'c', 'f', 'g', 'h'})
-    R1 = Relation("R1", {'c', 'd', 'e'})
+    R0 = Relation("R0", {'b', 'c', 'f', 'g', 'h'}, index=0)
+    R1 = Relation("R1", {'c', 'd', 'e'}, index=1)
     Q0 = Query('Q0', {R0, R1}, {'c'})
     Q1 = Query('Q1', {R0, R1}, {'b', 'd', 'e', 'g', 'h'})
     Q2 = Query('Q2', {R0, R1}, set())
-    queries = [Q0, Q1, Q2]
-    run_1_queries = [q.clean_copy() for q in queries]
-    res_run_1 = run(run_1_queries)
-    res_run_1.graph_viz("success")
-    run_2_queries = [q.clean_copy() for q in queries]
-    res_run_2 = backward_search(run_2_queries)
-    if res_run_2:
-        print("backward success")
-        res_run_2.graph_viz("Backward")
+    test_queries([Q0,Q1,Q2])
+
+def example_20():
+    R0 = Relation('R0', {'e', 'f', 'h', 'i'}, index=0)
+    R1 = Relation('R1', {'b', 'e', 'h'}, index=1)
+    R2 = Relation('R2', {'b', 'c', 'd', 'f', 'i'}, index=2)
+    R3 = Relation('R3', {'d', 'e', 'g'}, index=3)
+    Q0 = Query('Q0', {R2, R3}, {'d', 'c', 'e', 'f', 'g', 'i'})
+    Q1 = Query('Q1', {R0,R1,R3}, {'b', 'd', 'e', 'f', 'g','h','i'})
+    Q2 = Query('Q2', {R1,R3}, {'d'})
+
+    test_queries([Q0,Q1,Q2])
+
+def example_21():
+    R0 = Relation('R0', {'b', 'f'}, index=3)
+    R1 = Relation('R1', {'b', 'c', 'f'}, index=1)
+    R2 = Relation('R2', {'a', 'd'}, index=4)
+    R3 = Relation('R3', {'a', 'b', 'c', 'f'}, index=2)
+    R4 = Relation('R4', {'d', 'f'}, index=0)
+
+    Q0 = Query('Q0', {R0, R1, R2, R3, R4}, {'b', 'c', 'd'})
+    Q2 = Query('Q2', {R0, R2, R3, R4}, {'a', 'b', 'd', 'f'})
+    Q1 = Query('Q1', {R0, R3}, set())
+
+    test_queries([Q0,Q1,Q2])
+
+def example_22():
+    R0 = Relation('R0', {'a', 'b', 'f', 'g', 'h'})
+    R1 = Relation('R1', {'a', 'g', 'i'})
+    R2 = Relation('R2', {'d', 'g', 'i'})
+    R3 = Relation('R3', {'e', 'i', 'j'})
+    R4 = Relation('R4', {'a', 'g', 'i'})
+
+    Q0 = Query('Q0', {R0, R1, R3, R4} ,{'a', 'f'})
+    Q1 = Query('Q1', {R1, R3} ,{'a', 'd', 'g', 'i'})
+    Q2 = Query('Q2', {R0, R1, R2, R3} ,{'a', 'e', 'f', 'g', 'h', 'i', 'j'})
+
+    test_queries([Q0,Q1,Q2])
+
+
+def example_23():
+    R0 = Relation("R0", {'a', 'd'})
+    R1 = Relation("R1", {'a', 'b', 'd', 'e'})
+    R2 = Relation("R2", {'a', 'e'})
+
+    Q0 = Query('Q0', {R0, R1, R2}, set())
+    Q1 = Query('Q1', {R0, R2}, {'a', 'e'})
+    Q2 = Query('Q2', {R0, R1, R2}, {'b'})
+
+
+    test_queries([Q0,Q1,Q2])
+
+
+def example_24():
+    R0 = Relation("R0", {'a', 'b','d'}, index=0)
+    R1 = Relation("R1", {'c', 'e','g', 'j'}, index=1)
+    R2 = Relation("R2", { 'e','g', 'l'}, index=2)
+    R3 = Relation("R3", { 'e','f'}, index=3)
+    R4 = Relation("R4", { 'c','d','g', 'h', 'k'}, index=4)
+    R5 = Relation("R5", { 'd','e', 'f', 'i'}, index=5)
+
+    Q0 = Query("Q0", {R0, R4, R5 }, {'a','b','c','d','e','f','g','h','k'})
+    Q1 = Query("Q1", {R0, R1, R4 }, {'b', 'c'})
+    Q2 = Query("Q2", {R0, R1, R2,R3, R4, R5 }, set())
+
+    test_queries([Q0,Q1,Q2])
+
+def example_25():
+    R0 = Relation("R0", {'c', 'f'})
+    R1 = Relation("R1", {'a', 'b', 'c', 'd', 'f'})
+    R2 = Relation("R2", {'a','b', 'd'})
+    R3 = Relation("R3", {'a','e'})
+
+    Q0 = Query('Q0', {R0, R1}, {'a','c','f'})
+    Q1 = Query('Q1', {R1, R2}, {'a', 'b', 'c','d','f'})
+    Q2 = Query('Q2', {R0, R1, R2, R3}, {'a','c','d','e'})
+
+
+    test_queries([Q0,Q1,Q2])
+
 
 # example_0()
 # example_1()
@@ -516,7 +600,7 @@ def example_19():
 # example_3()
 # example_4()
 # example_5()
-# example_6(30000, 99, _print=False)
+# example_6(30000, 89, _print=False, _break=True)
 # example_7()
 # example_8()
 # example_9()
@@ -528,7 +612,14 @@ def example_19():
 # example_16(30000, 99,)
 # example_17()
 # example_18()
-example_19()
+# example_19()
+# example_20()
+# example_21()
+# example_22()
+# example_23()
+# example_24()
+example_25()
+
 
 
 print("done")
