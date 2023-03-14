@@ -9,7 +9,7 @@ class RelationPattern:
         self.reason = reason
 
     def __repr__(self):
-        return f"{format(self.required, 'b')}-{format(self.optional, 'b')}-{format(self.maximal, 'b')}"
+        return f"{self.required:05b}-{self.optional:05b}-{self.maximal:05b}"
 
     def __hash__(self):
         return hash(self.__repr__())

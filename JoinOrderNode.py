@@ -106,23 +106,23 @@ class JoinOrderNode:
             return node
 
         _iter = variable_order_node
-        simple_vars = {_iter.name}
+        simple_vars = _iter.parent_variables()
         while len(_iter.children) == 1 and len(_iter.relations) == 0:
             _iter = list(_iter.children)[0]
             simple_vars.add(_iter.name)
         if len(_iter.children) + len(_iter.relations) > 1:
-            free_vars = simple_vars.intersection(query.free_variables)
             node = JoinOrderNode(query_name=query.name,
                                  child_rel_names=child_relation_names,
                                  relations=_iter.relations,
                                  free_vars=simple_vars,
                                  aggregated_vars=set())
-            bound_vars = simple_vars.difference(query.free_variables)
+            strict_parent_vars = parent_vars.difference({variable_order_node.name})
+            bound_vars = simple_vars.difference(strict_parent_vars)
             if bound_vars:
                 h_node = JoinOrderNode(query_name=query.name,
                                        child_rel_names=child_relation_names,
                                        relations=set(),
-                                       free_vars=free_vars,
+                                       free_vars=strict_parent_vars,
                                        aggregated_vars=bound_vars,
                                        designation='H')
                 node.parent = h_node
@@ -131,12 +131,12 @@ class JoinOrderNode:
             else:
                 return_node = node
         else:
-            bound_vars = simple_vars
-            free_vars = parent_vars.difference(bound_vars)
+            strict_parent_vars = parent_vars.difference({variable_order_node.name})
+            bound_vars = simple_vars.difference(strict_parent_vars)
             node = JoinOrderNode(query_name=query.name,
                                  child_rel_names=child_relation_names,
                                  relations=_iter.relations,
-                                 free_vars=free_vars,
+                                 free_vars=strict_parent_vars,
                                  aggregated_vars=bound_vars)
             return_node = node
 

@@ -590,6 +590,45 @@ def example_25():
     Q1 = Query('Q1', {R1, R2}, {'a', 'b', 'c','d','f'})
     Q2 = Query('Q2', {R0, R1, R2, R3}, {'a','c','d','e'})
 
+    test_queries([Q0,Q1,Q2])
+
+def example_26():
+    R0 = Relation('R0', {'a', 'b', 'c','d','e'}, index=0)
+    R1 = Relation('R1', {'a', 'd'}, index=1)
+    R2 = Relation('R2', {'a','b','c', 'd'}, index=2)
+    R3 = Relation('R3', {'a','b','c', 'd'}, index=3)
+    R4 = Relation('R4', {'c', 'd'}, index=4)
+
+    Q0 = Query('Q0', {R1, R2, R3, R4}, {'d'})
+    Q1 = Query('Q1', {R2, R4}, {'a','b','c', 'd'})
+    Q2 = Query('Q2', {R0, R1, R2, R3, R4}, set())
+
+    test_queries([Q0,Q1,Q2])
+
+def example_27():
+    R0 = Relation('R0', {'a', 'b', 'c', 'e','f'}, index=0)
+    R1 = Relation('R1', { 'd', 'e'}, index=1)
+    R2 = Relation('R2', { 'a', 'c', 'e','f'}, index=2)
+
+    Q0 = Query('Q0', {R1, R2}, set())
+    Q1 = Query('Q1', {R0, R1, R2}, {'a', 'b', 'd', 'f'})
+    Q2 = Query('Q2', {R0, R1, R2}, {'a'})
+
+    test_queries([Q0,Q1,Q2])
+
+def example_28():
+    R0 = Relation('R0', {'b', 'c'}, index=0)
+    R1 = Relation('R1', {'a', 'c'}, index=1)
+    R2 = Relation('R2', {'a','b', 'c'}, index=2)
+    R3 = Relation('R3', {'a','b', 'c'}, index=3)
+    R4 = Relation('R4', {'a','b', 'c'}, index=4)
+    R5 = Relation('R5', {'a','b', 'c'}, index=5)
+    R6 = Relation('R6', {'a','b', 'c'}, index=6)
+    R7 = Relation('R7', {'a', 'c'}, index=7)
+
+    Q0 = Query('Q0', {R5, R7}, {'a', 'b', 'c'})
+    Q1 = Query('Q1', {R0, R1, R2, R3, R4, R5, R6, R7}, { 'b', 'c'})
+    Q2 = Query('Q2', {R1, R2}, {'a', 'b', 'c'})
 
     test_queries([Q0,Q1,Q2])
 
@@ -618,8 +657,10 @@ def example_25():
 # example_22()
 # example_23()
 # example_24()
-example_25()
-
+# example_25()
+# example_26()
+# example_27()
+example_28()
 
 
 print("done")

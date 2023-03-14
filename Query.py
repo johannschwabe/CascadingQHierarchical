@@ -101,6 +101,7 @@ class Query:
             all_vars.update(relation.free_variables)
 
         bs_query = self.bitset[hash(self)]
+        bs_source_query = self.bitset[self.name]
 
         problematic_join_var_tuple = set()
         def check_two_join(var_a, var_b):
@@ -117,23 +118,25 @@ class Query:
             check_two_join(comb[0], comb[1])
 
         for prob_a, prob_b in problematic_join_var_tuple:
-            rels = bs_query & self.bitset[prob_a]
-            pattern = RelationPattern(rels, 0, bs_query, f"Remove {prob_a}")
+            rels_a = bs_query & self.bitset[prob_a]
+            rels_b = bs_query & self.bitset[prob_b]
+            pattern = RelationPattern(rels_a, 0, bs_query, f"Remove {prob_a}")
             res.add(pattern)
-            if prob_a in self.free_variables:
-                pattern_2 = RelationPattern( ~ rels & bs_query, rels, bs_query, f"Expand {prob_a}")
-                res.add(pattern_2)
+            pattern_2 = RelationPattern( ~ rels_a & rels_b, rels_a, bs_query, f"Expand {prob_a}")
+            res.add(pattern_2)
 
         # Non Q
         def check_non_q(free_var_a, bound_var_b):
             rel_a = bs_query & self.bitset[free_var_a]
             rel_b = bs_query & self.bitset[bound_var_b]
-            a_sub_b = rel_a | rel_b == rel_b
+            a_dom_b = rel_a | rel_b == rel_a
             equal = rel_a == rel_b
-            if a_sub_b and not equal:
-                res.add(RelationPattern((rel_a ^ rel_b) & rel_b,
-                                        rel_a,
-                                        bs_query,
+            if not a_dom_b and not equal:
+                rel_source_a = bs_source_query & self.bitset[free_var_a]
+                rel_source_b = bs_source_query & self.bitset[bound_var_b]
+                res.add(RelationPattern((rel_source_a ^ rel_source_b) & rel_source_b,
+                                        rel_source_a,
+                                        bs_source_query,
                                         f"Distribute free {free_var_a} to bounded {bound_var_b}"))
 
         for free_var in self.free_variables:

@@ -97,7 +97,7 @@ class VariableOrderNode:
 
     def parent_variables(self):
         if self._parent_vars:
-            return self._parent_vars
+            return self._parent_vars.copy()
         res = {self.name}
         if self.parent:
             res.update(self.parent.parent_variables())

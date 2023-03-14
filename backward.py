@@ -15,23 +15,23 @@ def backward_search(queries: "list[Query]"):
         else:
             non_q_hierarchical.add(query)
     res = q_hierarchical.copy()
-    past_comparisons: "set[tuple[RelationPattern, Query]]" = set()
+    past_comparisons: "set[tuple[Query, Query]]" = set()
     while True:
         new_q_hierarchical = set()
         new_non_q_hierarchical = set()
         for non_q_hierarchical_query in non_q_hierarchical:
             patterns = non_q_hierarchical_query.resolving_views()
-            for pattern in patterns:
-                for q_hierarchical_query in q_hierarchical:
-                    if non_q_hierarchical_query.name == q_hierarchical_query.name or \
-                            (pattern, q_hierarchical_query) in past_comparisons:
-                        continue
+            for q_hierarchical_query in q_hierarchical:
+                if non_q_hierarchical_query.name == q_hierarchical_query.name or \
+                        (non_q_hierarchical_query, q_hierarchical_query) in past_comparisons:
+                    continue
+                past_comparisons.add((non_q_hierarchical_query, q_hierarchical_query))
+                for pattern in patterns:
+
                     q_dependant_on = set()
                     q_hierarchical_query.dependant_on_deep(q_dependant_on)
                     if non_q_hierarchical_query.name in map(lambda x: x.name, q_dependant_on):
-                        past_comparisons.add((pattern,q_hierarchical_query))
                         continue
-                    past_comparisons.add((pattern, q_hierarchical_query))
 
                     q_bs = bitset[q_hierarchical_query.name]
                     if q_bs | pattern.required == q_bs and (pattern.optional == 0 or pattern.optional & q_bs > 0): # feasible
