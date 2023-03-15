@@ -165,7 +165,7 @@ class VariableOrderNode:
         relevant_relations = 0
         for child_rel in self.all_relations(True):
             relevant_relations += 2 ** child_rel.index
-        if relevant_relations | pattern.required == relevant_relations:
+        if relevant_relations & pattern.required > 0:
             for child in self.children:
                 child_res =child.find_view(pattern, bitset, query)
                 if child_res:
@@ -183,7 +183,7 @@ class VariableOrderNode:
                 if 2**rel.index | pattern.maximal == pattern.maximal:
                     found_bs += 2**rel.index
                     found.append(rel)
-            if found_bs | pattern.required == found_bs and (found_bs & pattern.optional > 0 or pattern.optional == 0):
+            if found_bs & pattern.required > 0 and (found_bs & pattern.optional > 0 or pattern.optional == 0):
                 variables = set()
                 relations_names = ""
                 for rel in found:
@@ -191,6 +191,7 @@ class VariableOrderNode:
                     relations_names += rel.name
                 return Relation(f"V_{query.name}-{relations_names}", variables, found)
             return None
+
         return None
 
 

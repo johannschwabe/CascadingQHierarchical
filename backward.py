@@ -34,7 +34,7 @@ def backward_search(queries: "list[Query]"):
                         continue
 
                     q_bs = bitset[q_hierarchical_query.name]
-                    if q_bs | pattern.required == q_bs and (pattern.optional == 0 or pattern.optional & q_bs > 0): # feasible
+                    if pattern.query_compatible(q_bs):
                         new_replacement = q_hierarchical_query.variable_order.find_view(pattern, bitset, q_hierarchical_query)
                         if not new_replacement:
                             continue

@@ -632,6 +632,16 @@ def example_28():
 
     test_queries([Q0,Q1,Q2])
 
+def example_29():
+    R0 = Relation('R0', {'a', 'b', 'd'}, index=0)
+    R1 = Relation('R1', {'a', 'b','c', 'd', 'e'}, index=1)
+    R2 = Relation('R2', {'a', 'b','d', 'e'}, index=2)
+
+    Q0 = Query('Q0', {R0, R1, R2}, {'a', 'b','d'})
+    Q1 = Query('Q1', {R0, R1, R2}, {'a', 'b','c'})
+    Q2 = Query('Q2', {R0, R1, R2}, {'a', 'b','d','e'})
+
+    test_queries([Q0,Q1,Q2])
 
 # example_0()
 # example_1()
@@ -660,7 +670,8 @@ def example_28():
 # example_25()
 # example_26()
 # example_27()
-example_28()
+# example_28()
+example_29()
 
 
 print("done")
