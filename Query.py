@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 class Query:
 
     def __init__(self, name: str, relations: "set[Relation]", free_variables: "set[str]"):
-        self.views: "list[Relation]" = []
         self.name = name
         self.free_variables = free_variables
         self.relations = relations
@@ -23,7 +22,6 @@ class Query:
         self._is_q_hierarchical: bool|None = None
         self.bitset: "BitSet | None" = None
         self.dependant_on: "set[Query]" = set()
-        self._resolving_views: "list[RelationPattern]" = []
 
     def dependant_on_deep(self, res: "set[Query]"):
         if not self.dependant_on:
@@ -87,64 +85,6 @@ class Query:
         for rel in self.relations:
             rel._root_sources = set()
         return Query(self.name, self.relations, self.free_variables)
-
-    def resolving_views(self):
-        if self.is_q_hierarchical():
-            return []
-        if self._resolving_views:
-            return self._resolving_views
-        res = set()
-
-        # Non-Hierarchical
-        all_vars = set()
-        for relation in self.relations:
-            all_vars.update(relation.free_variables)
-
-        bs_query = self.bitset[hash(self)]
-        bs_source_query = self.bitset[self.name]
-
-        problematic_join_var_tuple = set()
-        def check_two_join(var_a, var_b):
-            rel_a = bs_query & self.bitset[var_a]
-            rel_b = bs_query & self.bitset[var_b]
-            a_sub_b = rel_a | rel_b == rel_b
-            b_sub_a = rel_a | rel_b == rel_a
-            disjoint = rel_a & rel_b == 0
-            if not (a_sub_b or b_sub_a or disjoint):
-                problematic_join_var_tuple.add((var_a, var_b))
-                problematic_join_var_tuple.add((var_b, var_a))
-
-        for comb in itertools.combinations(all_vars, 2):
-            check_two_join(comb[0], comb[1])
-
-        for prob_a, prob_b in problematic_join_var_tuple:
-            rels_a = bs_query & self.bitset[prob_a]
-            rels_b = bs_query & self.bitset[prob_b]
-            pattern = RelationPattern(rels_a, 0, bs_query, f"Remove {prob_a}")
-            res.add(pattern)
-            pattern_2 = RelationPattern( ~ rels_a & rels_b, rels_a, bs_query, f"Expand {prob_a}")
-            res.add(pattern_2)
-
-        # Non Q
-        def check_non_q(free_var_a, bound_var_b):
-            rel_a = bs_query & self.bitset[free_var_a]
-            rel_b = bs_query & self.bitset[bound_var_b]
-            a_dom_b = rel_a | rel_b == rel_a
-            equal = rel_a == rel_b
-            if not a_dom_b and not equal:
-                rel_source_a = bs_source_query & self.bitset[free_var_a]
-                rel_source_b = bs_source_query & self.bitset[bound_var_b]
-                res.add(RelationPattern((rel_source_a ^ rel_source_b) & rel_source_b,
-                                        rel_source_a,
-                                        bs_source_query,
-                                        f"Distribute free {free_var_a} to bounded {bound_var_b}"))
-
-        for free_var in self.free_variables:
-            for bound_var in all_vars.difference(self.free_variables):
-                check_non_q(free_var, bound_var)
-        self._resolving_views = list(res)
-        return self._resolving_views
-
 
     def __str__(self):
         return self.name + "(" + ",".join(sorted(self.free_variables)) +")" + " = " + "*".join(sorted(map(lambda x: str(x), self.variable_order.all_relations())))

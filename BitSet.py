@@ -44,7 +44,10 @@ class BitSet:
         for relation in query.relations:
             self.bitset[hash(query)] += 2 ** relation.index             # Query-hash
 
-
+    def a_subset_b(self, a, b):
+        if a not in self.bitset or b not in self.bitset:
+            return False
+        return self.bitset[a] | self.bitset[b] == self.bitset[b]
     def is_homomorphism(self, view: "Relation", non_q_query: "Query"):
         view_name = f"View_{view.name}"
         if view.name not in self.bitset:

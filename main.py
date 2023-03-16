@@ -9,7 +9,7 @@ from Relation import Relation
 from Query import Query, QuerySet
 from backward import backward_search
 from cascade import run
-from greedy import greedy
+#from greedy import greedy
 
 random.seed(22)
 
@@ -39,12 +39,12 @@ def example_0():
     R1 = Relation("R1", {"x", "y"})
     R2 = Relation("R2", {"y", "z"})
     R3 = Relation("R3", {"z", "w"})
-    Q1 = Query("Q1", {R1, R2}, {'x', 'y','z'})
-    Q2 = Query("Q2", {R1, R2, R3}, {'x', 'y','z', 'w'})
+    Q1 = Query("Q1", {R1, R2}, {'y','z'})
+    Q2 = Query("Q2", {R1, R2, R3}, { 'y','z', 'w'})
 
-    # res = run({Q1, Q2})
+    res = run([Q1, Q2])
     # res = greedy([Q2, Q1])
-    res = backward_search([Q2, Q1])
+    # res = backward_search([Q2, Q1])
     res.graph_viz("ex0")
     return res
 
@@ -53,17 +53,17 @@ def example_1():
     R2 = Relation("R2", {"b","c"})
     R3 = Relation("R3", {"c","d"})
     R4 = Relation("R4", {"b","e"})
-    R5 = Relation("R5", {"f","e"})
+    R5 = Relation("R5", {"e","f"})
 
-    Q1 = Query("Q1", {R1, R2, R4}, {'a', 'b', 'c'})
+    Q1 = Query("Q1", {R1, R2}, {'a', 'b', 'c'})
     Q2 = Query("Q2", {R1, R2, R3}, {'a', 'b', 'c', 'd'})
-    Q3 = Query("Q3", {R4, R1, R5}, {'a', 'b', 'e', 'f'})
+    Q3 = Query("Q3", {R1, R2, R3, R4}, {'a', 'b','c','d', 'e'})
     # Q3 = Query("Q3", {R1, R2, R3, R4}, {'a', 'b', 'c', 'd', 'e'})
-    # res = run({Q1, Q2, Q3})
+    res = run([Q1, Q2, Q3])
     # res = greedy([Q1, Q2, Q3])
     # QS = QuerySet({Q1, Q2, Q3})
     # QS.graph_viz()
-    res = backward_search([Q2, Q1, Q3])
+    # res = backward_search([Q2, Q1, Q3])
     res.graph_viz("ex1")
     return res
 
@@ -162,33 +162,17 @@ def example_6(nr_attempts: int, seed_base = 23445, _print = False, _break = Fals
                 print(_)
 
             nr_valid += 1
-            #        print("=============")
-            #        for query in resi:
-            #            print(f"{query} - {query.is_q_hierarchical()}")
             for q in resi:
                 for rel in q.relations:
                     rel.index = -1
-            run_1_queries = [q.clean_copy() for q in resi]
-            res_run_1 = run(run_1_queries)
-            run_2_queries = [q.clean_copy() for q in resi]
-            res_run_2 = backward_search(run_2_queries)
+            res_run_1 = run(resi)
             if res_run_1:
                 nr_run_success += 1
                 if _print:
                     print(f"Success on {_}")
                     res_run_1.graph_viz(_)
-            if res_run_2:
-                nr_greedy_success += 1
 
-            if _break and res_run_1 and not res_run_2:
-                print('\n'.join([str(q) for q in resi]))
-                return
-
-            if not res_run_1 and res_run_2:
-                print("ALARM")
-                res_run_2.graph_viz('OHNO')
-
-    print(f"{nr_attempts} groups generated, {nr_valid} valid, {nr_greedy_success}/{nr_run_success} successfull reduction")
+    print(f"{nr_attempts} groups generated, {nr_valid} valid, {nr_run_success} successfull reduction")
 
 def example_7():
     Census = Relation("Census", {
@@ -649,7 +633,7 @@ def example_29():
 # example_3()
 # example_4()
 # example_5()
-# example_6(30000, 89, _print=False, _break=True)
+example_6(30000, 89, _print=False, _break=True)
 # example_7()
 # example_8()
 # example_9()
@@ -671,7 +655,7 @@ def example_29():
 # example_26()
 # example_27()
 # example_28()
-example_29()
+# example_29()
 
 
 print("done")

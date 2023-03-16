@@ -65,12 +65,12 @@ def generate(nr_queries: int,
             count += 1
             if count % 20 == 0:
                 for selected_rel in selected_rels:
-                    selected_rel.free_variables.add(random.choice(list(variables)))
+                    selected_rel.free_variables.add(random.choice(list(sorted(variables))))
         variable_list = list(sorted(variables))
         random.shuffle(variable_list)
         #print(len(variable_list))
         free_variables = set(variable_list[:random.randint(0, len(variable_list))])
         # print(free_variables)
-
-        res.append(Query(f"Q{i}", set(selected_rels), free_variables))
+        new_query = Query(f"Q{i}", set(selected_rels), free_variables)
+        res.append(new_query)
     return res
