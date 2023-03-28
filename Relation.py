@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from M3Generator import M3Variable
+
 if TYPE_CHECKING:
     from Query import Query
 
@@ -35,6 +37,9 @@ class Relation:
         for source in self.sources:
             res.update(source.all_variables())
         return res
+
+    def M3ViewName(self, ring: str, vars: "dict[str, M3Variable]"):
+        return f"{self.name}({ring}<[]>)[][{','.join(map(lambda x: vars[x].var_type, self.free_variables))}]"
 
     def __eq__(self, other):
         return self.hash_val == other.hash_val

@@ -4,6 +4,7 @@ from graphviz import Digraph
 
 from BitSet import BitSet
 from JoinOrderNode import JoinOrderNode
+from M3Generator import M3Generator
 from QueryGenerator import generate
 from Relation import Relation
 from Query import Query, QuerySet
@@ -279,19 +280,21 @@ def example_7():
     #     "WalmartSuperCenterDriveTime"
     # })
 
-    Q1 = Query("Q1", {Inventory, Item, Weather, Location}, {"Ksn","Category", "Zip", "Rain"})          # Select Ksn, Category, Zip, Rain, Avg(Price)
-    Q2 = Query("Q2", {Inventory, Weather, Item}, {"Locn", "DateId", "Ksn", "Category"})
-    Q3 = Query("Q3", {Inventory, Weather, Location}, {"Ksn","Locn", "DateId", "MaxTemp", "Zip"})
-
-    print(Q1.is_q_hierarchical())
-    print(Q2.is_q_hierarchical())
-    print(Q3.is_q_hierarchical())
+    # Q1 = Query("Q1", {Inventory, Item, Weather, Location}, {"Ksn","Category", "Zip", "Rain"})          # Select Ksn, Category, Zip, Rain, Avg(Price)
+    # Q2 = Query("Q2", {Inventory, Weather, Item}, {"Locn", "DateId", "Ksn", "Category"})
+    # Q3 = Query("Q3", {Inventory, Weather, Location}, {"Ksn","Locn", "DateId", "MaxTemp", "Zip"})
+    Q0 = Query('Q0', {Location, Item, Census, Weather, Inventory},set())
+    QS = QuerySet({Q0})
+    QS.graph_viz("Retailer")
+    # print(Q1.is_q_hierarchical())
+    # print(Q2.is_q_hierarchical())
+    # print(Q3.is_q_hierarchical())
     # res = run({Q1, Q3})
-    res = run([Q1, Q2, Q3])
-    if res:
-        res.pop().graph_viz()
-    else:
-        print("no reduction")
+    # res = run([Q1, Q2, Q3])
+    # if res:
+    #     res.pop().graph_viz()
+    # else:
+    #     print("no reduction")
 
 def example_8():
     for i in range(1000,2000):
@@ -627,13 +630,38 @@ def example_29():
 
     test_queries([Q0,Q1,Q2])
 
+def example_30():
+    House = Relation('House', {'postcode','livingarea','price','nbbedrooms','nbbathrooms','kitchensize','house','flat','unknown','garden','parking'})
+    Shop = Relation('Shop',{'postcode','openinghoursshop','pricerangeshop','sainsburys','tesco','ms'})
+    Institution = Relation('Institution', {'postcode','typeeducation','sizeinstitution'})
+    Restaurant = Relation('Restaurant', {'postcode','openinghoursrest','pricerangerest'})
+    Demographics = Relation('Demographics', {'postcode','averagesalary','crimesperyear','unemployment','nbhospitals'})
+    Transport = Relation('Transport', {'postcode','nbbuslines','nbtrainstations','distancecitycentre'})
+    Q0 = Query('Q0', {House, Shop, Institution, Restaurant, Demographics,Transport}, set())
+    M3Gen = M3Generator('/Users/johannschwabe/Documents/git/FIVM/examples/queries/housing/housing.txt', 'housing', 'RingFactorizedRelation')
+    join_order_node_root = JoinOrderNode.generate(Q0.variable_order,Q0)
+    QS = QuerySet({Q0})
+    QS.graph_viz(1)
+    M3Gen.generate(join_order_node_root)
+
+def example_31():
+    R = Relation('R', {'A', 'B'})
+    S = Relation('S', {'A', 'C', 'E', 'extra'})
+    T = Relation('T', {'A', 'C'})
+    Q0 = Query('Q0', {R, S, T}, set())
+    M3Gen = M3Generator('/Users/johannschwabe/Documents/git/FIVM/examples/queries/simple/rst.txt', 'simple', 'RingFactorizedRelation')
+    join_order_node_root = JoinOrderNode.generate(Q0.variable_order, Q0)
+    QS = QuerySet({Q0})
+    QS.graph_viz(1)
+    M3Gen.generate(join_order_node_root)
+
 # example_0()
 # example_1()
 # example_2()
 # example_3()
 # example_4()
 # example_5()
-example_6(30000, 89, _print=False, _break=True)
+# example_6(30000, 89, _print=False, _break=True)
 # example_7()
 # example_8()
 # example_9()
@@ -656,6 +684,8 @@ example_6(30000, 89, _print=False, _break=True)
 # example_27()
 # example_28()
 # example_29()
+# example_30()
+example_31()
 
 
 print("done")

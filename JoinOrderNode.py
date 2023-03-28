@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-
+from M3Generator import M3Variable
 
 if TYPE_CHECKING:
     from VariableOrder import VariableOrderNode
@@ -25,6 +25,7 @@ class JoinOrderNode:
         self.free_variables: "set[str]" = free_vars
         self.aggregated_variables: "set[str]" = aggregated_vars
         self.designation: "str" = designation
+        self.M3_index: "int" = -1
         self._all_relations_sources: "set[Relation]" = set()
         self._all_relations_no_sources: "set[Relation]" = set()
 
@@ -50,6 +51,13 @@ class JoinOrderNode:
             self._all_relations_no_sources = res
         return res
 
+    def M3ViewName(self, ring: str, vars: "dict[str, M3Variable]", var_index: int=-2):
+        if var_index != -2:
+            self.M3_index = var_index
+        if self.aggregated_variables:
+            return f"{self.designation}_{self.child_rel_names}({ring}<[{self.M3_index}, {','.join(map(lambda x: vars[x].var_type, self.aggregated_variables))}]>)[][{','.join(map(lambda x: vars[x].name, self.free_variables))}]"
+        return f"{self.designation}_{self.child_rel_names}({ring}<[]>)[][{','.join(map(lambda x: vars[x].name, self.free_variables))}]"
+
     def graph_viz_name(self):
         if self.aggregated_variables:
             return f"<{self.designation}<SUB>{self.child_rel_names}</SUB><SUP>@{''.join(sorted(self.aggregated_variables))}</SUP>({','.join(sorted(self.free_variables))})>"
@@ -71,7 +79,8 @@ class JoinOrderNode:
                                  child_rel_names=child_relation_names,
                                  relations=variable_order_node.relations,
                                  free_vars=parent_vars,
-                                 aggregated_vars=set())
+                                 aggregated_vars=set(),
+                                 designation='H')
 
             free_vars = parent_vars.difference({variable_order_node.name})
             aggregated_vars = {variable_order_node.name}
@@ -81,7 +90,7 @@ class JoinOrderNode:
                                    relations=set(),
                                    free_vars=free_vars,
                                    aggregated_vars=aggregated_vars,
-                                   designation='H')
+                                   designation='V')
             node.parent = h_node
             h_node.children = [node]
 
@@ -102,7 +111,9 @@ class JoinOrderNode:
                                  child_rel_names=child_relation_names,
                                  relations=variable_order_node.relations,
                                  free_vars=parent_vars.difference(aggregated_vars),
-                                 aggregated_vars=aggregated_vars)
+                                 aggregated_vars=aggregated_vars,
+                                 designation='V')
+
             return node
 
         _iter = variable_order_node
@@ -115,7 +126,9 @@ class JoinOrderNode:
                                  child_rel_names=child_relation_names,
                                  relations=_iter.relations,
                                  free_vars=simple_vars,
-                                 aggregated_vars=set())
+                                 aggregated_vars=set(),
+                                 designation='H')
+
             strict_parent_vars = parent_vars.difference({variable_order_node.name})
             bound_vars = simple_vars.difference(strict_parent_vars)
             if bound_vars:
@@ -124,7 +137,7 @@ class JoinOrderNode:
                                        relations=set(),
                                        free_vars=strict_parent_vars,
                                        aggregated_vars=bound_vars,
-                                       designation='H')
+                                       designation='V')
                 node.parent = h_node
                 h_node.children = [node]
                 return_node = h_node
@@ -137,7 +150,9 @@ class JoinOrderNode:
                                  child_rel_names=child_relation_names,
                                  relations=_iter.relations,
                                  free_vars=strict_parent_vars,
-                                 aggregated_vars=bound_vars)
+                                 aggregated_vars=bound_vars,
+                                 designation='V')
+
             return_node = node
 
 
