@@ -105,7 +105,7 @@ class VariableOrderNode:
     @staticmethod
     def generate_recursion(relations: "set[Relation]", node: "VariableOrderNode", free_variables: "set[str]"):
         parent_vars = node.parent_variables()
-        generateable_relations = {rel for rel in relations if rel.free_variables.issubset(parent_vars)}
+        generateable_relations = {rel for rel in relations if set(rel.free_variables).issubset(parent_vars)}
         node.relations.update(generateable_relations)
         ungenerateable_relations = relations.difference(generateable_relations)
         if not ungenerateable_relations:

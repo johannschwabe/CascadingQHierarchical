@@ -8,18 +8,18 @@ if TYPE_CHECKING:
 
 class Relation:
 
-    def __init__(self, name: str, variables: "set[str]", sources: "list[Relation] | None" = None, index=-1):
+    def __init__(self, name: str, variables: "list[str]", sources: "list[Relation] | None" = None, index=-1):
         self.index = index
-        self.free_variables = variables if variables else set()
+        self.free_variables = variables if variables else []
         self.sources: "list[Relation]" = sources if sources else []
         self.name = name
-        self.hash_val = hash(f"{'-'.join(sorted(self.free_variables))}:{','.join(map(lambda x: str(x), self.sources)) if self.sources else self.name}")
-        self.disp_name = self.name + "(" + ",".join(sorted(self.free_variables)) + ")"
+        self.hash_val = hash(f"{'-'.join(self.free_variables)}:{','.join(map(lambda x: str(x), self.sources)) if self.sources else self.name}")
+        self.disp_name = self.name + "(" + ",".join(self.free_variables) + ")"
         self._root_sources = set()
 
     def set_name(self, name: str):
         self.name = name
-        self.disp_name = self.name + "(" + ",".join(sorted(self.free_variables)) + ")"
+        self.disp_name = self.name + "(" + ",".join(self.free_variables) + ")"
 
     def root_sources(self):
         if self._root_sources:
@@ -35,7 +35,7 @@ class Relation:
     def all_variables(self):
         res = self.free_variables.copy()
         for source in self.sources:
-            res.update(source.all_variables())
+            res.extend(source.all_variables())
         return res
 
     def M3ViewName(self, ring: str, vars: "dict[str, M3Variable]"):

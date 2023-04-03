@@ -1,26 +1,22 @@
 import itertools
-import math
-from typing import TYPE_CHECKING
 
 from graphviz import Digraph
 
-from RelationPattern import RelationPattern
 from JoinOrderNode import JoinOrderNode
 from VariableOrder import VariableOrderNode
 from Relation import Relation
-if TYPE_CHECKING:
-    from BitSet import BitSet
+
 
 class Query:
 
-    def __init__(self, name: str, relations: "set[Relation]", free_variables: "set[str]"):
+    def __init__(self, name: str, relations: "set[Relation]", free_variables: "set[str]", atoms: "set[Relation]|None" = None):
         self.name = name
         self.free_variables = free_variables
-        self.relations = relations
+        self.relations: "set[Relation]" = relations
+        self.atoms: "set[Relation]" = atoms if atoms else relations
         self._variable_order: "VariableOrderNode | None" = None
-        self.hash_key = hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(hash(x)), relations)))}")
+        self.hash_key = hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(hash(x)), self.atoms)))}")
         self._is_q_hierarchical: bool|None = None
-        self.bitset: "BitSet | None" = None
         self.dependant_on: "set[Query]" = set()
 
     def dependant_on_deep(self, res: "set[Query]"):
@@ -39,29 +35,30 @@ class Query:
         return self._variable_order
 
     def generate_variable_order(self):
-        self._variable_order = VariableOrderNode.generate(self.relations, self.free_variables)
+        self._variable_order = VariableOrderNode.generate(self.atoms, self.free_variables)
 
     def is_q_hierarchical(self) -> bool:
         if self._is_q_hierarchical is not None:
             return self._is_q_hierarchical
         variables = []
-        all_relations = list(self.relations)
-        for rel in all_relations:
+        all_atoms = list(self.atoms)
+        for rel in all_atoms:
             variables.extend(rel.free_variables)
         join_variables = set(filter(lambda x: variables.count(x) > 1, variables)).union(self.free_variables)
+
+        variable_sets: "dict[str, set[Relation]]" = {}
+        for join_variable in join_variables:
+            variable_sets[join_variable] = set(filter(lambda x: join_variable in x.free_variables, self.atoms))
 
         def check_combination(_variables):
             variable_a = _variables[0]
             variable_b = _variables[1]
 
-            variable_a_bitset = self.bitset[variable_a] & self.bitset[hash(self)]
-            variable_b_bitset = self.bitset[variable_b] & self.bitset[hash(self)]
+            c1 = variable_sets[variable_b].issubset(variable_sets[variable_a])
+            c2 = variable_sets[variable_a].issubset(variable_sets[variable_b])
+            c3 = variable_sets[variable_a].isdisjoint(variable_sets[variable_b])
 
-            c1 = variable_a_bitset | variable_b_bitset == variable_a_bitset
-            c2 = variable_a_bitset | variable_b_bitset == variable_b_bitset
-            c3 = variable_a_bitset & variable_b_bitset == 0
-
-            different_relations = variable_a_bitset != variable_b_bitset
+            different_relations = variable_a != variable_b
             a_free = variable_a in self.free_variables
             b_free = variable_b in self.free_variables
 
@@ -77,17 +74,14 @@ class Query:
         self._is_q_hierarchical = all(map(check_combination, itertools.combinations(join_variables, 2)))
         return self._is_q_hierarchical
 
-    def register_bitset(self, bitset: "BitSet"):
-        self.bitset = bitset
-        bitset.add_query(self)
 
     def clean_copy(self):
         for rel in self.relations:
             rel._root_sources = set()
-        return Query(self.name, self.relations, self.free_variables)
+        return Query(self.name, self.relations, self.free_variables, self.atoms)
 
     def __str__(self):
-        return self.name + "(" + ",".join(sorted(self.free_variables)) +")" + " = " + "*".join(sorted(map(lambda x: str(x), self.variable_order.all_relations())))
+        return self.name + "(" + ",".join(sorted(self.free_variables)) +")" + " = " + "*".join(sorted(map(lambda x: str(x), self.atoms)))
 
     def __hash__(self):
         return self.hash_key
