@@ -32,7 +32,7 @@ def generate(nr_queries: int,
     nr_variables_samples = variable_dist.samples(total_relations, seed=seed+2)
     for i in range(total_relations):
         nr_variables = max(int(nr_variables_samples[i]), 2)
-        variables = set()
+        variables = []
         random.shuffle(possible_vars)
         selected_vars = possible_vars[:nr_variables]
         for selected_var in selected_vars:
@@ -40,7 +40,7 @@ def generate(nr_queries: int,
                 variable_name = f"{var_names[selected_var]}"
             else:
                 variable_name = f"{var_names[selected_var % len(var_names)]}_{selected_var // len(var_names)}"
-            variables.add(variable_name)
+            variables.append(variable_name)
         rels.add(Relation(f"R{i}", variables))
     rel_list = list(sorted(rels, key=lambda x: x.name))
 
@@ -65,7 +65,7 @@ def generate(nr_queries: int,
             count += 1
             if count % 20 == 0:
                 for selected_rel in selected_rels:
-                    selected_rel.free_variables.add(random.choice(list(sorted(variables))))
+                    selected_rel.free_variables.append(random.choice(list(sorted(variables))))
         variable_list = list(sorted(variables))
         random.shuffle(variable_list)
         #print(len(variable_list))

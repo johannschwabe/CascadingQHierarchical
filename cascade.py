@@ -23,10 +23,14 @@ def run(queries: "list[Query]"):
                 if non_q_hierarchical_query.name == q_hierarchical_query.name or\
                         (q_hierarchical_query, non_q_hierarchical_query) in past_comparisons:
                     continue
+                past_comparisons.add((q_hierarchical_query, non_q_hierarchical_query))
                 q_dependant_on = set()
                 q_hierarchical_query.dependant_on_deep(q_dependant_on)
                 if non_q_hierarchical_query.name in map(lambda x: x.name, q_dependant_on):
-                    past_comparisons.add((q_hierarchical_query, non_q_hierarchical_query))
+                    continue
+                q_hierarchical_query_relation_names = {x.name for x in q_hierarchical_query.relations}
+                non_q_hierarchical_query_relation_names = {x.name for x in non_q_hierarchical_query.relations}
+                if not q_hierarchical_query_relation_names.issubset(non_q_hierarchical_query_relation_names):
                     continue
                 new_query = is_homomorphism(q_hierarchical_query, non_q_hierarchical_query)
                 if new_query:
@@ -34,11 +38,9 @@ def run(queries: "list[Query]"):
                     new_query.dependant_on.update(non_q_hierarchical_query.dependant_on)
                     if new_query.is_q_hierarchical():
                         new_q_hierarchical.add(new_query)
-                        past_comparisons.add((q_hierarchical_query, non_q_hierarchical_query))
                         break
                     else:
                         new_non_q_hierarchical.add(new_query)
-                past_comparisons.add((q_hierarchical_query, non_q_hierarchical_query))
 
         res.update(new_q_hierarchical)
         if len(queries) <= len(res):

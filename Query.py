@@ -120,4 +120,4 @@ class QuerySet:
             for dep in query.dependant_on:
                 graph.edge(dep.name, query.name, _attributes={"ltail": f"cluster_{dep.name}", "lhead": f"cluster_{query.name}"})
         graph.view(f"Viz_{name}", "./viz")
-        #print(graph.source)
+        # print(graph.source)

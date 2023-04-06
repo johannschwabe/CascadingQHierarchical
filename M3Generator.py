@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING
 
+
 if TYPE_CHECKING:
+    from Relation import Relation
     from JoinOrderNode import JoinOrderNode
 
 
@@ -49,11 +51,23 @@ class M3Generator:
             for child in join_tree_node.children:
                 resi = self.generate_triggers(child, operator)
                 for key in resi.keys():
-                    resi[key] += f"{join_tree_node.M3ViewName(self.ring, self.vars)}<Local> += "
+                    if child.designation == "V":
+                        resi[key] += f"{child.M3ViewName(self.ring, self.vars)}<Local> += {'-' if operator == '-' else ''}1"
+                    else:
+                        temp = "1"
+                        for sibling in child.children:
+                            if not key in sibling.all_relations():
+                                temp = f"(({temp} * {sibling.M3ViewName(self.ring, self.vars)}<Local>) * Lift<{sibling.M3_index}>: {self.ring}<{sibling.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, sibling.aggregated_variables))}>]({','.join(sibling.aggregated_variables)}"
+                        for relation in child.relations:
+                            if relation != key:
+                                temp = f"(({temp} * {sibling.M3ViewName(self.ring, self.vars)}<Local>) * Lift<{sibling.M3_index}>: {self.ring}<{sibling.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, sibling.aggregated_variables))}>]({','.join(sibling.aggregated_variables)}"
+
+                        resi[key] += f"{child.M3ViewName(self.ring, self.vars)}<Local> += "
+            return resi
         else:
-            res: "dict[str,str]" = {}
+            res: "dict[Relation,str]" = {}
             for rel in join_tree_node.relations:
-                res[rel.name+operator] = f"ON {operator} {rel} ({', '.join(rel.free_variables)}) {{ \n "
+                res[rel] = f"ON {operator} {rel} ({', '.join(rel.free_variables)}) {{ \n "
             return res
     def generate(self, join_tree_node: "JoinOrderNode"):
         res = '''---------------- TYPE DEFINITIONS ---------------
@@ -67,6 +81,7 @@ WITH PARAMETER SCHEMA (dynamic_min);
             res += "\n"
         res += self.generate_maps(join_tree_node)
         res += self.generate_queries(join_tree_node)
+        # self.generate_triggers(join_tree_node, "+")
         print(res)
 
 
