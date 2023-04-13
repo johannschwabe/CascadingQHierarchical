@@ -481,7 +481,7 @@ def example_31():
     R = Relation('R', ['A', 'B'])
     S = Relation('S', ['A', 'C', 'E', 'extra'])
     T = Relation('T', ['A', 'C'])
-    Q0 = Query('Q0', {R, S, T}, set())
+    Q0 = Query('Q0', {R, S, T}, {'A', 'B', 'C', 'E'})
     M3Gen = M3Generator('/Users/johannschwabe/Documents/git/FIVM/examples/queries/simple/rst.txt', 'simple', 'RingFactorizedRelation')
     join_order_node_root = JoinOrderNode.generate(Q0.variable_order, Q0)
     QS = QuerySet({Q0})
@@ -503,9 +503,9 @@ def example_31():
 # example_12()
 # example_13()
 # example_15()
-example_16()
+# example_16()
 # example_30()
-# example_31()
+example_31()
 
 
 print("done")

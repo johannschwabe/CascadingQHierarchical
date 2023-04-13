@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING
 
-from M3Generator import M3Variable
 
 if TYPE_CHECKING:
+    from M3Generator import M3Variable
     from VariableOrder import VariableOrderNode
     from graphviz import Digraph
     from Query import Query
@@ -49,9 +49,7 @@ class JoinOrderNode:
             self._all_relations_no_sources = res
         return res
 
-    def M3ViewName(self, ring: str, vars: "dict[str, M3Variable]", var_index: int=-2):
-        if var_index != -2:
-            self.M3_index = var_index
+    def M3ViewName(self, ring: str, vars: "dict[str, M3Variable]"):
         if self.aggregated_variables:
             return f"{self.designation}_{self.child_rel_names}({ring}<[{self.M3_index}, {','.join(map(lambda x: vars[x].var_type, self.aggregated_variables))}]>)[][{','.join(map(lambda x: vars[x].name, self.free_variables))}]"
         return f"{self.designation}_{self.child_rel_names}({ring}<[]>)[][{','.join(map(lambda x: vars[x].name, self.free_variables))}]"
