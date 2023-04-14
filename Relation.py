@@ -38,8 +38,8 @@ class Relation:
             res.extend(source.all_variables())
         return res
 
-    def M3ViewName(self, ring: str, vars: "dict[str, M3Variable]"):
-        return f"{self.name}({ring}<[]>)[][{','.join(map(lambda x: vars[x].var_type, self.free_variables))}]"
+    def M3ViewName(self, ):
+        return f"{self.name}({','.join(self.free_variables)})"
 
     def __eq__(self, other):
         return self.hash_val == other.hash_val

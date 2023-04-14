@@ -3,13 +3,15 @@ from typing import TYPE_CHECKING
 from JoinOrderNode import JoinOrderNode
 
 if TYPE_CHECKING:
+    from Query import Query
     from Relation import Relation
 
 
 class M3Generator:
-    def __init__(self, config_file_path: str, dataset: str, ring: str):
+    def __init__(self, config_file_path: str, dataset: str, ring: str, query: "Query"):
         self.ring = ring
         self.dataset = dataset
+        self.query = query
         self.vars = {}
         self.relations = []
         self.var_index = 0
@@ -27,20 +29,25 @@ class M3Generator:
 
     def assign_index(self, join_tree_node: "JoinOrderNode"):
         join_tree_node.M3_index = self.var_index
-        self.var_index += len(join_tree_node.aggregated_variables)
+        lifted_variables = join_tree_node.aggregated_variables.intersection(self.query.free_variables)
+        self.var_index += len(lifted_variables)
         for child in join_tree_node.children:
             self.assign_index(child)
 
     def generate_maps(self, join_tree_node: "JoinOrderNode"):
-        res = f'''\nDECLARE MAP {join_tree_node.M3ViewName(self.ring, self.vars)} :=\n'''
+        lifted_variables = join_tree_node.aggregated_variables.intersection(self.query.free_variables)
+        res = f'''\nDECLARE MAP {join_tree_node.M3ViewName(self.ring, self.vars, declaration=True)} :=\n'''
         view_names = map(lambda x: f'{x.M3ViewName(self.ring, self.vars)}<Local>', join_tree_node.children)
-        relation_names = map(lambda x: f'{x.M3ViewName(self.ring, self.vars)}<Local>', join_tree_node.relations)
+        relation_names = map(lambda x: x.M3ViewName(), join_tree_node.relations)
         joined_views = ' * '.join(list(view_names) + list(relation_names))
         if join_tree_node.aggregated_variables:
-            lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, join_tree_node.aggregated_variables))}]>]({','.join(join_tree_node.aggregated_variables)})"
-            res += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n (({joined_views}) * {lift})\n);\n"
+            if lifted_variables:
+                lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, lifted_variables))}]>]({','.join(lifted_variables)})"
+                res += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n (({joined_views}) * {lift})\n);\n"
+            else:
+                res += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n ({joined_views})\n);\n"
         else:
-            res += f"{joined_views}));\n"
+            res += f"{joined_views};\n"
         for child in join_tree_node.children:
             res += self.generate_maps(child)
         return res
@@ -51,19 +58,19 @@ class M3Generator:
             res += self.generate_queries(child)
         return res
     def generate_triggers(self, join_tree_node: "JoinOrderNode"):
-        top = JoinOrderNode(join_tree_node.query_name, "", set(), set(), set(), "H")
+        top = JoinOrderNode(None, "", set(), set(), set(), "H")
         top.children = {join_tree_node}
         res = ""
         removals = self.generate_triggers_recursive(top, "+")
         for rel, value in removals.items():
-            res += f"ON + {rel} ({', '.join(rel.free_variables)}) {{ \n "
+            res += f"ON + {rel.name} ({', '.join(rel.free_variables)}) {{ \n "
             for update in value:
                 res += f"{update};\n"
             res += "}\n"
 
         removals = self.generate_triggers_recursive(join_tree_node, "-")
         for rel, value in removals.items():
-            res += f"ON - {rel} ({', '.join(rel.free_variables)}) {{ \n "
+            res += f"ON - {rel.name} ({', '.join(rel.free_variables)}) {{ \n "
             for update in value:
                 res += f"{update};\n"
             res += "}\n"
@@ -75,17 +82,23 @@ class M3Generator:
             for child in join_tree_node.children:
                 resi = self.generate_triggers_recursive(child, operator)
                 for key in resi.keys():
-                    if child.designation == "V":
-                        if len(resi[key]) == 0:
-                            resi[key].append(f"{child.M3ViewName(self.ring, self.vars)}<Local> += {'-' if operator == '-' else ''}1")
+                    lift = f"[lift<{child.M3_index}>: {self.ring}<[{child.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, child.lifted_variables))}]>]({','.join(child.lifted_variables)})"
+                    target = f"{child.M3ViewName(self.ring, self.vars)}<Local> += "
+                    if len(resi[key]) == 0:
+                        resi[key].append(target)
+                        if child.lifted_variables:
+                            product = f"({'-' if operator == '-' else ''}1 * {lift})"
                         else:
-                            resi[key].append(f"{child.M3ViewName(self.ring, self.vars)}<Local> += ({resi[key][-1].split('=')[1]} * Lift<{child.M3_index}>: {self.ring}<{child.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, child.aggregated_variables))}>]({','.join(child.aggregated_variables)}))")
+                            product = f"{'-' if operator == '-' else ''}1"
+                        resi[key][-1] += product
                     else:
-                        temp = resi[key][-1].split('=')[1].strip()
+                        product = f"({resi[key][-1].split('=')[1]})"
                         for sibling in child.children:
                             if not key in sibling.all_relations():
-                                temp = f"({temp} * {sibling.M3ViewName(self.ring, self.vars)}<Local>)"
-                        resi[key].append(f"{child.M3ViewName(self.ring, self.vars)}<Local> += {temp}")
+                                product = f"({product} * {sibling.M3ViewName(self.ring, self.vars)}<Local>)"
+                        resi[key].append(f"{target} {product} * {lift}")
+
+
                 res.update(resi)
         else:
             resi: "dict[Relation,list[str]]" = {}
