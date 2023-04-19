@@ -15,7 +15,7 @@ class JoinOrderNode:
                  relations: "set[Relation]",
                  free_vars: "set[str]",
                  aggregated_vars: "set[str]",
-                 designation: "str" = 'V'
+                 designation: "str" = 'V',
                  ):
         self.query_name: str = query.name if query else "None"
         self.child_rel_names: str = child_rel_names
@@ -69,6 +69,24 @@ class JoinOrderNode:
 
     @staticmethod
     def generate(variable_order_node: "VariableOrderNode", query: "Query"):
+        join_order_root = JoinOrderNode.generate_recursion(variable_order_node, query)
+        JoinOrderNode.generate_indicators(join_order_root)
+        return join_order_root
+
+    @staticmethod
+    def generate_indicators(join_order_node: "JoinOrderNode"):
+        child_relations = join_order_node.all_relations(source_only=False)
+        next_indicator = set(filter(lambda x: len(x.children) > 0 or not any(map(lambda y:y.sources, x.all_relations(source_only=False))), join_order_node.children))
+        if any(map(lambda x: x.sources, child_relations)):
+            for child in join_order_node.children:
+                grand_children_relations = child.all_relations(source_only=False)
+                if len(grand_children_relations) == 1 and list(grand_children_relations)[0].sources:
+                    list(grand_children_relations)[0].indicator = next_indicator.difference({child})
+                    next_indicator = {child}
+                elif any(map(lambda x: x.sources, grand_children_relations)):
+                    JoinOrderNode.generate_indicators(child)
+    @staticmethod
+    def generate_recursion(variable_order_node: "VariableOrderNode", query: "Query"):
         child_relations = variable_order_node.all_relations(source_only=True)
         child_relation_names = "".join(sorted(map(lambda x: x.name, child_relations)))
         parent_vars = variable_order_node.parent_variables()
@@ -86,7 +104,7 @@ class JoinOrderNode:
 
             child_nodes = []
             for child in variable_order_node.children:
-                child_node = JoinOrderNode.generate(child, query)
+                child_node = JoinOrderNode.generate_recursion(child, query)
                 child_node.parent = v_node
                 child_nodes.append(child_node)
             for rel in variable_order_node.relations:
@@ -97,15 +115,13 @@ class JoinOrderNode:
                                            aggregated_vars=set(),
                                            designation='V')
                 child_node.parent = v_node
+
                 child_nodes.append(child_node)
             v_node.children = child_nodes
-
-
 
             return v_node
         elif len(variable_order_node.children) == 0:
             aggregated_vars = {variable_order_node.name}
-
             h_node = JoinOrderNode(query=query,
                                  child_rel_names=child_relation_names,
                                  relations=variable_order_node.relations,
@@ -120,6 +136,7 @@ class JoinOrderNode:
         while len(_iter.children) == 1 and len(_iter.relations) == 0:
             _iter = list(_iter.children)[0]
             simple_vars.add(_iter.name)
+
         if len(_iter.children) + len(_iter.relations) > 1:
             strict_parent_vars = parent_vars.difference({variable_order_node.name})
             bound_vars = simple_vars.difference(strict_parent_vars)
@@ -129,6 +146,7 @@ class JoinOrderNode:
                                    free_vars=strict_parent_vars,
                                    aggregated_vars=bound_vars,
                                    designation='V')
+
             for rel in _iter.relations:
                 child_node = JoinOrderNode(query=query,
                                            child_rel_names=rel.name,
@@ -154,7 +172,7 @@ class JoinOrderNode:
 
 
         for child in _iter.children:
-            sub = JoinOrderNode.generate(child, query)
+            sub = JoinOrderNode.generate_recursion(child, query)
             sub.parent = v_node
             v_node.children.add(sub)
         return return_node
@@ -173,4 +191,6 @@ class JoinOrderNode:
                     source_name = f"{query.name}_{source.name}"
                     graph.node(source_name, label=str(source), shape="diamond")
                     graph.edge(rel_name, source_name)
+                for indicator in relation.indicator:
+                    graph.edge(rel_name, str(indicator), style="dashed")
 

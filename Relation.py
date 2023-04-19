@@ -1,9 +1,7 @@
 from typing import TYPE_CHECKING
 
-from M3Generator import M3Variable
-
 if TYPE_CHECKING:
-    from Query import Query
+    from JoinOrderNode import JoinOrderNode
 
 
 class Relation:
@@ -13,6 +11,7 @@ class Relation:
         self.free_variables = variables if variables else []
         self.sources: "list[Relation]" = sources if sources else []
         self.name = name
+        self.indicator: "set[JoinOrderNode]" = set()
         self.hash_val = hash(f"{'-'.join(self.free_variables)}:{','.join(map(lambda x: str(x), self.sources)) if self.sources else self.name}")
         self.disp_name = self.name + "(" + ",".join(self.free_variables) + ")"
         self._root_sources = set()

@@ -70,10 +70,11 @@ def example_2():
     R2_3 = Relation("R2", ["2", "3"])
     R3_3 = Relation("R3", ["3", "4"])
     R4_3 = Relation("R4", ["4", "5"])
+    R5_3 = Relation("R5", ["3"])
 
     Q1 = Query("Q1", {R1_1, R2_1},{'x', 'y', 'z'})
     Q2 = Query("Q2", {R3_2, R4_2},{'c', 'd', 'e'})
-    Q3 = Query("Q3", {R1_3, R2_3, R3_3, R4_3},{'1', '2', '3', '4', '5'})
+    Q3 = Query("Q3", {R1_3, R2_3, R3_3, R4_3, R5_3},{'1', '2', '3', '4', '5'})
     res = run([Q1, Q2, Q3])
     res.graph_viz()
 
@@ -460,6 +461,23 @@ def example_16():
     Q1 = Query('Q1', {R1, R2, R3}, {'x','y'})
     QuerySet({Q1}).graph_viz(2)
 
+def example_17():
+    R1 = Relation('R1', ['x','y'])
+    R2 = Relation('R2', ['y','z'])
+    R3 = Relation('R3', ['z','w'])
+    R4 = Relation('R4', ['w','a'])
+    R5 = Relation('R5', ['z','w'])
+    R6 = Relation('R6', ['w','a'])
+    R7 = Relation('R7', ['z'])
+
+    Q1 = Query('Q1', {R1, R2}, {'x','y','z'})
+    Q2 = Query('Q2', {R3, R4}, {'z','w','a'})
+    Q3 = Query('Q3', {R5, R6}, {'z','w','a'})
+    Q4 = Query('Q4', {R1, R2, R3, R4, R5, R6, R7}, {'x','y','z','w','a'})
+    res = run([Q1, Q2, Q3, Q4])
+    if res:
+        res.graph_viz("success")
+
 def example_30():
     House = Relation('House',
                      ['postcode', 'livingarea', 'price', 'nbbedrooms', 'nbbathrooms', 'kitchensize', 'house', 'flat',
@@ -472,7 +490,7 @@ def example_30():
     Transport = Relation('Transport', ['postcode', 'nbbuslines', 'nbtrainstations', 'distancecitycentre'])
     Q0 = Query('Q0', {House, Shop, Institution, Restaurant, Demographics,Transport}, set())
     M3Gen = M3Generator('/Users/johannschwabe/Documents/git/FIVM/examples/queries/housing/housing.txt', 'housing', 'RingFactorizedRelation')
-    join_order_node_root = JoinOrderNode.generate(Q0.variable_order,Q0)
+    join_order_node_root = JoinOrderNode.generate_recursion(Q0.variable_order, Q0)
     QS = QuerySet({Q0})
     QS.graph_viz(1)
     M3Gen.generate(join_order_node_root)
@@ -483,7 +501,7 @@ def example_31():
     T = Relation('T', ['A', 'C'])
     Q0 = Query('Q0', {R, S, T}, {'A', 'B', 'C'})
     M3Gen = M3Generator('/Users/johannschwabe/Documents/git/FIVM/examples/queries/simple/rst.txt', 'simple', 'RingFactorizedRelation', Q0)
-    join_order_node_root = JoinOrderNode.generate(Q0.variable_order, Q0)
+    join_order_node_root = JoinOrderNode.generate_recursion(Q0.variable_order, Q0)
     QS = QuerySet({Q0})
     QS.graph_viz(1)
     M3Gen.generate(join_order_node_root)
@@ -504,8 +522,9 @@ def example_31():
 # example_13()
 # example_15()
 # example_16()
+example_17()
 # example_30()
-example_31()
+# example_31()
 
 
 print("done")
