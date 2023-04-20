@@ -52,6 +52,39 @@ class M3Generator:
             res += self.generate_maps(child)
         return res
 
+    def generate_tmp_maps(self, join_tree_node: "JoinOrderNode"):
+        lifted_variables = join_tree_node.aggregated_variables.intersection(self.query.free_variables)
+        res = ""
+        for child in join_tree_node.children:
+            view_names = map(lambda x: f'{x.M3ViewName(self.ring, self.vars)}<Local>', join_tree_node.children.difference({child}))
+            relation_names = map(lambda x: x.M3ViewName(), join_tree_node.relations)
+            joined_views = f"(DELTA TMP_{child.child_rel_names})({','.join(child.free_variables)}) * {' * '.join(list(view_names) + list(relation_names))}"
+
+            _map = f"DECLARE MAP TMP_{child.child_rel_names}_{join_tree_node.M3ViewName(self.ring, self.vars, declaration=True)} :=\n"
+            if join_tree_node.aggregated_variables:
+                if lifted_variables:
+                    lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, lifted_variables))}]>]({','.join(lifted_variables)})"
+                    _map += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n (({joined_views}) * {lift})\n);\n"
+                else:
+                    _map += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n ({joined_views})\n);\n"
+            else:
+                _map += f"{joined_views};\n"
+            res += _map
+            res += self.generate_tmp_maps(child)
+        for relation in join_tree_node.relations:
+            view_names = map(lambda x: f'{x.M3ViewName(self.ring, self.vars)}<Local>', join_tree_node.children)
+            relation_names = map(lambda x: x.M3ViewName(), join_tree_node.relations.difference({relation}))
+            joined_views = ' * '.join([f"(DELTA {relation.name})({','.join(relation.free_variables)})"] + list(view_names) + list(relation_names))
+
+            _map = f"DECLARE MAP TMP_{relation.name}_{join_tree_node.M3ViewName(self.ring, self.vars, declaration=True)} :=\n"
+            if join_tree_node.aggregated_variables:
+                if lifted_variables:
+                    lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, lifted_variables))}]>]({','.join(lifted_variables)})"
+                    _map += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n (({joined_views}) * {lift})\n);\n"
+                else:
+                    _map += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n ({joined_views})\n);\n"
+                res += _map
+        return res
     def generate_queries(self, join_tree_node: "JoinOrderNode"):
         res = f"DECLARE QUERY {join_tree_node.designation}_{join_tree_node.child_rel_names} := {join_tree_node.M3ViewName(self.ring, self.vars)}<Local>;\n"
         for child in join_tree_node.children:
@@ -122,6 +155,7 @@ WITH PARAMETER SCHEMA (dynamic_min);
             res += "\n"
         res += '''\n-------------------- MAPS --------------------\n'''
         res += self.generate_maps(join_tree_node)
+        print(self.generate_tmp_maps(join_tree_node))
         res += '''\n-------------------- QUERIES --------------------\n'''
         res += self.generate_queries(join_tree_node)
         res += '''\n-------------------- TRIGGERS --------------------\n'''

@@ -522,9 +522,9 @@ def example_31():
 # example_13()
 # example_15()
 # example_16()
-example_17()
+# example_17()
 # example_30()
-# example_31()
+example_31()
 
 
 print("done")

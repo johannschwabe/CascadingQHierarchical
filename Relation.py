@@ -6,34 +6,33 @@ if TYPE_CHECKING:
 
 class Relation:
 
-    def __init__(self, name: str, variables: "list[str]", sources: "list[Relation] | None" = None, index=-1):
-        self.index = index
+    def __init__(self, name: str, variables: "list[str]", source_relations: "list[Relation]|None"=None, source_query: "Query | None" = None):
         self.free_variables = variables if variables else []
-        self.sources: "list[Relation]" = sources if sources else []
+        self.source_query: "Query | None" = source_query
+        self.source_relations: "list[Relation]" = source_relations if source_relations else []
         self.name = name
         self.indicator: "set[JoinOrderNode]" = set()
-        self.hash_val = hash(f"{'-'.join(self.free_variables)}:{','.join(map(lambda x: str(x), self.sources)) if self.sources else self.name}")
+        self.hash_val = hash(f"{'-'.join(self.free_variables)}:{','.join(map(lambda x: str(x), self.source_relations)) if self.source_relations else self.name}")
         self.disp_name = self.name + "(" + ",".join(self.free_variables) + ")"
         self._root_sources = set()
 
     def set_name(self, name: str):
         self.name = name
         self.disp_name = self.name + "(" + ",".join(self.free_variables) + ")"
-
     def root_sources(self):
         if self._root_sources:
             return self._root_sources
         res = set()
-        if not self.sources:
+        if not self.source_relations:
             return {self}
-        for source in self.sources:
+        for source in self.source_relations:
             res.update(source.root_sources())
         self._root_sources = res
         return res
 
     def all_variables(self):
         res = self.free_variables.copy()
-        for source in self.sources:
+        for source in self.source_relations:
             res.extend(source.all_variables())
         return res
 

@@ -76,14 +76,14 @@ class JoinOrderNode:
     @staticmethod
     def generate_indicators(join_order_node: "JoinOrderNode"):
         child_relations = join_order_node.all_relations(source_only=False)
-        next_indicator = set(filter(lambda x: len(x.children) > 0 or not any(map(lambda y:y.sources, x.all_relations(source_only=False))), join_order_node.children))
-        if any(map(lambda x: x.sources, child_relations)):
+        next_indicator = set(filter(lambda x: len(x.children) > 0 or not any(map(lambda y:y.source_relations, x.all_relations(source_only=False))), join_order_node.children))
+        if any(map(lambda x: x.source_relations, child_relations)):
             for child in join_order_node.children:
                 grand_children_relations = child.all_relations(source_only=False)
-                if len(grand_children_relations) == 1 and list(grand_children_relations)[0].sources:
+                if len(grand_children_relations) == 1 and list(grand_children_relations)[0].source_relations:
                     list(grand_children_relations)[0].indicator = next_indicator.difference({child})
                     next_indicator = {child}
-                elif any(map(lambda x: x.sources, grand_children_relations)):
+                elif any(map(lambda x: x.source_relations, grand_children_relations)):
                     JoinOrderNode.generate_indicators(child)
     @staticmethod
     def generate_recursion(variable_order_node: "VariableOrderNode", query: "Query"):
@@ -117,7 +117,7 @@ class JoinOrderNode:
                 child_node.parent = v_node
 
                 child_nodes.append(child_node)
-            v_node.children = child_nodes
+            v_node.children = set(child_nodes)
 
             return v_node
         elif len(variable_order_node.children) == 0:
@@ -177,20 +177,18 @@ class JoinOrderNode:
             v_node.children.add(sub)
         return return_node
 
-    def viz(self, graph: "Digraph", query: "Query"):
+    def viz(self, graph: "Digraph", query: "Query", roots: "dict[Query, JoinOrderNode]"):
         graph.node(str(self), label=self.graph_viz_name())
         for child in self.children:
-            child.viz(graph, query)
+            child.viz(graph, query, roots)
             graph.edge(str(self), str(child))
         for relation in self.relations:
             rel_name = f"{query.name}_{relation.name}"
             graph.node(rel_name, label=str(relation), shape="rectangle")
             graph.edge(str(self), rel_name)
-            if relation.sources:
-                for source in relation.root_sources():
-                    source_name = f"{query.name}_{source.name}"
-                    graph.node(source_name, label=str(source), shape="diamond")
-                    graph.edge(rel_name, source_name)
-                for indicator in relation.indicator:
-                    graph.edge(rel_name, str(indicator), style="dashed")
+            if relation.source_query:
+                root_node_name = str(roots[relation.source_query])
+                graph.edge(rel_name, root_node_name , style="dashed")
+                # for indicator in relation.indicator:
+                #     graph.edge(rel_name, str(indicator), style="dashed")
 

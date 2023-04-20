@@ -106,18 +106,17 @@ class QuerySet:
 
     def graph_viz(self, name = 0):
         graph = Digraph(name="base", graph_attr={"compound": "true", "spline":"false"})
-        ress= []
+        QGraph = Digraph(name="cluster_base", graph_attr={"label": "Q-Hierarchical Queries"})
+        roots: "dict[Query, JoinOrderNode]" = {}
         for query in self.queries:
-            res = Digraph(name=f"cluster_{query.name}", graph_attr={"label": f"{query.name}({','.join(sorted(query.free_variables))})"})
             join_order = JoinOrderNode.generate(query.variable_order, query)
-            join_order.viz(res, query)
-            res.node(query.name, style="invis")
-
-            ress.append(res)
-        for res in ress:
-            graph.subgraph(res)
+            roots[query] = join_order
         for query in self.queries:
-            for dep in query.dependant_on:
-                graph.edge(dep.name, query.name, _attributes={"ltail": f"cluster_{dep.name}", "lhead": f"cluster_{query.name}"})
+            if query.dependant_on:
+                roots[query].viz(graph, query, roots)
+            else:
+                roots[query].viz(QGraph, query, roots)
+        graph.subgraph(QGraph)
         graph.view(f"Viz_{name}", "./viz")
+
         # print(graph.source)
