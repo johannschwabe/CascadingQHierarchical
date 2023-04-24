@@ -53,10 +53,7 @@ class M3Generator:
         return res
 
     def generate_tmp_maps(self, join_tree_node: "JoinOrderNode"):
-        res = ""
-        for child in join_tree_node.children:
-            child_names, resi = self.generate_tmp_maps_recursive(child)
-            res += resi
+        child_names, res = self.generate_tmp_maps_recursive(join_tree_node)
         return res
 
     def generate_tmp_maps_recursive(self, join_tree_node: "JoinOrderNode"):
@@ -66,10 +63,10 @@ class M3Generator:
         for child in join_tree_node.children:
             child_names, resi = self.generate_tmp_maps_recursive(child)
             res += resi
-            view_names = map(lambda x: f'{x.M3ViewName(self.ring, self.vars)}<Local>', join_tree_node.children.difference({child}))
-            relation_names = map(lambda x: x.M3ViewName(), join_tree_node.relations)
+            view_names = list(map(lambda x: f'{x.M3ViewName(self.ring, self.vars)}<Local>', join_tree_node.children.difference({child})))
+            relation_names = list(map(lambda x: x.M3ViewName(), join_tree_node.relations))
             for child_name in child_names:
-                joined_views = f"(DELTA {child_name})({','.join(child.free_variables)}) * {' * '.join(list(view_names) + list(relation_names))}"
+                joined_views = f"{child_name}<Local> * {' * '.join(view_names + relation_names)}"
                 prefix = f"TMP_{child_name[4:].split('_')[0]}_"
                 new_child_name = f"{prefix}{join_tree_node.M3ViewName(self.ring, self.vars, declaration=False)}"
                 _map = f"DECLARE MAP {prefix}{join_tree_node.M3ViewName(self.ring, self.vars, declaration=True)} :=\n"
@@ -85,9 +82,9 @@ class M3Generator:
                 res += _map
 
         for relation in join_tree_node.relations:
-            view_names = map(lambda x: f'{x.M3ViewName(self.ring, self.vars)}<Local>', join_tree_node.children)
-            relation_names = map(lambda x: x.M3ViewName(), join_tree_node.relations.difference({relation}))
-            joined_views = ' * '.join([f"(DELTA {relation.name})({','.join(relation.free_variables)})"] + list(view_names) + list(relation_names))
+            view_names = list(map(lambda x: f'{x.M3ViewName(self.ring, self.vars)}<Local>', join_tree_node.children))
+            relation_names = list(map(lambda x: x.M3ViewName(), join_tree_node.relations.difference({relation})))
+            joined_views = ' * '.join([f"(DELTA {relation.name})({','.join(relation.free_variables)})"] + view_names + relation_names)
             new_child_name = f"TMP_{relation.name}_{join_tree_node.M3ViewName(self.ring, self.vars, declaration=False)}"
             new_child_names.append(new_child_name)
             _map = f"DECLARE MAP TMP_{relation.name}_{join_tree_node.M3ViewName(self.ring, self.vars, declaration=True)} :=\n"
@@ -97,7 +94,9 @@ class M3Generator:
                     _map += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n (({joined_views}) * {lift})\n);\n"
                 else:
                     _map += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n ({joined_views})\n);\n"
-                res += _map
+            else:
+                _map += f"{joined_views};\n"
+            res += _map
         return new_child_names, res
     def generate_queries(self, join_tree_node: "JoinOrderNode"):
         res = f"DECLARE QUERY {join_tree_node.designation}_{join_tree_node.child_rel_names} := {join_tree_node.M3ViewName(self.ring, self.vars)}<Local>;\n"
@@ -111,9 +110,9 @@ class M3Generator:
         for rel, value in additions.items():
             res += f"ON BATCH UPDATE OF {rel.name} {{ \n "
             for path in value['path']:
-                res += f"{path};\n"
+                res += f"{path}\n"
             for update in value['update']:
-                res += f"{update};\n"
+                res += f"{update}\n"
             res += "}\n"
 
         return res
@@ -128,7 +127,7 @@ class M3Generator:
                 res.update(child_res)
                 for rel in child_res.keys():
                     tmp_child_name = child_names[rel]
-                    lift = f"[lift<{child.M3_index}>: {self.ring}<[{child.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, child.lifted_variables))}]>]({','.join(child.lifted_variables)})"
+                    lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, join_tree_node.lifted_variables))}]>]({','.join(join_tree_node.lifted_variables)})"
                     prefix = f"TMP_{rel.name}_"
                     tmp_join_tree_w_rel = f"{prefix}{join_tree_node.M3ViewName(self.ring, self.vars, declaration=False)}"
                     new_child_names[rel] = tmp_join_tree_w_rel
@@ -139,11 +138,11 @@ class M3Generator:
                     else:
                         product = f"{tmp_child_name} * {siblings}"
                     if join_tree_node.aggregated_variables:
-                        product = f"AggSum([{', '.join(join_tree_node.free_variables)}], {product});"
+                        product = f"AggSum([{', '.join(join_tree_node.free_variables)}], {product})"
 
-                    path = f"{tmp_join_tree_w_rel}<Local> += {product}"
+                    path = f"{tmp_join_tree_w_rel}<Local> += {product};"
 
-                    update = f"{join_tree_node_name}<Local> += {tmp_join_tree_w_rel};"
+                    update = f"{join_tree_node_name} += {tmp_join_tree_w_rel};"
                     if rel in res:
                         res[rel]["path"].append(path)
                         res[rel]["update"].append(update)
@@ -161,8 +160,8 @@ class M3Generator:
                 else:
                     product = f"(DELTA {rel.name})({', '.join(rel.free_variables)})"
                 if join_tree_node.aggregated_variables:
-                    product = f"AggSum([{', '.join(join_tree_node.free_variables)}], {product});"
-                path = f"{tmp}<Local> += {product}"
+                    product = f"AggSum([{', '.join(join_tree_node.free_variables)}], {product})"
+                path = f"{tmp}<Local> += {product};"
 
                 update = f"{join_tree_node.M3ViewName(self.ring, self.vars)}<Local> += {tmp};"
                 res[rel] = {"path": [path], "update": [update]}
@@ -239,6 +238,10 @@ WITH PARAMETER SCHEMA (dynamic_min);
         else:
             res += self.generate_triggers(join_tree_node)
 
+        res += '''
+ON SYSTEM READY {
+  
+}'''
         with open("output.m3", "w") as f:
             f.write(res)
         # print(res)
