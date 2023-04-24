@@ -15,7 +15,6 @@ class JoinOrderNode:
                  relations: "set[Relation]",
                  free_vars: "set[str]",
                  aggregated_vars: "set[str]",
-                 designation: "str" = 'V',
                  ):
         self.query_name: str = query.name if query else "None"
         self.child_rel_names: str = child_rel_names
@@ -25,7 +24,6 @@ class JoinOrderNode:
         self.free_variables: "set[str]" = free_vars
         self.aggregated_variables: "set[str]" = aggregated_vars
         self.lifted_variables: "set[str]" = aggregated_vars.intersection(query.free_variables) if query else set()
-        self.designation: "str" = designation
         self.M3_index: "int" = -1
         self._all_relations_sources: "set[Relation]" = set()
         self._all_relations_no_sources: "set[Relation]" = set()
@@ -53,19 +51,19 @@ class JoinOrderNode:
     def M3ViewName(self, ring: str, vars: "dict[str, M3Variable]", declaration: bool = False):
         key_variables = ','.join(map(lambda x: f'{vars[x].name}: {vars[x].var_type}' if declaration else vars[x].name, self.free_variables))
         if self.lifted_variables:
-            return f"{self.designation}_{self.child_rel_names}({ring}<[{self.M3_index}, {','.join(map(lambda x: vars[x].var_type, self.lifted_variables))}]>)[][{key_variables}]"
-        return f"{self.designation}_{self.child_rel_names}(long)[][{key_variables}]"
+            return f"V_{self.child_rel_names}({ring}<[{self.M3_index}, {','.join(map(lambda x: vars[x].var_type, self.lifted_variables))}]>)[][{key_variables}]"
+        return f"V_{self.child_rel_names}(long)[][{key_variables}]"
 
     def graph_viz_name(self):
         if self.aggregated_variables:
-            return f"<{self.designation}<SUB>{self.child_rel_names}</SUB><SUP>@{''.join(sorted(self.aggregated_variables))}</SUP>({','.join(sorted(self.free_variables))})>"
+            return f"<V<SUB>{self.child_rel_names}</SUB><SUP>@{''.join(sorted(self.aggregated_variables))}</SUP>({','.join(sorted(self.free_variables))})>"
 
-        return f"<{self.designation}<SUB>{self.child_rel_names}</SUB>({','.join(sorted(self.free_variables))})>"
+        return f"<V<SUB>{self.child_rel_names}</SUB>({','.join(sorted(self.free_variables))})>"
 
     def __repr__(self):
         if self.aggregated_variables:
-            return f"{self.query_name}-{self.designation}_{self.child_rel_names}@{''.join(self.aggregated_variables)}({','.join(self.free_variables)})"
-        return f"{self.query_name}-{self.designation}_{self.child_rel_names}({','.join(self.free_variables)})"
+            return f"{self.query_name}-V_{self.child_rel_names}@{''.join(self.aggregated_variables)}({','.join(self.free_variables)})"
+        return f"{self.query_name}-V_{self.child_rel_names}({','.join(self.free_variables)})"
 
     @staticmethod
     def generate(variable_order_node: "VariableOrderNode", query: "Query"):
@@ -98,8 +96,7 @@ class JoinOrderNode:
                                    child_rel_names=child_relation_names,
                                    relations=set(),
                                    free_vars=free_vars,
-                                   aggregated_vars=aggregated_vars,
-                                   designation='V')
+                                   aggregated_vars=aggregated_vars)
 
 
             child_nodes = []
@@ -112,8 +109,7 @@ class JoinOrderNode:
                                            child_rel_names=rel.name,
                                            relations={rel},
                                            free_vars=rel.free_variables,
-                                           aggregated_vars=set(),
-                                           designation='V')
+                                           aggregated_vars=set())
                 child_node.parent = v_node
 
                 child_nodes.append(child_node)
@@ -126,8 +122,7 @@ class JoinOrderNode:
                                  child_rel_names=child_relation_names,
                                  relations=variable_order_node.relations,
                                  free_vars=parent_vars.difference(aggregated_vars),
-                                 aggregated_vars=aggregated_vars,
-                                 designation='V')
+                                 aggregated_vars=aggregated_vars)
 
             return h_node
 
@@ -144,16 +139,14 @@ class JoinOrderNode:
                                    child_rel_names=child_relation_names,
                                    relations=set(),
                                    free_vars=strict_parent_vars,
-                                   aggregated_vars=bound_vars,
-                                   designation='V')
+                                   aggregated_vars=bound_vars)
 
             for rel in _iter.relations:
                 child_node = JoinOrderNode(query=query,
                                            child_rel_names=rel.name,
                                            relations={rel},
                                            free_vars=rel.free_variables,
-                                           aggregated_vars=set(),
-                                           designation='V')
+                                           aggregated_vars=set())
                 child_node.parent = v_node
                 v_node.children.add(child_node)
             return_node = v_node
@@ -165,8 +158,7 @@ class JoinOrderNode:
                                  child_rel_names=child_relation_names,
                                  relations=_iter.relations,
                                  free_vars=strict_parent_vars,
-                                 aggregated_vars=bound_vars,
-                                 designation='V')
+                                 aggregated_vars=bound_vars)
 
             return_node = h_node
 

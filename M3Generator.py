@@ -99,7 +99,7 @@ class M3Generator:
             res += _map
         return new_child_names, res
     def generate_queries(self, join_tree_node: "JoinOrderNode"):
-        res = f"DECLARE QUERY {join_tree_node.designation}_{join_tree_node.child_rel_names} := {join_tree_node.M3ViewName(self.ring, self.vars)}<Local>;\n"
+        res = f"DECLARE QUERY V_{join_tree_node.child_rel_names} := {join_tree_node.M3ViewName(self.ring, self.vars)}<Local>;\n"
         for child in join_tree_node.children:
             res += self.generate_queries(child)
         return res
@@ -167,7 +167,7 @@ class M3Generator:
                 res[rel] = {"path": [path], "update": [update]}
         return new_child_names, res
     def generate_triggers(self, join_tree_node: "JoinOrderNode"):
-        top = JoinOrderNode(None, "", set(), set(), set(), "H")
+        top = JoinOrderNode(None, "", set(), set(), set())
         top.children = {join_tree_node}
         res = ""
         additions = self.generate_triggers_recursive(top, "+")
