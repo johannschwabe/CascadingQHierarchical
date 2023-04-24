@@ -505,6 +505,17 @@ def example_31():
     QS = QuerySet({Q0})
     QS.graph_viz(1)
     M3Gen.generate(join_order_node_root)
+def example_32():
+    R = Relation('R', ['A', 'B'])
+    S = Relation('S', ['A', 'C', 'E', 'extra'])
+    T = Relation('T', ['A', 'C'])
+    U = Relation('U', ['A', 'C', 'E'])
+    Q0 = Query('Q0', {R, S, T, U}, {'A', 'B', 'C'})
+    M3Gen = M3Generator('/Users/johannschwabe/Documents/git/FIVM/examples/queries/simple/rst2.txt', 'simple', 'RingFactorizedRelation', Q0)
+    join_order_node_root = JoinOrderNode.generate_recursion(Q0.variable_order, Q0)
+    QS = QuerySet({Q0})
+    QS.graph_viz(1)
+    M3Gen.generate(join_order_node_root, True)
 
 # example_0()
 # example_1()
@@ -524,7 +535,7 @@ def example_31():
 # example_16()
 # example_17()
 # example_30()
-example_31()
+example_32()
 
 
 print("done")
