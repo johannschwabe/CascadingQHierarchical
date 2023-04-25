@@ -68,21 +68,8 @@ class JoinOrderNode:
     @staticmethod
     def generate(variable_order_node: "VariableOrderNode", query: "Query"):
         join_order_root = JoinOrderNode.generate_recursion(variable_order_node, query)
-        JoinOrderNode.generate_indicators(join_order_root)
         return join_order_root
 
-    @staticmethod
-    def generate_indicators(join_order_node: "JoinOrderNode"):
-        child_relations = join_order_node.all_relations(source_only=False)
-        next_indicator = set(filter(lambda x: len(x.children) > 0 or not any(map(lambda y:y.source_relations, x.all_relations(source_only=False))), join_order_node.children))
-        if any(map(lambda x: x.source_relations, child_relations)):
-            for child in join_order_node.children:
-                grand_children_relations = child.all_relations(source_only=False)
-                if len(grand_children_relations) == 1 and list(grand_children_relations)[0].source_relations:
-                    list(grand_children_relations)[0].indicator = next_indicator.difference({child})
-                    next_indicator = {child}
-                elif any(map(lambda x: x.source_relations, grand_children_relations)):
-                    JoinOrderNode.generate_indicators(child)
     @staticmethod
     def generate_recursion(variable_order_node: "VariableOrderNode", query: "Query"):
         child_relations = variable_order_node.all_relations(source_only=True)
@@ -181,6 +168,3 @@ class JoinOrderNode:
             if relation.source_query:
                 root_node_name = str(roots[relation.source_query])
                 graph.edge(rel_name, root_node_name , style="dashed")
-                # for indicator in relation.indicator:
-                #     graph.edge(rel_name, str(indicator), style="dashed")
-

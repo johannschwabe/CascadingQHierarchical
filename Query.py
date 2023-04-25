@@ -5,6 +5,7 @@ from graphviz import Digraph
 from JoinOrderNode import JoinOrderNode
 from VariableOrder import VariableOrderNode
 from Relation import Relation
+from VisOrderNode import VisOrderNode
 
 
 class Query:
@@ -81,7 +82,7 @@ class Query:
         return Query(self.name, self.relations, self.free_variables, self.atoms)
 
     def __str__(self):
-        return self.name + "(" + ",".join(sorted(self.free_variables)) +")" + " = " + "*".join(sorted(map(lambda x: str(x), self.atoms)))
+        return self.name + "(" + ",".join(sorted(self.free_variables)) +")" + " = " + ", ".join(sorted(map(lambda x: str(x), self.atoms)))
 
     def __hash__(self):
         return self.hash_key
@@ -106,17 +107,21 @@ class QuerySet:
 
     def graph_viz(self, name = 0):
         graph = Digraph(name="base", graph_attr={"compound": "true", "spline":"false"})
-        QGraph = Digraph(name="cluster_base", graph_attr={"label": "Q-Hierarchical Queries"})
-        roots: "dict[Query, JoinOrderNode]" = {}
+        roots: "dict[Query, VisOrderNode]" = {}
         for query in self.queries:
             join_order = JoinOrderNode.generate(query.variable_order, query)
-            roots[query] = join_order
-        for query in self.queries:
-            if query.dependant_on:
-                roots[query].viz(graph, query, roots)
-            else:
+            vis_order = VisOrderNode.generate(join_order)
+            roots[query] = vis_order
+        done = set()
+        while True:
+            next_queries = filter(lambda x: x not in done and x.dependant_on.issubset(done), self.queries)
+            for query in next_queries:
+                QGraph = Digraph(name=f"cluster_{query.name}", graph_attr={"label":str(query)})
                 roots[query].viz(QGraph, query, roots)
-        graph.subgraph(QGraph)
+                graph.subgraph(QGraph)
+                done.add(query)
+            if len(done) == len(self.queries):
+                break
         graph.view(f"Viz_{name}", "./viz")
 
         # print(graph.source)

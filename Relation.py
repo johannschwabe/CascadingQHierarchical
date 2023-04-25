@@ -11,7 +11,6 @@ class Relation:
         self.source_query: "Query | None" = source_query
         self.source_relations: "list[Relation]" = source_relations if source_relations else []
         self.name = name
-        self.indicator: "set[JoinOrderNode]" = set()
         self.hash_val = hash(f"{'-'.join(self.free_variables)}:{','.join(map(lambda x: str(x), self.source_relations)) if self.source_relations else self.name}")
         self.disp_name = self.name + "(" + ",".join(self.free_variables) + ")"
         self._root_sources = set()

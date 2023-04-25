@@ -519,7 +519,7 @@ def example_32():
 
 # example_0()
 # example_1()
-# example_2()
+example_2()
 # example_3()
 # example_4()
 # example_5()
@@ -535,7 +535,7 @@ def example_32():
 # example_16()
 # example_17()
 # example_30()
-example_32()
+# example_32()
 
 
 print("done")

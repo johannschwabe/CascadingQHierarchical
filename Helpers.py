@@ -78,7 +78,7 @@ def is_homomorphism(q_query: "Query", nq_query: "Query"):
     new_view_free_vars: "set[str]" = {q_var_to_nq_var[q_var] for q_var in filter(lambda x:x in q_var_to_nq_var, q_query.free_variables) }
     if required_view_vars.issubset(new_view_free_vars):
         remaining_rels = nq_query.atoms.difference(replaced_rels)
-        remaining_rels.add(Relation(f"V_{q_query.name}", list(new_view_free_vars), source_relations=replaced_rels, source_query=q_query))
+        remaining_rels.add(Relation(q_query.name, list(new_view_free_vars), source_relations=replaced_rels, source_query=q_query))
         return Query(nq_query.name, nq_query.relations, nq_query.free_variables, remaining_rels)
 
     return None
