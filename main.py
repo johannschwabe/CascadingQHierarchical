@@ -4,6 +4,7 @@ from graphviz import Digraph
 
 from JoinOrderNode import JoinOrderNode
 from M3Generator import M3Generator
+from M3MultiQueryGenerator import M3MultiQueryGenerator
 from QueryGenerator import generate
 from Relation import Relation
 from Query import Query, QuerySet
@@ -25,6 +26,13 @@ def example_0():
     # res = greedy([Q2, Q1])
     # res = backward_search([Q2, Q1])
     res.graph_viz("ex0")
+    multigenerator = M3MultiQueryGenerator(
+        'simple',
+        'RingFactorizedRelation',
+        res,
+        {'a': 'int', 's': 'int', 'd': 'int', 'w': 'int', 'x': 'int', 'y': 'int', 'z': 'int'},
+    )
+    multigenerator.generate(False)
     return res
 
 def example_1():
@@ -517,9 +525,9 @@ def example_32():
     QS.graph_viz(1)
     M3Gen.generate(join_order_node_root, True)
 
-# example_0()
+example_0()
 # example_1()
-example_2()
+# example_2()
 # example_3()
 # example_4()
 # example_5()

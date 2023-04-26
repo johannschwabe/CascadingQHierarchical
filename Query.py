@@ -116,7 +116,7 @@ class QuerySet:
         while True:
             next_queries = filter(lambda x: x not in done and x.dependant_on.issubset(done), self.queries)
             for query in next_queries:
-                QGraph = Digraph(name=f"cluster_{query.name}", graph_attr={"label":str(query)})
+                QGraph = Digraph(name=f"cluster_{query.name}", graph_attr={"label":f"{query.name}({','.join(sorted(query.free_variables))}) = {','.join(sorted(map(lambda x: str(x), query.relations)))}"})
                 roots[query].viz(QGraph, query, roots)
                 graph.subgraph(QGraph)
                 done.add(query)

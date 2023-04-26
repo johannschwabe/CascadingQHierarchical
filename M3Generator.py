@@ -8,22 +8,28 @@ if TYPE_CHECKING:
 
 
 class M3Generator:
-    def __init__(self, config_file_path: str, dataset: str, ring: str, query: "Query"):
+    def __init__(self, dataset: str, ring: str, query: "Query"):
         self.ring = ring
         self.dataset = dataset
         self.query = query
         self.vars = {}
         self.relations = []
         self.var_index = 0
+
+    def self_init(self, var_types: "dict[str, str]"):
+        for var in var_types:
+            self.vars[var] = M3Variable(len(self.vars), var, var_types[var], set())
+        for rel in self.query.atoms:
+            self.relations.append(M3Relation(rel.name, len(self.relations), {self.vars[var] for var in rel.free_variables},
+                                             rel.source_query is None))
+    def read_config(self, config_file_path: str):
         with open(config_file_path, 'r') as config:
             first_line = config.readline()
             nr_vars, nr_relations = first_line.split(' ')
-            self.nr_vars = int(nr_vars)
-            self.nr_relations = int(nr_relations)
-            for _ in range(self.nr_vars):
+            for _ in range(nr_vars):
                 line = config.readline().split(' ')
                 self.vars[line[1]] = (M3Variable(int(line[0]), line[1], line[2], set(map(lambda x: int(x), line[3].strip('{}').split(',')))))
-            for _ in range(self.nr_relations):
+            for _ in range(nr_relations):
                 line = config.readline().split(' ')
                 self.relations.append(M3Relation(line[0], int(line[1]), set(map(lambda x: self.vars[x], line[2].strip().split(',')))))
 
@@ -262,14 +268,17 @@ class M3Variable:
         return self.index == other.index
 
 class M3Relation:
-    def __init__(self, name: str, nr: int, variables: "set[M3Variable]"):
+    def __init__(self, name: str, nr: int, variables: "set[M3Variable]", base_relation: bool = True):
         self.name: str = name
         self.nr: int = nr
         self.variables: "set[M3Variable]" = variables
+        self.base_relation = base_relation
 
     def generate_source(self, dataset:str):
-        return f"CREATE STREAM {self.name} ({','.join(map(lambda x: f'{x.name} {x.var_type}', self.variables))})\n  FROM FILE './datasets/{dataset}/{self.name.capitalize()}.tbl' LINE DELIMITED CSV (delimiter := '|');"
-
+        if self.base_relation:
+            return f"CREATE STREAM {self.name} ({','.join(map(lambda x: f'{x.name} {x.var_type}', self.variables))})\n  FROM FILE './datasets/{dataset}/{self.name.capitalize()}.tbl' LINE DELIMITED CSV (delimiter := '|');\n"
+        else:
+            return ""
     def __hash__(self):
         return hash(self.name)
     def __eq__(self, other):
