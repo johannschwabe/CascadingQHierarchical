@@ -49,9 +49,9 @@ class JoinOrderNode:
         return res
 
     def M3ViewName(self, ring: str, vars: "dict[str, M3Variable]", declaration: bool = False):
-        key_variables = ','.join(map(lambda x: f'{vars[x].name}: {vars[x].var_type}' if declaration else vars[x].name, self.free_variables))
+        key_variables = ','.join(sorted(map(lambda x: f'{vars[x].name}: {vars[x].var_type}' if declaration else vars[x].name, self.free_variables)))
         if self.lifted_variables:
-            return f"V_{self.child_rel_names}({ring}<[{self.M3_index}, {','.join(map(lambda x: vars[x].var_type, self.lifted_variables))}]>)[][{key_variables}]"
+            return f"V_{self.child_rel_names}({ring}<[{self.M3_index}, {','.join(sorted(map(lambda x: vars[x].var_type, self.lifted_variables)))}]>)[][{key_variables}]"
         return f"V_{self.child_rel_names}(long)[][{key_variables}]"
 
     def graph_viz_name(self):

@@ -15,12 +15,10 @@ random.seed(22)
 
 def example_0():
     R1_1 = Relation("R1", ["x", "y"])
-    R1_2 = Relation("R1", ["a", "s"])
     R2_1 = Relation("R2", ["y", "z"])
-    R2_2 = Relation("R2", ["s", "d"])
-    R3 = Relation("R3", ["d", "w"])
+    R3 = Relation("R3", ["z", "w"])
     Q1 = Query("Q1", {R1_1, R2_1}, {'y','z'})
-    Q2 = Query("Q2", {R1_2, R2_2, R3}, { 's','d', 'w'})
+    Q2 = Query("Q2", {R1_1, R2_1, R3}, { 'y','z', 'w'})
 
     res = run([Q1, Q2])
     # res = greedy([Q2, Q1])
@@ -29,10 +27,11 @@ def example_0():
     multigenerator = M3MultiQueryGenerator(
         'simple',
         'RingFactorizedRelation',
+        'example_0',
         res,
         {'a': 'int', 's': 'int', 'd': 'int', 'w': 'int', 'x': 'int', 'y': 'int', 'z': 'int'},
     )
-    multigenerator.generate(False)
+    multigenerator.generate(batch=True)
     return res
 
 def example_1():

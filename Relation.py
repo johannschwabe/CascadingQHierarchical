@@ -36,7 +36,7 @@ class Relation:
         return res
 
     def M3ViewName(self, ):
-        return f"{self.name}({','.join(self.free_variables)})"
+        return f"{self.name}({','.join(sorted(self.free_variables))})"
 
     def __eq__(self, other):
         return self.hash_val == other.hash_val

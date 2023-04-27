@@ -49,9 +49,9 @@ class M3Generator:
         if join_tree_node.aggregated_variables:
             if lifted_variables:
                 lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, lifted_variables))}]>]({','.join(lifted_variables)})"
-                res += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n (({joined_views}) * {lift})\n);\n"
+                res += f"AggSum([{', '.join(sorted(join_tree_node.free_variables))}],\n (({joined_views}) * {lift})\n);\n"
             else:
-                res += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n ({joined_views})\n);\n"
+                res += f"AggSum([{', '.join(sorted(join_tree_node.free_variables))}],\n ({joined_views})\n);\n"
         else:
             res += f"{joined_views};\n"
         for child in join_tree_node.children:
@@ -105,10 +105,15 @@ class M3Generator:
             res += _map
         return new_child_names, res
     def generate_queries(self, join_tree_node: "JoinOrderNode"):
-        res = f"DECLARE QUERY V_{join_tree_node.child_rel_names} := {join_tree_node.M3ViewName(self.ring, self.vars)}<Local>;\n"
+        query_name = f"{join_tree_node.child_rel_names}"
+        res = f"DECLARE QUERY V_{query_name} := {join_tree_node.M3ViewName(self.ring, self.vars)}<Local>;\n"
+        query_config = f"{query_name}|{','.join(join_tree_node.free_variables)}|{','.join(join_tree_node.lifted_variables)}|{'1' if join_tree_node.lifted_variables else '1'}"
+        query_names = [query_config]
         for child in join_tree_node.children:
-            res += self.generate_queries(child)
-        return res
+            child_res, child_query_names = self.generate_queries(child)
+            res += child_res
+            query_names += child_query_names
+        return res, query_names
 
     def generate_triggers_batch(self, join_tree_node: "JoinOrderNode"):
         res = ""
@@ -133,7 +138,7 @@ class M3Generator:
                 res.update(child_res)
                 for rel in child_res.keys():
                     tmp_child_name = child_names[rel]
-                    lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, join_tree_node.lifted_variables))}]>]({','.join(join_tree_node.lifted_variables)})"
+                    lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(sorted(map(lambda x: self.vars[x].var_type, join_tree_node.lifted_variables)))}]>]({','.join(sorted(join_tree_node.lifted_variables))})"
                     prefix = f"TMP_{rel.name}_"
                     tmp_join_tree_w_rel = f"{prefix}{join_tree_node.M3ViewName(self.ring, self.vars, declaration=False)}"
                     new_child_names[rel] = tmp_join_tree_w_rel
@@ -144,7 +149,7 @@ class M3Generator:
                     else:
                         product = f"{tmp_child_name} * {siblings}"
                     if join_tree_node.aggregated_variables:
-                        product = f"AggSum([{', '.join(join_tree_node.free_variables)}], {product})"
+                        product = f"AggSum([{', '.join(sorted(join_tree_node.free_variables))}], {product})"
 
                     path = f"{tmp_join_tree_w_rel}<Local> += {product};"
 
@@ -154,19 +159,18 @@ class M3Generator:
                         res[rel]["update"].append(update)
                     else:
                         res[rel] = {"path": [path], "update": [update]}
-                    print(update)
 
         else:
             for rel in join_tree_node.relations:
-                lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, join_tree_node.lifted_variables))}]>]({','.join(join_tree_node.lifted_variables)})"
+                lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(sorted(map(lambda x: self.vars[x].var_type, join_tree_node.lifted_variables)))}]>]({','.join(sorted(join_tree_node.lifted_variables))})"
                 tmp = f"TMP_{rel.name}_{join_tree_node.M3ViewName(self.ring, self.vars)}"
                 new_child_names[rel] = tmp
                 if join_tree_node.lifted_variables:
-                    product = f"((DELTA {rel.name})({', '.join(rel.free_variables)}) * {lift})"
+                    product = f"((DELTA {rel.name})({', '.join(sorted(rel.free_variables))}) * {lift})"
                 else:
                     product = f"(DELTA {rel.name})({', '.join(rel.free_variables)})"
                 if join_tree_node.aggregated_variables:
-                    product = f"AggSum([{', '.join(join_tree_node.free_variables)}], {product})"
+                    product = f"AggSum([{', '.join(sorted(join_tree_node.free_variables))}], {product})"
                 path = f"{tmp}<Local> += {product};"
 
                 update = f"{join_tree_node.M3ViewName(self.ring, self.vars)}<Local> += {tmp};"
@@ -178,14 +182,14 @@ class M3Generator:
         res = ""
         additions = self.generate_triggers_recursive(top, "+")
         for rel, value in additions.items():
-            res += f"ON + {rel.name} ({', '.join(rel.free_variables)}) {{ \n "
+            res += f"ON + {rel.name} ({', '.join(sorted(rel.free_variables))}) {{ \n "
             for update in value:
                 res += f"{update};\n"
             res += "}\n"
 
         removals = self.generate_triggers_recursive(join_tree_node, "-")
         for rel, value in removals.items():
-            res += f"ON - {rel.name} ({', '.join(rel.free_variables)}) {{ \n "
+            res += f"ON - {rel.name} ({', '.join(sorted(rel.free_variables))}) {{ \n "
             for update in value:
                 res += f"{update};\n"
             res += "}\n"
@@ -275,10 +279,8 @@ class M3Relation:
         self.base_relation = base_relation
 
     def generate_source(self, dataset:str):
-        if self.base_relation:
-            return f"CREATE STREAM {self.name} ({','.join(map(lambda x: f'{x.name} {x.var_type}', self.variables))})\n  FROM FILE './datasets/{dataset}/{self.name.capitalize()}.tbl' LINE DELIMITED CSV (delimiter := '|');\n"
-        else:
-            return ""
+        return f"CREATE STREAM {self.name} ({','.join(sorted(map(lambda x: f'{x.name} {x.var_type}', self.variables)))})\n  FROM FILE './data/{dataset}/{self.name.capitalize()}.tbl' LINE DELIMITED CSV (delimiter := '|');\n"
+
     def __hash__(self):
         return hash(self.name)
     def __eq__(self, other):
