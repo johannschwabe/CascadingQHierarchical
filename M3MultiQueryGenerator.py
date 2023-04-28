@@ -69,10 +69,14 @@ class M3MultiQueryGenerator:
         return res
 
     def generate_config(self, query_names: "dict[Query, list[str]]"):
+        query_list = topological_sort(set(query_names.keys()))
+        all_relations = {relation.name for query in query_list for relation in query.relations}
+
         res = f"{self.example}\n"
         res += f"{self.dataset}\n"
         res += '|'.join([f"{query.name}|{len(query_names[query])}|{'1' if any(map(lambda x:query in x.dependant_on,query_names.keys())) else '0'}" for query in query_names]) + '\n'
-        for query in query_names.keys():
+        res += '|'.join(all_relations) + '\n'
+        for query in query_list:
             for query_name in query_names[query]:
                 res += f"{query_name}\n"
         os.path.isdir(f"{self.base_dir}/config/{self.example}") or os.makedirs(f"{self.base_dir}/config/{self.example}")
@@ -106,3 +110,31 @@ ON SYSTEM READY {
             f.write(res)
         self.generate_config(query_names)
 
+def topological_sort(queries: "set[Query]") -> "list[Query]":
+    # Calculate in-degrees of each node
+    in_degrees = {q: 0 for q in queries}
+    for q in queries:
+        for dep in q.dependant_on:
+            in_degrees[dep] += 1
+
+    # Find nodes with zero in-degree
+    zero_in_degree_nodes = [q for q in queries if in_degrees[q] == 0]
+
+    # Perform topological sort
+    result = []
+    while zero_in_degree_nodes:
+        # Take a node with zero in-degree and remove it from the graph
+        node = zero_in_degree_nodes.pop()
+        result.append(node)
+
+        # Decrement in-degrees of nodes that depend on this node
+        for dep in node.dependant_on:
+            in_degrees[dep] -= 1
+            if in_degrees[dep] == 0:
+                zero_in_degree_nodes.append(dep)
+
+    # Check for cycle
+    if len(result) != len(queries):
+        raise ValueError("Dependency cycle detected.")
+
+    return result
