@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+import os
 
 from JoinOrderNode import JoinOrderNode
 from M3Generator import M3Generator, M3Relation
@@ -74,6 +75,7 @@ class M3MultiQueryGenerator:
         for query in query_names.keys():
             for query_name in query_names[query]:
                 res += f"{query_name}\n"
+        os.path.isdir(f"{self.base_dir}/config/{self.example}") or os.makedirs(f"{self.base_dir}/config/{self.example}")
         with open(f"{self.base_dir}/config/{self.example}/{self.example}.txt", "w") as f:
             f.write(res)
     def generate(self, batch: bool, file: str = "output.m3"):
@@ -99,6 +101,7 @@ WITH PARAMETER SCHEMA (dynamic_min);
 ON SYSTEM READY {
 
 }'''
+        os.path.isdir(f"{self.base_dir}/m3/{self.example}") or os.makedirs(f"{self.base_dir}/m3/{self.example}")
         with open(f"{self.base_dir}/m3/{self.example}/{self.example}_{'BATCH' if batch else 'SINGLE'}.m3", "w") as f:
             f.write(res)
         self.generate_config(query_names)

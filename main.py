@@ -21,8 +21,6 @@ def example_0():
     Q2 = Query("Q2", {R1_1, R2_1, R3}, { 'y','z', 'w'})
 
     res = run([Q1, Q2])
-    # res = greedy([Q2, Q1])
-    # res = backward_search([Q2, Q1])
     res.graph_viz("ex0")
     multigenerator = M3MultiQueryGenerator(
         'simple',
@@ -40,50 +38,43 @@ def example_1():
     R3_1 = Relation("R3", ["c", "d"])
     R4_1 = Relation("R4", ["b", "e"])
 
-    R1_2 = Relation("R1", ["1", "2"])
-    R2_2 = Relation("R2", ["2", "3"])
-    R3_2 = Relation("R3", ["3", "4"])
-    R4_2 = Relation("R4", ["4", "5"])
-
-    R1_3 = Relation("R1", ["q", "w"])
-    R2_3 = Relation("R2", ["w", "e"])
-    R3_3 = Relation("R3", ["e", "r"])
-    R4_3 = Relation("R4", ["r", "t"])
 
     Q1 = Query("Q1", {R1_1, R2_1}, {'a', 'b', 'c'})
-    Q2 = Query("Q2", {R1_2, R2_2, R3_2}, {'1', '2', '3', '4'})
-    Q3 = Query("Q3", {R1_3, R2_3, R3_3, R4_3}, {'q', 'w','e','r', 't'})
-    # Q3 = Query("Q3", {R1, R2, R3, R4}, {'a', 'b', 'c', 'd', 'e'})
+    Q2 = Query("Q2", {R1_1, R2_1, R3_1}, {'a', 'b', 'c', 'd'})
+    Q3 = Query("Q3", {R1_1, R2_1, R3_1, R4_1}, {'a', 'b','c','d', 'e'})
     res = run([Q1, Q2, Q3])
-    # res = greedy([Q1, Q2, Q3])
-    # QS = QuerySet({Q1, Q2, Q3})
-    # QS.graph_viz()
-    # res = backward_search([Q2, Q1, Q3])
+    multigenerator = M3MultiQueryGenerator(
+        'simple',
+        'RingFactorizedRelation',
+        'example_1',
+        res,
+        {'a': 'int', 'b': 'int', 'c': 'int', 'd': 'int', 'e': 'int'},
+    )
+    multigenerator.generate(batch=True)
+
     res.graph_viz("ex1")
     return res
 
 def example_2():
-    R1_1 = Relation("R1", ["x", "y"])
-    R2_1 = Relation("R2", ["y", "z"])
-    R3_1 = Relation("R3", ["z", "w"])
-    R4_1 = Relation("R4", ["w", "q"])
+    R1 = Relation("R1", ["x", "y"])
+    R2 = Relation("R2", ["y", "z"])
+    R3 = Relation("R3", ["z", "w"])
+    R4 = Relation("R4", ["w", "q"])
+    R5 = Relation("R5", ["z"])
 
-    R1_2 = Relation("R1", ["a", "b"])
-    R2_2 = Relation("R2", ["b", "c"])
-    R3_2 = Relation("R3", ["c", "d"])
-    R4_2 = Relation("R4", ["d", "e"])
-
-    R1_3 = Relation("R1", ["1", "2"])
-    R2_3 = Relation("R2", ["2", "3"])
-    R3_3 = Relation("R3", ["3", "4"])
-    R4_3 = Relation("R4", ["4", "5"])
-    R5_3 = Relation("R5", ["3"])
-
-    Q1 = Query("Q1", {R1_1, R2_1},{'x', 'y', 'z'})
-    Q2 = Query("Q2", {R3_2, R4_2},{'c', 'd', 'e'})
-    Q3 = Query("Q3", {R1_3, R2_3, R3_3, R4_3, R5_3},{'1', '2', '3', '4', '5'})
+    Q1 = Query("Q1", {R1, R2},{'x', 'y', 'z'})
+    Q2 = Query("Q2", {R3, R4},{'z', 'w', 'q'})
+    Q3 = Query("Q3", {R1, R2, R3, R4, R5},{'x', 'y', 'z', 'w', 'q'})
     res = run([Q1, Q2, Q3])
-    res.graph_viz()
+    res.graph_viz(2)
+    multigenerator = M3MultiQueryGenerator(
+        'simple',
+        'RingFactorizedRelation',
+        'example_2',
+        res,
+        {'x': 'int', 'y': 'int', 'z': 'int', 'w': 'int', 'q': 'int'},
+    )
+    multigenerator.generate(batch=True)
 
     return res
 def example_3():
@@ -524,9 +515,9 @@ def example_32():
     QS.graph_viz(1)
     M3Gen.generate(join_order_node_root, True)
 
-example_0()
+# example_0()
 # example_1()
-# example_2()
+example_2()
 # example_3()
 # example_4()
 # example_5()

@@ -142,12 +142,13 @@ class M3Generator:
                     prefix = f"TMP_{rel.name}_"
                     tmp_join_tree_w_rel = f"{prefix}{join_tree_node.M3ViewName(self.ring, self.vars, declaration=False)}"
                     new_child_names[rel] = tmp_join_tree_w_rel
-                    siblings = '*'.join(map(lambda x: f"{x.M3ViewName(self.ring, self.vars)}<Local>", join_tree_node.children.difference({child})))
+                    sibling_list = join_tree_node.children.difference({child})
+                    siblings = ') *'.join(map(lambda x: f"{x.M3ViewName(self.ring, self.vars)}<Local>", sibling_list))
 
                     if join_tree_node.lifted_variables:
-                        product = f"({tmp_child_name} * {siblings}) * {lift}"
+                        product = f"{'('* len(sibling_list)}{tmp_child_name} * {siblings}) * {lift}"
                     else:
-                        product = f"{tmp_child_name} * {siblings}"
+                        product = f"{'('* len(sibling_list-1)}{tmp_child_name} * {siblings}"
                     if join_tree_node.aggregated_variables:
                         product = f"AggSum([{', '.join(sorted(join_tree_node.free_variables))}], {product})"
 
