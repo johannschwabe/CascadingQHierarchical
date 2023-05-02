@@ -20,7 +20,7 @@ class M3Generator:
         for var in var_types:
             self.vars[var] = M3Variable(len(self.vars), var, var_types[var], set())
         for rel in self.query.atoms:
-            self.relations.append(M3Relation(rel.name, len(self.relations), {self.vars[var] for var in rel.free_variables},
+            self.relations.append(M3Relation(rel.name, len(self.relations), [self.vars[var] for var in rel.free_variables],
                                              rel.source_query is None))
     def read_config(self, config_file_path: str):
         with open(config_file_path, 'r') as config:
@@ -31,7 +31,7 @@ class M3Generator:
                 self.vars[line[1]] = (M3Variable(int(line[0]), line[1], line[2], set(map(lambda x: int(x), line[3].strip('{}').split(',')))))
             for _ in range(nr_relations):
                 line = config.readline().split(' ')
-                self.relations.append(M3Relation(line[0], int(line[1]), set(map(lambda x: self.vars[x], line[2].strip().split(',')))))
+                self.relations.append(M3Relation(line[0], int(line[1]), list(map(lambda x: self.vars[x], line[2].strip().split(',')))))
 
     def assign_index(self, join_tree_node: "JoinOrderNode"):
         join_tree_node.M3_index = self.var_index
@@ -148,7 +148,7 @@ class M3Generator:
                     if join_tree_node.lifted_variables:
                         product = f"{'('* len(sibling_list)}{tmp_child_name} * {siblings}) * {lift}"
                     else:
-                        product = f"{'('* len(sibling_list-1)}{tmp_child_name} * {siblings}"
+                        product = f"{'('* (len(sibling_list)-1)}{tmp_child_name} * {siblings}"
                     if join_tree_node.aggregated_variables:
                         product = f"AggSum([{', '.join(sorted(join_tree_node.free_variables))}], {product})"
 
@@ -167,7 +167,7 @@ class M3Generator:
                 tmp = f"TMP_{rel.name}_{join_tree_node.M3ViewName(self.ring, self.vars)}"
                 new_child_names[rel] = tmp
                 if join_tree_node.lifted_variables:
-                    product = f"((DELTA {rel.name})({', '.join(sorted(rel.free_variables))}) * {lift})"
+                    product = f"((DELTA {rel.name})({', '.join(rel.free_variables)}) * {lift})"
                 else:
                     product = f"(DELTA {rel.name})({', '.join(rel.free_variables)})"
                 if join_tree_node.aggregated_variables:
@@ -273,14 +273,14 @@ class M3Variable:
         return self.index == other.index
 
 class M3Relation:
-    def __init__(self, name: str, nr: int, variables: "set[M3Variable]", base_relation: bool = True):
+    def __init__(self, name: str, nr: int, variables: "list[M3Variable]", base_relation: bool = True):
         self.name: str = name
         self.nr: int = nr
-        self.variables: "set[M3Variable]" = variables
+        self.variables: "list[M3Variable]" = variables
         self.base_relation = base_relation
 
     def generate_source(self, dataset:str):
-        return f"CREATE STREAM {self.name} ({','.join(sorted(map(lambda x: f'{x.name} {x.var_type}', self.variables)))})\n  FROM FILE './data/{dataset}/{self.name.capitalize()}.tbl' LINE DELIMITED CSV (delimiter := '|');\n"
+        return f"CREATE STREAM {self.name} ({','.join(map(lambda x: f'{x.name} {x.var_type}', self.variables))})\n  FROM FILE './data/{dataset}/{self.name.capitalize()}.tbl' LINE DELIMITED CSV (delimiter := '|');\n"
 
     def __hash__(self):
         return hash(self.name)

@@ -70,19 +70,22 @@ class M3MultiQueryGenerator:
 
     def generate_config(self, query_names: "dict[Query, list[str]]"):
         query_list = topological_sort(set(query_names.keys()))
+
         all_relations = {relation.name for query in query_list for relation in query.relations}
+        enumerated_queries = {f"{relation.name}:{','.join(relation.free_variables)}" for query in query_list for relation in query.atoms if relation.name not in all_relations}
 
         res = f"{self.example}\n"
         res += f"{self.dataset}\n"
-        res += '|'.join([f"{query.name}|{len(query_names[query])}|{'1' if any(map(lambda x:query in x.dependant_on,query_names.keys())) else '0'}" for query in query_names]) + '\n'
+        res += '|'.join([f"{query.name}|{len(query_names[query])}|{'1' if any(map(lambda x:query in x.dependant_on,query_names.keys())) else '0'}" for query in query_list]) + '\n'
         res += '|'.join(all_relations) + '\n'
+        res += '|'.join(enumerated_queries) + '\n'
         for query in query_list:
             for query_name in query_names[query]:
                 res += f"{query_name}\n"
         os.path.isdir(f"{self.base_dir}/config/{self.example}") or os.makedirs(f"{self.base_dir}/config/{self.example}")
         with open(f"{self.base_dir}/config/{self.example}/{self.example}.txt", "w") as f:
             f.write(res)
-    def generate(self, batch: bool, file: str = "output.m3"):
+    def generate(self, batch: bool):
         self.assign_index()
         res = '''---------------- TYPE DEFINITIONS ---------------
 CREATE DISTRIBUTED TYPE RingFactorizedRelation
@@ -136,5 +139,5 @@ def topological_sort(queries: "set[Query]") -> "list[Query]":
     # Check for cycle
     if len(result) != len(queries):
         raise ValueError("Dependency cycle detected.")
-
+    result.reverse()
     return result
