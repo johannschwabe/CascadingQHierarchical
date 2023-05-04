@@ -73,7 +73,6 @@ class M3MultiQueryGenerator:
 
         all_relations = {relation.name for query in query_list for relation in query.relations}
         enumerated_queries = {f"{relation.name}:{','.join(relation.free_variables)}" for query in query_list for relation in query.atoms if relation.name not in all_relations}
-
         res = f"{self.example}\n"
         res += f"{self.dataset}\n"
         res += '|'.join([f"{query.name}|{len(query_names[query])}|{'1' if any(map(lambda x:query in x.dependant_on,query_names.keys())) else '0'}" for query in query_list]) + '\n'
