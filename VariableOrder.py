@@ -1,17 +1,19 @@
 
 from graphviz import Digraph
+from ordered_set import OrderedSet
+
 from Relation import Relation
 
 
 class VariableOrderNode:
-    def __init__(self, name: str, children: "set[VariableOrderNode]", relations: "set[Relation]", parent: "VariableOrderNode|None"):
+    def __init__(self, name: str, children: "set[VariableOrderNode]", relations: "OrderedSet[Relation]", parent: "VariableOrderNode|None"):
         self.children = children
         self.name = name
-        self.relations = relations
+        self.relations:"OrderedSet[Relation]" = relations
         self.parent = parent
-        self._all_relations_sources = set()
-        self._all_relations_no_sources = set()
-        self._parent_vars = set()
+        self._all_relations_sources = OrderedSet()
+        self._all_relations_no_sources = OrderedSet()
+        self._parent_vars = OrderedSet()
 
     def graph_viz(self, graph: "Digraph|None" = None, rootname: str = ""):
         own_name = f"{rootname}_{self.name}"
@@ -31,7 +33,7 @@ class VariableOrderNode:
             relation_name = f"{rootname}_{relation.name}"
             graph.node(relation_name, shape="rectangle", label=str(relation))
             graph.edge(own_name, relation_name)
-            if relation.sources:
+            if relation.source_query:
                 for source in relation.root_sources():
                     source_name = f"{rootname}_{source.name}"
                     graph.node(source_name, label=str(source), shape="diamond")
@@ -39,12 +41,12 @@ class VariableOrderNode:
         return graph
 
 
-    def all_relations(self, source_only = False) -> "set[Relation]":
+    def all_relations(self, source_only = False) -> "OrderedSet[Relation]":
         if source_only and self._all_relations_sources:
             return self._all_relations_sources
         if not source_only and self._all_relations_no_sources:
             return self._all_relations_no_sources
-        res = set()
+        res = OrderedSet()
         if source_only:
             for rel in self.relations:
                 res.update(rel.root_sources())
@@ -62,22 +64,22 @@ class VariableOrderNode:
         children = set(map(lambda x: x.copy(self), self.children))
         return VariableOrderNode(self.name, children, self.relations.copy(), parent)
 
-    def parent_variables(self):
+    def parent_variables(self) -> "OrderedSet[str]":
         if self._parent_vars:
             return self._parent_vars.copy()
-        res = {self.name}
+        res = OrderedSet([self.name])
         if self.parent:
             res.update(self.parent.parent_variables())
         self._parent_vars = res
         return res
 
-    def child_vars(self):
-        res = {self.name}
+    def child_vars(self)->"OrderedSet[str]":
+        res = OrderedSet([self.name])
         for child in self.children:
             res.update(child.child_vars())
         return res
 
-    def parent_relations(self):
+    def parent_relations(self) -> "OrderedSet[Relation]":
         if self.parent:
             return self.relations.union(self.parent.parent_relations())
         return self.relations
@@ -86,9 +88,9 @@ class VariableOrderNode:
         return f"{self.name}-{','.join([rel.name for rel in self.relations])}-{','.join([child.name for child in self.children])}"
 
     @staticmethod
-    def generate(relations: "set[Relation]", free_variables: "set[str]"):
+    def generate(relations: "OrderedSet[Relation]", free_variables: "OrderedSet[str]"):
 
-        variables = set()
+        variables = OrderedSet()
         for relation in relations:
             variables.update(relation.free_variables)
         variable_list = list(variables)
@@ -98,12 +100,12 @@ class VariableOrderNode:
 
 
         next_var = variable_list.pop()
-        root = VariableOrderNode(next_var, set(),set(), None)
+        root = VariableOrderNode(next_var, set(),OrderedSet(), None)
         VariableOrderNode.generate_recursion(relations, root, free_variables)
         return root
 
     @staticmethod
-    def generate_recursion(relations: "set[Relation]", node: "VariableOrderNode", free_variables: "set[str]"):
+    def generate_recursion(relations: "OrderedSet[Relation]", node: "VariableOrderNode", free_variables: "OrderedSet[str]"):
         parent_vars = node.parent_variables()
         generateable_relations = {rel for rel in relations if set(rel.free_variables).issubset(parent_vars)}
         node.relations.update(generateable_relations)
@@ -120,10 +122,10 @@ class VariableOrderNode:
         variable_list.sort(key=lambda x: sum([1 for rel in ungenerateable_relations if x in rel.free_variables]) + (0.1 if x in free_variables else 0), reverse=False)
 
         next_var = variable_list.pop()
-        next_node = VariableOrderNode(next_var, set(), set(), node)
+        next_node = VariableOrderNode(next_var, set(), OrderedSet(), node)
         node.children.add(next_node)
 
-        sub_relations = {rel for rel in ungenerateable_relations if next_var in rel.free_variables}
+        sub_relations = OrderedSet([rel for rel in ungenerateable_relations if next_var in rel.free_variables])
 
         VariableOrderNode.generate_recursion(sub_relations, next_node, free_variables)
         VariableOrderNode.generate_recursion(ungenerateable_relations.difference(sub_relations), node, free_variables)

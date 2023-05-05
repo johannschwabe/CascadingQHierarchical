@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from ordered_set import OrderedSet
 
 if TYPE_CHECKING:
     from M3Generator import M3Variable
@@ -12,29 +13,29 @@ if TYPE_CHECKING:
 class JoinOrderNode:
     def __init__(self, query: "Query | None",
                  child_rel_names: str,
-                 relations: "set[Relation]",
-                 free_vars: "set[str]",
-                 aggregated_vars: "set[str]",
+                 relations: "OrderedSet[Relation]",
+                 free_vars: "OrderedSet[str]",
+                 aggregated_vars: "OrderedSet[str]",
                  ):
         self.query_name: str = query.name if query else "None"
         self.child_rel_names: str = child_rel_names
         self.children: "set[JoinOrderNode]" = set()
-        self.relations: "set[Relation]" = relations
+        self.relations: "OrderedSet[Relation]" = relations
         self.parent: "JoinOrderNode|None" = None
-        self.free_variables: "set[str]" = free_vars
-        self.aggregated_variables: "set[str]" = aggregated_vars
-        self.lifted_variables: "set[str]" = aggregated_vars.intersection(query.free_variables) if query else set()
+        self.free_variables: "OrderedSet[str]" = free_vars
+        self.aggregated_variables: "OrderedSet[str]" = aggregated_vars
+        self.lifted_variables: "OrderedSet[str]" = aggregated_vars.intersection(query.free_variables) if query else OrderedSet()
         self.M3_index: "int" = -1
-        self._all_relations_sources: "set[Relation]" = set()
-        self._all_relations_no_sources: "set[Relation]" = set()
+        self._all_relations_sources: "OrderedSet[Relation]" = OrderedSet()
+        self._all_relations_no_sources: "OrderedSet[Relation]" = OrderedSet()
 
 
-    def all_relations(self, source_only = False) -> "set[Relation]":
+    def all_relations(self, source_only = False) -> "OrderedSet[Relation]":
         if source_only and self._all_relations_sources:
             return self._all_relations_sources
         if not source_only and self._all_relations_no_sources:
             return self._all_relations_no_sources
-        res = set()
+        res = OrderedSet()
         if source_only:
             for rel in self.relations:
                 res.update(rel.root_sources())
@@ -49,16 +50,16 @@ class JoinOrderNode:
         return res
 
     def M3ViewName(self, ring: str, vars: "dict[str, M3Variable]", declaration: bool = False):
-        key_variables = ','.join(map(lambda x: f'{vars[x].name}: {vars[x].var_type}' if declaration else vars[x].name, sorted(self.free_variables)))
+        key_variables = ','.join(map(lambda x: f'{vars[x].name}: {vars[x].var_type}' if declaration else vars[x].name, self.free_variables))
         if self.lifted_variables:
-            return f"V_{self.child_rel_names}({ring}<[{self.M3_index}, {','.join(map(lambda x: vars[x].var_type, sorted(self.lifted_variables)))}]>)[][{key_variables}]"
+            return f"V_{self.child_rel_names}({ring}<[{self.M3_index}, {','.join(map(lambda x: vars[x].var_type, self.lifted_variables))}]>)[][{key_variables}]"
         return f"V_{self.child_rel_names}(long)[][{key_variables}]"
 
     def graph_viz_name(self):
         if self.aggregated_variables:
-            return f"<V<SUB>{self.child_rel_names}</SUB><SUP>@{''.join(sorted(self.aggregated_variables))}</SUP>({','.join(sorted(self.free_variables))})>"
+            return f"<V<SUB>{self.child_rel_names}</SUB><SUP>@{''.join(self.aggregated_variables)}</SUP>({','.join(sorted(self.free_variables))})>"
 
-        return f"<V<SUB>{self.child_rel_names}</SUB>({','.join(sorted(self.free_variables))})>"
+        return f"<V<SUB>{self.child_rel_names}</SUB>({','.join(self.free_variables)})>"
 
     def __repr__(self):
         if self.aggregated_variables:
@@ -77,11 +78,11 @@ class JoinOrderNode:
         parent_vars = variable_order_node.parent_variables()
         if len(variable_order_node.children) + len(variable_order_node.relations) > 1:
             free_vars = parent_vars.difference({variable_order_node.name})
-            aggregated_vars = {variable_order_node.name}
+            aggregated_vars = OrderedSet([variable_order_node.name])
 
             v_node = JoinOrderNode(query=query,
                                    child_rel_names=child_relation_names,
-                                   relations=set(),
+                                   relations=OrderedSet(),
                                    free_vars=free_vars,
                                    aggregated_vars=aggregated_vars)
 
@@ -94,9 +95,9 @@ class JoinOrderNode:
             for rel in variable_order_node.relations:
                 child_node = JoinOrderNode(query=query,
                                            child_rel_names=rel.name,
-                                           relations={rel},
+                                           relations=OrderedSet([rel]),
                                            free_vars=rel.free_variables,
-                                           aggregated_vars=set())
+                                           aggregated_vars=OrderedSet())
                 child_node.parent = v_node
 
                 child_nodes.append(child_node)
@@ -104,7 +105,7 @@ class JoinOrderNode:
 
             return v_node
         elif len(variable_order_node.children) == 0:
-            aggregated_vars = {variable_order_node.name}
+            aggregated_vars = OrderedSet([variable_order_node.name])
             h_node = JoinOrderNode(query=query,
                                  child_rel_names=child_relation_names,
                                  relations=variable_order_node.relations,
@@ -124,16 +125,16 @@ class JoinOrderNode:
             bound_vars = simple_vars.difference(strict_parent_vars)
             v_node = JoinOrderNode(query=query,
                                    child_rel_names=child_relation_names,
-                                   relations=set(),
+                                   relations=OrderedSet(),
                                    free_vars=strict_parent_vars,
                                    aggregated_vars=bound_vars)
 
             for rel in _iter.relations:
                 child_node = JoinOrderNode(query=query,
                                            child_rel_names=rel.name,
-                                           relations={rel},
+                                           relations=OrderedSet([rel]),
                                            free_vars=rel.free_variables,
-                                           aggregated_vars=set())
+                                           aggregated_vars=OrderedSet())
                 child_node.parent = v_node
                 v_node.children.add(child_node)
             return_node = v_node

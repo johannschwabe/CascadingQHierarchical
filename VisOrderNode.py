@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from ordered_set import OrderedSet
 
 if TYPE_CHECKING:
     from JoinOrderNode import JoinOrderNode
@@ -11,21 +12,21 @@ class VisOrderNode:
     def __init__(self,
                  designation: str,
                  children: "list[VisOrderNode]",
-                 relations: "list[Relation]",
+                 relations: "OrderedSet[Relation]",
                  parent: "VisOrderNode|None",
-                 free_variables: "list[str]",
-                 aggregated_variables: "list[str]",
-                 lifted_variables: "list[str]",
+                 free_variables: "OrderedSet[str]",
+                 aggregated_variables: "OrderedSet[str]",
+                 lifted_variables: "OrderedSet[str]",
                  child_rel_names: str,
                  query_name: str
                  ):
         self.designation = designation
         self.children: "list[VisOrderNode]" = children
-        self.relations: "list[Relation]" = relations
+        self.relations: "OrderedSet[Relation]" = relations
         self.parent: "VisOrderNode|None" = parent
-        self.free_variables: "list[str]" = free_variables
-        self.aggregated_variables: "list[str]" = aggregated_variables
-        self.lifted_variables: "list[str]" = lifted_variables
+        self.free_variables: "OrderedSet[str]" = free_variables
+        self.aggregated_variables: "OrderedSet[str]" = aggregated_variables
+        self.lifted_variables: "OrderedSet[str]" = lifted_variables
         self.child_rel_names: str = child_rel_names
         self.query_name: str = query_name
 
@@ -35,21 +36,21 @@ class VisOrderNode:
             current_h = VisOrderNode(
                 designation="H",
                 children=[],
-                relations=[],
+                relations=OrderedSet([]),
                 parent=None,
-                free_variables=list(node.free_variables.union(node.aggregated_variables)),
-                aggregated_variables=[],
-                lifted_variables=[],
+                free_variables=node.free_variables.union(node.aggregated_variables),
+                aggregated_variables=OrderedSet([]),
+                lifted_variables=OrderedSet([]),
                 child_rel_names=node.child_rel_names,
                 query_name=node.query_name)
             current = VisOrderNode(
                 designation="V",
                 children=[current_h],
-                relations=list(node.relations),
+                relations=node.relations,
                 parent=None,
-                free_variables=list(node.free_variables),
-                aggregated_variables=list(node.aggregated_variables),
-                lifted_variables=list(node.lifted_variables),
+                free_variables=node.free_variables,
+                aggregated_variables=node.aggregated_variables,
+                lifted_variables=node.lifted_variables,
                 child_rel_names=node.child_rel_names,
                 query_name=node.query_name
             )
@@ -62,10 +63,10 @@ class VisOrderNode:
             current = VisOrderNode(
                 designation="V",
                 children=[],
-                relations=list(node.relations), parent=None,
-                free_variables=list(node.free_variables),
-                aggregated_variables=list(node.aggregated_variables),
-                lifted_variables=list(node.lifted_variables),
+                relations=node.relations, parent=None,
+                free_variables=node.free_variables,
+                aggregated_variables=node.aggregated_variables,
+                lifted_variables=node.lifted_variables,
                 child_rel_names=node.child_rel_names,
                 query_name=node.query_name
             )
@@ -77,9 +78,9 @@ class VisOrderNode:
 
     def graph_viz_name(self):
         if self.aggregated_variables:
-            return f"<{self.designation}<SUB>{self.child_rel_names}</SUB><SUP>@{''.join(sorted(self.aggregated_variables))}</SUP>({','.join(sorted(self.free_variables))})>"
+            return f"<{self.designation}<SUB>{self.child_rel_names}</SUB><SUP>@{''.join(self.aggregated_variables)}</SUP>({','.join(self.free_variables)})>"
 
-        return f"<{self.designation}<SUB>{self.child_rel_names}</SUB>({','.join(sorted(self.free_variables))})>"
+        return f"<{self.designation}<SUB>{self.child_rel_names}</SUB>({','.join(self.free_variables)})>"
 
     def __repr__(self):
         if self.aggregated_variables:

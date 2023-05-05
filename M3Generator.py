@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from ordered_set import OrderedSet
+
 from JoinOrderNode import JoinOrderNode
 
 if TYPE_CHECKING:
@@ -41,7 +43,7 @@ class M3Generator:
             self.assign_index(child)
 
     def generate_maps(self, join_tree_node: "JoinOrderNode"):
-        lifted_variables = sorted(list(join_tree_node.aggregated_variables.intersection(self.query.free_variables)))
+        lifted_variables = join_tree_node.aggregated_variables.intersection(self.query.free_variables)
         res = f'''\nDECLARE MAP {join_tree_node.M3ViewName(self.ring, self.vars, declaration=True)} :=\n'''
         view_names = map(lambda x: f'{x.M3ViewName(self.ring, self.vars)}<Local>', join_tree_node.children)
         relation_names = map(lambda x: x.M3ViewName(), join_tree_node.relations)
@@ -49,9 +51,9 @@ class M3Generator:
         if join_tree_node.aggregated_variables:
             if lifted_variables:
                 lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, lifted_variables))}]>]({','.join(lifted_variables)})"
-                res += f"AggSum([{', '.join(sorted(join_tree_node.free_variables))}],\n (({joined_views}) * {lift})\n);\n"
+                res += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n (({joined_views}) * {lift})\n);\n"
             else:
-                res += f"AggSum([{', '.join(sorted(join_tree_node.free_variables))}],\n ({joined_views})\n);\n"
+                res += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n ({joined_views})\n);\n"
         else:
             res += f"{joined_views};\n"
         for child in join_tree_node.children:
@@ -138,7 +140,7 @@ class M3Generator:
                 res.update(child_res)
                 for rel in child_res.keys():
                     tmp_child_name = child_names[rel]
-                    lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(sorted(map(lambda x: self.vars[x].var_type, join_tree_node.lifted_variables)))}]>]({','.join(sorted(join_tree_node.lifted_variables))})"
+                    lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, join_tree_node.lifted_variables))}]>]({','.join(join_tree_node.lifted_variables)})"
                     prefix = f"TMP_{rel.name}_"
                     tmp_join_tree_w_rel = f"{prefix}{join_tree_node.M3ViewName(self.ring, self.vars, declaration=False)}"
                     new_child_names[rel] = tmp_join_tree_w_rel
@@ -150,9 +152,9 @@ class M3Generator:
                     else:
                         product = f"{'('* (len(sibling_list)-1)}{tmp_child_name} * {siblings}"
                     if join_tree_node.aggregated_variables:
-                        product = f"AggSum([{', '.join(sorted(join_tree_node.free_variables))}], {product})"
+                        product = f"AggSum([{', '.join(join_tree_node.free_variables)}], {product})"
 
-                    path = f"{tmp_join_tree_w_rel}<Local> += {product};"
+                    path = f"{tmp_join_tree_w_rel}<Local> := {product};"
 
                     update = f"{join_tree_node_name} += {tmp_join_tree_w_rel};"
                     if rel in res:
@@ -163,7 +165,7 @@ class M3Generator:
 
         else:
             for rel in join_tree_node.relations:
-                lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(sorted(map(lambda x: self.vars[x].var_type, join_tree_node.lifted_variables)))}]>]({','.join(sorted(join_tree_node.lifted_variables))})"
+                lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, join_tree_node.lifted_variables))}]>]({','.join(join_tree_node.lifted_variables)})"
                 tmp = f"TMP_{rel.name}_{join_tree_node.M3ViewName(self.ring, self.vars)}"
                 new_child_names[rel] = tmp
                 if join_tree_node.lifted_variables:
@@ -171,26 +173,26 @@ class M3Generator:
                 else:
                     product = f"(DELTA {rel.name})({', '.join(rel.free_variables)})"
                 if join_tree_node.aggregated_variables:
-                    product = f"AggSum([{', '.join(sorted(join_tree_node.free_variables))}], {product})"
-                path = f"{tmp}<Local> += {product};"
+                    product = f"AggSum([{', '.join(join_tree_node.free_variables)}], {product})"
+                path = f"{tmp}<Local> := {product};"
 
                 update = f"{join_tree_node.M3ViewName(self.ring, self.vars)}<Local> += {tmp};"
                 res[rel] = {"path": [path], "update": [update]}
         return new_child_names, res
     def generate_triggers(self, join_tree_node: "JoinOrderNode"):
-        top = JoinOrderNode(None, "", set(), set(), set())
+        top = JoinOrderNode(None, "", OrderedSet(), OrderedSet(), OrderedSet())
         top.children = {join_tree_node}
         res = ""
         additions = self.generate_triggers_recursive(top, "+")
         for rel, value in additions.items():
-            res += f"ON + {rel.name} ({', '.join(sorted(rel.free_variables))}) {{ \n "
+            res += f"ON + {rel.name} ({', '.join(rel.free_variables)}) {{ \n "
             for update in value:
                 res += f"{update};\n"
             res += "}\n"
 
         removals = self.generate_triggers_recursive(join_tree_node, "-")
         for rel, value in removals.items():
-            res += f"ON - {rel.name} ({', '.join(sorted(rel.free_variables))}) {{ \n "
+            res += f"ON - {rel.name} ({', '.join(rel.free_variables)}) {{ \n "
             for update in value:
                 res += f"{update};\n"
             res += "}\n"

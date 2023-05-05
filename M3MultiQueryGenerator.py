@@ -1,12 +1,13 @@
 from typing import TYPE_CHECKING
 import os
 
+from ordered_set import OrderedSet
+
 from JoinOrderNode import JoinOrderNode
 from M3Generator import M3Generator, M3Relation
 
 if TYPE_CHECKING:
     from Query import Query, QuerySet
-    from Relation import Relation
 
 class M3MultiQueryGenerator:
     def __init__(self, dataset: str, ring:str, example: str, query_set: "QuerySet", var_types: "dict[str,str]"):
@@ -68,7 +69,7 @@ class M3MultiQueryGenerator:
 
         return res
 
-    def generate_config(self, query_names: "dict[Query, list[str]]"):
+    def generate_config(self, query_names: "dict[Query, OrderedSet[str]]"):
         query_list = topological_sort(set(query_names.keys()))
 
         all_relations = {relation.name for query in query_list for relation in query.relations}
@@ -79,7 +80,7 @@ class M3MultiQueryGenerator:
         res += '|'.join(all_relations) + '\n'
         res += '|'.join(enumerated_queries) + '\n'
         for query in query_list:
-            for query_name in sorted(query_names[query]):
+            for query_name in query_names[query]:
                 res += f"{query_name}\n"
         os.path.isdir(f"{self.base_dir}/config/{self.example}") or os.makedirs(f"{self.base_dir}/config/{self.example}")
         with open(f"{self.base_dir}/config/{self.example}/{self.example}.txt", "w") as f:

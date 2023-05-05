@@ -1,6 +1,7 @@
 import random
 
 from graphviz import Digraph
+from ordered_set import OrderedSet
 
 from JoinOrderNode import JoinOrderNode
 from M3Generator import M3Generator
@@ -14,11 +15,11 @@ random.seed(22)
 
 
 def example_0():
-    R1_1 = Relation("R1", ["x", "y"])
-    R2_1 = Relation("R2", ["y", "z"])
-    R3 = Relation("R3", ["z", "w"])
-    Q1 = Query("Q1", {R1_1, R2_1}, {'y', 'z'})
-    Q2 = Query("Q2", {R1_1, R2_1, R3}, {'y', 'z', 'w'})
+    R1_1 = Relation("R1", OrderedSet(["x", "y"]))
+    R2_1 = Relation("R2", OrderedSet(["y", "z"]))
+    R3 = Relation("R3", OrderedSet(["z", "w"]))
+    Q1 = Query("Q1", OrderedSet([R1_1, R2_1]), OrderedSet(['y', 'z']))
+    Q2 = Query("Q2", OrderedSet([R1_1, R2_1, R3]), OrderedSet(['y', 'z', 'w']))
 
     res = run([Q1, Q2])
     res.graph_viz("ex0")
@@ -34,14 +35,14 @@ def example_0():
 
 
 def example_1():
-    R1_1 = Relation("R1", ["a", "b"])
-    R2_1 = Relation("R2", ["b", "c"])
-    R3_1 = Relation("R3", ["c", "d"])
-    R4_1 = Relation("R4", ["b", "e"])
+    R1_1 = Relation("R1", OrderedSet(["a", "b"]))
+    R2_1 = Relation("R2", OrderedSet(["b", "c"]))
+    R3_1 = Relation("R3", OrderedSet(["c", "d"]))
+    R4_1 = Relation("R4", OrderedSet(["b", "e"]))
 
-    Q1 = Query("Q1", {R1_1, R2_1}, {'a', 'b', 'c'})
-    Q2 = Query("Q2", {R1_1, R2_1, R3_1}, {'a', 'b', 'c', 'd'})
-    Q3 = Query("Q3", {R1_1, R2_1, R3_1, R4_1}, {'a', 'b', 'c', 'd', 'e'})
+    Q1 = Query("Q1", OrderedSet([R1_1, R2_1]), OrderedSet(['a', 'b', 'c']))
+    Q2 = Query("Q2", OrderedSet([R1_1, R2_1, R3_1]), OrderedSet(['a', 'b', 'c', 'd']))
+    Q3 = Query("Q3", OrderedSet([R1_1, R2_1, R3_1, R4_1]), OrderedSet(['a', 'b', 'c', 'd', 'e']))
     res = run([Q1, Q2, Q3])
     multigenerator = M3MultiQueryGenerator(
         'simple',
@@ -57,15 +58,15 @@ def example_1():
 
 
 def example_2():
-    R1 = Relation("R1", ["x", "y"])
-    R2 = Relation("R2", ["y", "z"])
-    R3 = Relation("R3", ["z", "w"])
-    R4 = Relation("R4", ["w", "q"])
-    R5 = Relation("R5", ["z"])
+    R1 = Relation("R1", OrderedSet(["x", "y"]))
+    R2 = Relation("R2", OrderedSet(["y", "z"]))
+    R3 = Relation("R3", OrderedSet(["z", "w"]))
+    R4 = Relation("R4", OrderedSet(["w", "q"]))
+    R5 = Relation("R5", OrderedSet(["z"]))
 
-    Q1 = Query("Q1", {R1, R2}, {'x', 'y', 'z'})
-    Q2 = Query("Q2", {R3, R4}, {'z', 'w', 'q'})
-    Q3 = Query("Q3", {R1, R2, R3, R4, R5}, {'x', 'y', 'z', 'w', 'q'})
+    Q1 = Query("Q1", OrderedSet([R1, R2]), OrderedSet(['x', 'y', 'z']))
+    Q2 = Query("Q2", OrderedSet([R3, R4]), OrderedSet(['z', 'w', 'q']))
+    Q3 = Query("Q3", OrderedSet([R1, R2, R3, R4, R5]), OrderedSet(['x', 'y', 'z', 'w', 'q']))
     res = run([Q1, Q2, Q3])
     res.graph_viz(2)
     multigenerator = M3MultiQueryGenerator(
@@ -197,7 +198,7 @@ def example_6(nr_attempts: int, seed_base=23445, _print=False, _break=False):
 
 
 def example_7():
-    Census = Relation("Census", [
+    Census = Relation("Census", OrderedSet([
         "Zip",
         "Population",
         "White",
@@ -214,21 +215,21 @@ def example_7():
         "Females",
         "HousholdsChildren",
         "Hispanic",
-    ])
-    Item = Relation("Item", [
+    ]))
+    Item = Relation("Item", OrderedSet([
         "Ksn",
         "SubCategory",
         "Category",
         "CategoryCluster",
         "Prize"
-    ])
-    Inventory = Relation("Inventory", [
+    ]))
+    Inventory = Relation("Inventory", OrderedSet([
         "Locn",
         "DateId",
         "Ksn",
         "InventoryUnits",
-    ])
-    Weather = Relation("Weather", [
+    ]))
+    Weather = Relation("Weather", OrderedSet([
         "Locn",
         "DateId",
         "Rain",
@@ -237,8 +238,8 @@ def example_7():
         "MinTemp",
         "MeanWind",
         "Thunder",
-    ])
-    Location = Relation("Location", [
+    ]))
+    Location = Relation("Location", OrderedSet([
         "Locn",
         "Zip",
         "RgnCd",
@@ -254,12 +255,30 @@ def example_7():
         "WalmartDriveTime",
         "WalmartSuperCenterDistance",
         "WalmartSuperCenterDriveTime"
-    ])
+    ]))
 
-    Q1 = Query("Q1", {Inventory, Item, Weather, Location},
-               {"Ksn", "DateId", "Locn", "Category", "Zip", "Rain"})
-    # Q2 = Query("Q2", {Inventory, Weather, Item}, {"Locn", "DateId", "Ksn", "Category"})
-    Q3 = Query("Q3", {Inventory, Weather, Location}, {"Ksn", "Locn", "DateId", "MaxTemp", "Zip", "Rain"})
+    Q1 = Query("Q1", OrderedSet([Inventory, Item, Weather, Location]), OrderedSet([
+        "Ksn",
+        "DateId",
+        "Locn",
+        "Category",
+        "Zip",
+        "Rain"
+    ]))
+    # Q2 = Query("Q2", OrderedSet([Inventory, Weather, Item]), OrderedSet([
+    #     "Locn",
+    #     "DateId",
+    #     "Ksn",
+    #     "Category"
+    # ]))
+    Q3 = Query("Q3", OrderedSet([Inventory, Weather, Location]), OrderedSet([
+        "Ksn",
+        "Locn",
+        "DateId",
+        "MaxTemp",
+        "Zip",
+        "Rain"
+    ]))
     print(Q1.is_q_hierarchical())
     # print(Q2.is_q_hierarchical())
     print(Q3.is_q_hierarchical())
@@ -322,9 +341,9 @@ def example_7():
     else:
         print("No result")
 
-def example_8():
 
-    Census = Relation("Census", [
+def example_8():
+    Census = Relation("Census", OrderedSet([
         "Zip",
         "Population",
         "White",
@@ -341,21 +360,21 @@ def example_8():
         "Females",
         "HousholdsChildren",
         "Hispanic",
-    ])
-    Item = Relation("Item", [
+    ]))
+    Item = Relation("Item", OrderedSet([
         "Ksn",
         "SubCategory",
         "Category",
         "CategoryCluster",
         "Prize"
-    ])
-    Inventory = Relation("Inventory", [
+    ]))
+    Inventory = Relation("Inventory", OrderedSet([
         "Locn",
         "DateId",
         "Ksn",
         "InventoryUnits",
-    ])
-    Weather = Relation("Weather", [
+    ]))
+    Weather = Relation("Weather", OrderedSet([
         "Locn",
         "DateId",
         "Rain",
@@ -364,8 +383,8 @@ def example_8():
         "MinTemp",
         "MeanWind",
         "Thunder",
-    ])
-    Location = Relation("Location", [
+    ]))
+    Location = Relation("Location", OrderedSet([
         "Locn",
         "Zip",
         "RgnCd",
@@ -381,48 +400,48 @@ def example_8():
         "WalmartDriveTime",
         "WalmartSuperCenterDistance",
         "WalmartSuperCenterDriveTime"
-    ])
+    ]))
 
-    Q1 = Query("Q1", {Census, Weather, Location},
-               {"Locn",
-                "DateId",
-                "Rain",
-                "Snow",
-                "MaxTemp",
-                "MinTemp",
-                "MeanWind",
-                "Thunder",
-                "Zip",
-                "RgnCd",
-                "ClimbZnNbr",
-                "TotalAreaSqFt",
-                "SellAreaSqFt",
-                "AvgHigh",
-                "SuperTargetDistance",
-                "SuperTargetDriveTime",
-                "TargetDistance",
-                "TargetDriveTime",
-                "WalmartDistance",
-                "WalmartDriveTime",
-                "WalmartSuperCenterDistance",
-                "WalmartSuperCenterDriveTime",
-                "Population",
-                "White",
-                "Asian",
-                "Pacific",
-                "Blackafrican",
-                "MedianAge",
-                "OccupiedHouseUnits",
-                "HouseUnits",
-                "Families",
-                "Housholds",
-                "HusbWife",
-                "Males",
-                "Females",
-                "HousholdsChildren",
-                "Hispanic",
-                })
-    Q2 = Query("Q2", { Weather, Location}, {
+    Q1 = Query("Q1", OrderedSet([Census, Weather, Location]),
+               OrderedSet(["Locn",
+                           "DateId",
+                           "Rain",
+                           "Snow",
+                           "MaxTemp",
+                           "MinTemp",
+                           "MeanWind",
+                           "Thunder",
+                           "Zip",
+                           "RgnCd",
+                           "ClimbZnNbr",
+                           "TotalAreaSqFt",
+                           "SellAreaSqFt",
+                           "AvgHigh",
+                           "SuperTargetDistance",
+                           "SuperTargetDriveTime",
+                           "TargetDistance",
+                           "TargetDriveTime",
+                           "WalmartDistance",
+                           "WalmartDriveTime",
+                           "WalmartSuperCenterDistance",
+                           "WalmartSuperCenterDriveTime",
+                           "Population",
+                           "White",
+                           "Asian",
+                           "Pacific",
+                           "Blackafrican",
+                           "MedianAge",
+                           "OccupiedHouseUnits",
+                           "HouseUnits",
+                           "Families",
+                           "Housholds",
+                           "HusbWife",
+                           "Males",
+                           "Females",
+                           "HousholdsChildren",
+                           "Hispanic",
+                           ]))
+    Q2 = Query("Q2", OrderedSet([Weather, Location]), OrderedSet([
         "Locn",
         "DateId",
         "Rain",
@@ -445,9 +464,10 @@ def example_8():
         "WalmartDriveTime",
         "WalmartSuperCenterDistance",
         "WalmartSuperCenterDriveTime"
-    })
+    ]))
     print(Q1.is_q_hierarchical())
     # print(Q2.is_q_hierarchical())
+
     print(Q2.is_q_hierarchical())
     res = run([Q1, Q2])
     if res:
@@ -484,9 +504,9 @@ def example_8():
                 "MaxTemp": "int",
                 "MinTemp": "int",
                 "MeanWind": "double",
-                "Snow": "int",
-                "Rain": "int",
-                "Thunder": "int",
+                "Snow": "byte",
+                "Rain": "byte",
+                "Thunder": "byte",
                 "RgnCd": "int",
                 "ClimbZnNbr": "int",
                 "TotalAreaSqFt": "int",
@@ -509,22 +529,119 @@ def example_8():
         print("No result")
 
 def example_9():
-    R0 = Relation("R0", ["a", "c"])
-    R1 = Relation("R1", ["a", "b", "c"])
-    R2 = Relation("R2", ["a", "b", "c"])
-    R3 = Relation("R3", ["a", "b", "c"])
-    R4 = Relation("R4", ["a", "b", "c"])
-    R5 = Relation("R5", ["a", "b", "c"])
-    R6 = Relation("R6", ["a", "b", "c"])
-    R7 = Relation("R7", ["a", "b", "c"])
+    Weather = Relation("Weather", OrderedSet([
+        "Locn",
+        "DateId",
+        "Rain",
+        "Snow",
+        "MaxTemp",
+        "MinTemp",
+        "MeanWind",
+        "Thunder",
+    ]))
+    Location = Relation("Location", OrderedSet([
+        "Locn",
+        "Zip",
+        "RgnCd",
+        "ClimbZnNbr",
+        "TotalAreaSqFt",
+        "SellAreaSqFt",
+        "AvgHigh",
+        "SuperTargetDistance",
+        "SuperTargetDriveTime",
+        "TargetDistance",
+        "TargetDriveTime",
+        "WalmartDistance",
+        "WalmartDriveTime",
+        "WalmartSuperCenterDistance",
+        "WalmartSuperCenterDriveTime"
+    ]))
 
-    Q0 = Query("Q0", {R0, R1, R2, R4, R5, R6, R7}, set())
-    Q1 = Query("Q1", {R0, R1, R2, R3, R4, R5, R6}, {"a", "b", "c"})
-    Q2 = Query("Q2", {R0, R1, R2, R3, R4, R5, R6, R7}, {"b", "c"})
-    Q3 = Query("Q3", {R0, R1, R2, R3, R5, R6, }, {"a"})
-    Q4 = Query("Q4", {R0, R4, R6}, {"a"})
-    res = run([Q0, Q1, Q2, Q3, Q4])
-    res.graph_viz("??")
+    Q2 = Query("Q2", OrderedSet([Weather, Location]), OrderedSet([
+        "Locn",
+        "DateId",
+        "Rain",
+        "Snow",
+        "MaxTemp",
+        "MinTemp",
+        "MeanWind",
+        "Thunder",
+        "Zip",
+        "RgnCd",
+        "ClimbZnNbr",
+        "TotalAreaSqFt",
+        "SellAreaSqFt",
+        "AvgHigh",
+        "SuperTargetDistance",
+        "SuperTargetDriveTime",
+        "TargetDistance",
+        "TargetDriveTime",
+        "WalmartDistance",
+        "WalmartDriveTime",
+        "WalmartSuperCenterDistance",
+        "WalmartSuperCenterDriveTime"
+    ]))
+    # print(Q2.is_q_hierarchical())
+
+    print(Q2.is_q_hierarchical())
+    res = QuerySet({Q2})
+    if res:
+        multigenerator = M3MultiQueryGenerator(
+            'retailer',
+            'RingFactorizedRelation',
+            'retailer_3',
+            res,
+            {
+                "Zip": "int",
+                "Population": "int",
+                "White": "int",
+                "Asian": "int",
+                "Pacific": "int",
+                "Hispanic": "int",
+                "Males": "int",
+                "Females": "int",
+                "Blackafrican": "int",
+                "HusbWife": "int",
+                "MedianAge": "int",
+                "HouseUnits": "int",
+                "OccupiedHouseUnits": "int",
+                "Families": "int",
+                "Housholds": "int",
+                "HousholdsChildren": "int",
+                "Ksn": "int",
+                "SubCategory": "int",
+                "Category": "int",
+                "CategoryCluster": "int",
+                "Prize": "double",
+                "InventoryUnits": "int",
+                "DateId": "int",
+                "Locn": "int",
+                "MaxTemp": "int",
+                "MinTemp": "int",
+                "MeanWind": "double",
+                "Snow": "byte",
+                "Rain": "byte",
+                "Thunder": "byte",
+                "RgnCd": "int",
+                "ClimbZnNbr": "int",
+                "TotalAreaSqFt": "int",
+                "SellAreaSqFt": "int",
+                "AvgHigh": "int",
+                "SuperTargetDistance": "double",
+                "SuperTargetDriveTime": "double",
+                "TargetDistance": "double",
+                "TargetDriveTime": "double",
+                "WalmartDistance": "double",
+                "WalmartDriveTime": "double",
+                "WalmartSuperCenterDistance": "double",
+                "WalmartSuperCenterDriveTime": "double",
+            }
+        )
+        multigenerator.generate(batch=True)
+
+        res.graph_viz("Retailer")
+    else:
+        print("No result")
 
 
 def example_10():
@@ -753,8 +870,8 @@ def example_32():
 # example_4()
 # example_5()
 # example_6(30000, 89, _print=True, _break=True)
-# example_7()
-example_8()
+example_7()
+# example_8()
 # example_9()
 # example_10()
 # example_11()

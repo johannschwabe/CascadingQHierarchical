@@ -1,16 +1,18 @@
 from typing import TYPE_CHECKING
 
+from ordered_set import OrderedSet
+
 if TYPE_CHECKING:
     from JoinOrderNode import JoinOrderNode
 
 
 class Relation:
 
-    def __init__(self, name: str, variables: "list[str]", source_relations: "list[Relation]|None"=None, source_query: "Query | None" = None):
-        self.free_variables = variables if variables else []
+    def __init__(self, name: str, variables: "OrderedSet[str]", source_relations: "OrderedSet[Relation]|None"=None, source_query: "Query | None" = None):
+        self.free_variables: "OrderedSet[str]" = variables if variables else OrderedSet([])
         self.source_query: "Query | None" = source_query
-        self.source_relations: "list[Relation]" = source_relations if source_relations else []
-        self.name = name
+        self.source_relations: "OrderedSet[Relation]" = source_relations if source_relations else OrderedSet([])
+        self.name: str = name
         self.hash_val = hash(f"{'-'.join(self.free_variables)}:{','.join(map(lambda x: str(x), self.source_relations)) if self.source_relations else self.name}")
         self.disp_name = self.name + "(" + ",".join(self.free_variables) + ")"
         self._root_sources = set()
@@ -29,10 +31,10 @@ class Relation:
         self._root_sources = res
         return res
 
-    def all_variables(self):
+    def all_variables(self) -> "OrderedSet[str]":
         res = self.free_variables.copy()
         for source in self.source_relations:
-            res.extend(source.all_variables())
+            res.union(source.all_variables())
         return res
 
     def M3ViewName(self, ):
