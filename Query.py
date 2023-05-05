@@ -6,15 +6,15 @@ from JoinOrderNode import JoinOrderNode
 from VariableOrder import VariableOrderNode
 from Relation import Relation
 from VisOrderNode import VisOrderNode
-
+from ordered_set import OrderedSet
 
 class Query:
 
-    def __init__(self, name: str, relations: "set[Relation]", free_variables: "set[str]", atoms: "set[Relation]|None" = None):
+    def __init__(self, name: str, relations: "OrderedSet[Relation]", free_variables: "OrderedSet[str]", atoms: "OrderedSet[Relation]|None" = None):
         self.name = name
         self.free_variables = free_variables
-        self.relations: "set[Relation]" = relations
-        self.atoms: "set[Relation]" = atoms if atoms else relations
+        self.relations: "OrderedSet[Relation]" = relations
+        self.atoms: "OrderedSet[Relation]" = atoms if atoms else relations
         self._variable_order: "VariableOrderNode | None" = None
         self.hash_key = hash(f"{self.name}-{'/'.join(sorted(map(lambda x: str(hash(x)), self.atoms)))}")
         self._is_q_hierarchical: bool|None = None

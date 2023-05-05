@@ -79,7 +79,7 @@ class M3MultiQueryGenerator:
         res += '|'.join(all_relations) + '\n'
         res += '|'.join(enumerated_queries) + '\n'
         for query in query_list:
-            for query_name in query_names[query]:
+            for query_name in sorted(query_names[query]):
                 res += f"{query_name}\n"
         os.path.isdir(f"{self.base_dir}/config/{self.example}") or os.makedirs(f"{self.base_dir}/config/{self.example}")
         with open(f"{self.base_dir}/config/{self.example}/{self.example}.txt", "w") as f:

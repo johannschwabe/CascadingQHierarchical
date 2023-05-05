@@ -41,7 +41,7 @@ class M3Generator:
             self.assign_index(child)
 
     def generate_maps(self, join_tree_node: "JoinOrderNode"):
-        lifted_variables = join_tree_node.aggregated_variables.intersection(self.query.free_variables)
+        lifted_variables = sorted(list(join_tree_node.aggregated_variables.intersection(self.query.free_variables)))
         res = f'''\nDECLARE MAP {join_tree_node.M3ViewName(self.ring, self.vars, declaration=True)} :=\n'''
         view_names = map(lambda x: f'{x.M3ViewName(self.ring, self.vars)}<Local>', join_tree_node.children)
         relation_names = map(lambda x: x.M3ViewName(), join_tree_node.relations)
