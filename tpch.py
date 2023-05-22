@@ -7,21 +7,21 @@ from cascade import run
 from Query import Query
 from Relation import Relation
 
-Part = Relation("Part", OrderedSet(
+Part = Relation("part", OrderedSet(
     ["PARTKEY", "P_NAME", "P_MFGR", "P_BRAND", "P_TYPE", "P_SIZE", "P_CONTAINER", "P_RETAILPRICE", "P_COMMENT"]))
-Supplier = Relation("Supplier",
+Supplier = Relation("supplier",
                     OrderedSet(["SUPPKEY", "S_NAME", "S_ADDRESS", "NATIONKEY", "S_PHONE", "S_ACCTBAL", "S_COMMENT"]))
-PartSupp = Relation("PartSupp", OrderedSet(["PARTKEY", "SUPPKEY", "PS_AVAILQTY", "PS_SUPPLYCOST", "PS_COMMENT"]))
-Customer = Relation("Customer", OrderedSet(
+PartSupp = Relation("partsupp", OrderedSet(["PARTKEY", "SUPPKEY", "PS_AVAILQTY", "PS_SUPPLYCOST", "PS_COMMENT"]))
+Customer = Relation("customer", OrderedSet(
     ["CUSTKEY", "C_NAME", "C_ADDRESS", "NATIONKEY", "C_PHONE", "C_ACCTBAL", "C_MKTSEGMENT", "C_COMMENT"]))
-Orders = Relation("Orders", OrderedSet(
+Orders = Relation("orders", OrderedSet(
     ["ORDERKEY", "CUSTKEY", "O_ORDERSTATUS", "O_TOTALPRICE", "O_ORDERDATE", "O_ORDERPRIORITY", "O_CLERK", "O_SHIPPRIORITY",
      "O_COMMENT"]))
-LineItem = Relation("LineItem", OrderedSet(
+LineItem = Relation("lineitem", OrderedSet(
     ["ORDERKEY", "PARTKEY", "SUPPKEY", "L_LINENUMBER", "L_QUANTITY", "L_EXTENDEDPRICE", "L_DISCOUNT", "L_TAX", "L_RETURNFLAG",
      "L_LINESTATUS", "L_SHIPDATE", "L_COMMITDATE", "L_RECEIPTDATE", "L_SHIPINSTRUCT", "L_SHIPMODE", "L_COMMENT"]))
-Nation = Relation("Nation", OrderedSet(["NATIONKEY", "N_NAME", "REGIONKEY", "N_COMMENT"]))
-Region = Relation("Region", OrderedSet(["REGIONKEY", "R_NAME", "R_COMMENT"]))
+Nation = Relation("nation", OrderedSet(["NATIONKEY", "N_NAME", "REGIONKEY", "N_COMMENT"]))
+Region = Relation("region", OrderedSet(["REGIONKEY", "R_NAME", "R_COMMENT"]))
 
 datatypes: dict[str, str] = {
     "PARTKEY": "int",
@@ -93,7 +93,7 @@ def example_1():
     res = run([Q1, Q2])
     if res:
         multigenerator = M3MultiQueryGenerator(
-            'Tpch',
+            'tpch',
             'RingFactorizedRelation',
             'tpch_3',
             res,
@@ -116,7 +116,7 @@ def example_2():
     res = run([Q1, Q2])
     if res:
         multigenerator = M3MultiQueryGenerator(
-            'Tpch',
+            'tpch',
             'RingFactorizedRelation',
             'tpch_1',
             res,
@@ -140,7 +140,7 @@ def example_3():
     res = run([Q1, Q2])
     if res:
         multigenerator = M3MultiQueryGenerator(
-            'Tpch',
+            'tpch',
             'RingFactorizedRelation',
             'tpch_2',
             res,
