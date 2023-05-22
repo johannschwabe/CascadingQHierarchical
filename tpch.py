@@ -93,7 +93,7 @@ def example_1():
     res = run([Q1, Q2])
     if res:
         multigenerator = M3MultiQueryGenerator(
-            'tpch',
+            'Tpch',
             'RingFactorizedRelation',
             'tpch_3',
             res,
@@ -116,7 +116,7 @@ def example_2():
     res = run([Q1, Q2])
     if res:
         multigenerator = M3MultiQueryGenerator(
-            'tpch',
+            'Tpch',
             'RingFactorizedRelation',
             'tpch_1',
             res,
@@ -140,7 +140,7 @@ def example_3():
     res = run([Q1, Q2])
     if res:
         multigenerator = M3MultiQueryGenerator(
-            'tpch',
+            'Tpch',
             'RingFactorizedRelation',
             'tpch_2',
             res,
