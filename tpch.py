@@ -156,6 +156,6 @@ def example_3():
         print("No result")
 
 
-# example_1()
-# example_2()
-# example_3()
+example_1()
+example_2()
+example_3()
