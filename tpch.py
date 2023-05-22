@@ -7,6 +7,8 @@ from cascade import run
 from Query import Query
 from Relation import Relation
 
+TPCH_sizes = [1,10]
+
 Part = Relation("part", OrderedSet(
     ["PARTKEY", "P_NAME", "P_MFGR", "P_BRAND", "P_TYPE", "P_SIZE", "P_CONTAINER", "P_RETAILPRICE", "P_COMMENT"]))
 Supplier = Relation("supplier",
@@ -92,15 +94,16 @@ def example_1():
     print(Q2.is_q_hierarchical())
     res = run([Q1, Q2])
     if res:
-        multigenerator = M3MultiQueryGenerator(
-            'tpch',
-            'RingFactorizedRelation',
-            'tpch_3',
-            res,
-            datatypes,
-            "tbl"
-        )
-        multigenerator.generate(batch=True)
+        for tpch in TPCH_sizes:
+            multigenerator = M3MultiQueryGenerator(
+                f'tpch{tpch}',
+                'RingFactorizedRelation',
+                f'tpch_3x{tpch}',
+                res,
+                datatypes,
+                "tbl"
+            )
+            multigenerator.generate(batch=True)
 
         # res.graph_viz("TPCH")
     else:
@@ -115,15 +118,16 @@ def example_2():
     print(Q2.is_q_hierarchical())
     res = run([Q1, Q2])
     if res:
-        multigenerator = M3MultiQueryGenerator(
-            'tpch',
-            'RingFactorizedRelation',
-            'tpch_1',
-            res,
-            datatypes,
-            "tbl"
-        )
-        multigenerator.generate(batch=True)
+        for tpch in TPCH_sizes:
+            multigenerator = M3MultiQueryGenerator(
+                f'tpch{tpch}',
+                'RingFactorizedRelation',
+                f'tpch_1x{tpch}',
+                res,
+                datatypes,
+                "tbl"
+            )
+            multigenerator.generate(batch=True)
 
         # res.graph_viz("TPCH_1")
         print("Success")
@@ -139,15 +143,16 @@ def example_3():
     print(Q2.is_q_hierarchical())
     res = run([Q1, Q2])
     if res:
-        multigenerator = M3MultiQueryGenerator(
-            'tpch',
-            'RingFactorizedRelation',
-            'tpch_2',
-            res,
-            datatypes,
-            "tbl"
-        )
-        multigenerator.generate(batch=True)
+        for tpch in TPCH_sizes:
+            multigenerator = M3MultiQueryGenerator(
+                f'tpch{tpch}',
+                'RingFactorizedRelation',
+                f'tpch_2x{tpch}',
+                res,
+                datatypes,
+                "tbl"
+            )
+            multigenerator.generate(batch=True)
 
         # res.graph_viz("TPCH_2")
         print("Success")
