@@ -102,7 +102,7 @@ def example_1():
         )
         multigenerator.generate(batch=True)
 
-        res.graph_viz("TPCH")
+        # res.graph_viz("TPCH")
     else:
         print("No result")
 
@@ -125,7 +125,7 @@ def example_2():
         )
         multigenerator.generate(batch=True)
 
-        res.graph_viz("TPCH_1")
+        # res.graph_viz("TPCH_1")
         print("Success")
     else:
         print("No result")
@@ -149,7 +149,7 @@ def example_3():
         )
         multigenerator.generate(batch=True)
 
-        res.graph_viz("TPCH_2")
+        # res.graph_viz("TPCH_2")
         print("Success")
 
     else:
