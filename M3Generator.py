@@ -10,20 +10,21 @@ if TYPE_CHECKING:
 
 
 class M3Generator:
-    def __init__(self, dataset: str, ring: str, query: "Query"):
+    def __init__(self, dataset: str, ring: str, query: "Query", filetype: str = "tbl"):
         self.ring = ring
         self.dataset = dataset
         self.query = query
         self.vars = {}
         self.relations = []
         self.var_index = 0
+        self.file_type = filetype
 
     def self_init(self, var_types: "dict[str, str]"):
         for var in var_types:
             self.vars[var] = M3Variable(len(self.vars), var, var_types[var], set())
         for rel in self.query.atoms:
             self.relations.append(M3Relation(rel.name, len(self.relations), [self.vars[var] for var in rel.free_variables],
-                                             rel.source_query is None))
+                                             self.file_type))
     def read_config(self, config_file_path: str):
         with open(config_file_path, 'r') as config:
             first_line = config.readline()
@@ -275,14 +276,14 @@ class M3Variable:
         return self.index == other.index
 
 class M3Relation:
-    def __init__(self, name: str, nr: int, variables: "list[M3Variable]", base_relation: bool = True):
+    def __init__(self, name: str, nr: int, variables: "list[M3Variable]", filetype: str):
         self.name: str = name
         self.nr: int = nr
         self.variables: "list[M3Variable]" = variables
-        self.base_relation = base_relation
+        self.filetype: str = filetype
 
     def generate_source(self, dataset:str):
-        return f"CREATE STREAM {self.name} ({','.join(map(lambda x: f'{x.name} {x.var_type}', self.variables))})\n  FROM FILE './data/{dataset}/{self.name.capitalize()}.tbl' LINE DELIMITED CSV (delimiter := '|');\n"
+        return f"CREATE STREAM {self.name} ({','.join(map(lambda x: f'{x.name} {x.var_type}', self.variables))})\n  FROM FILE './data/{dataset}/{self.name.capitalize()}.{self.filetype}' LINE DELIMITED CSV (delimiter := '|');\n"
 
     def __hash__(self):
         return hash(self.name)

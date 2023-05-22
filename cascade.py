@@ -1,6 +1,7 @@
 from Helpers import find_compatible_reductions, is_homomorphism
 from Query import Query, QuerySet
 from Relation import Relation
+from ordered_set import OrderedSet
 
 
 def run(queries: "list[Query]"):

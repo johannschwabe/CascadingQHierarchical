@@ -158,13 +158,13 @@ class JoinOrderNode:
         return return_node
 
     def viz(self, graph: "Digraph", query: "Query", roots: "dict[Query, JoinOrderNode]"):
-        graph.node(str(self), label=self.graph_viz_name())
+        graph.node(str(self), label=self.graph_viz_name(), shape="none")
         for child in self.children:
             child.viz(graph, query, roots)
             graph.edge(str(self), str(child))
         for relation in self.relations:
             rel_name = f"{query.name}_{relation.name}"
-            graph.node(rel_name, label=str(relation), shape="rectangle")
+            graph.node(rel_name, label=str(relation), shape="none")
             graph.edge(str(self), rel_name)
             if relation.source_query:
                 root_node_name = str(roots[relation.source_query])

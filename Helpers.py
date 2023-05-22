@@ -2,6 +2,7 @@ import itertools
 
 from Query import Query
 from Relation import Relation
+from ordered_set import OrderedSet
 
 
 def find_compatible(chosen: "Query", options: list[Query]):
@@ -74,8 +75,8 @@ def is_homomorphism(q_query: "Query", nq_query: "Query"):
         replaced_rels_vars.update(rel.free_variables)
 
     required_view_vars: "set[str]" = required_vars.intersection(replaced_rels_vars)
-
-    new_view_free_vars: "set[str]" = {q_var_to_nq_var[q_var] for q_var in filter(lambda x:x in q_var_to_nq_var, q_query.free_variables) }
+    filtered = list(filter(lambda x:x in q_var_to_nq_var, q_query.free_variables))
+    new_view_free_vars: "OrderedSet[str]" = OrderedSet([q_var_to_nq_var[q_var] for q_var in filtered])
     if required_view_vars.issubset(new_view_free_vars):
         remaining_rels = nq_query.atoms.difference(replaced_rels)
         remaining_rels.add(Relation(q_query.name, list(new_view_free_vars), source_relations=replaced_rels, source_query=q_query))

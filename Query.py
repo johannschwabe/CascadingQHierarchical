@@ -105,19 +105,24 @@ class QuerySet:
     def __eq__(self, other):
         return hash(self) == hash(other)
 
-    def graph_viz(self, name = 0):
+    def graph_viz(self, name = 0, join_order = False):
         graph = Digraph(name="base", graph_attr={"compound": "true", "spline":"false"})
-        roots: "dict[Query, VisOrderNode]" = {}
+        roots_viz: "dict[Query, VisOrderNode]" = {}
+        roots_join: "dict[Query, JoinOrderNode]" = {}
         for query in self.queries:
             join_order = JoinOrderNode.generate(query.variable_order, query)
             vis_order = VisOrderNode.generate(join_order)
-            roots[query] = vis_order
+            roots_viz[query] = vis_order
+            roots_join[query] = join_order
         done = set()
         while True:
             next_queries = filter(lambda x: x not in done and x.dependant_on.issubset(done), self.queries)
             for query in next_queries:
                 QGraph = Digraph(name=f"cluster_{query.name}", graph_attr={"label":f"{query.name}({','.join(sorted(query.free_variables))}) = {','.join(sorted(map(lambda x: str(x), query.relations)))}"})
-                roots[query].viz(QGraph, query, roots)
+                if join_order:
+                    roots_join[query].viz(QGraph, query, roots_join)
+                else:
+                    roots_viz[query].viz(QGraph, query, roots_viz)
                 graph.subgraph(QGraph)
                 done.add(query)
             if len(done) == len(self.queries):
