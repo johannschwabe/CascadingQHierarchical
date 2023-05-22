@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 import os
+import platform
 
 from ordered_set import OrderedSet
 
@@ -15,7 +16,7 @@ class M3MultiQueryGenerator:
         self.dataset: str = dataset
         self.join_order_nodes: "dict[Query, JoinOrderNode]" = {query: JoinOrderNode.generate(query.variable_order, query) for query in query_set.queries}
         self.m3_generators = [M3Generator(dataset, ring, query, filetype) for query in self.join_order_nodes.keys()]
-        self.base_dir = "/Users/johannschwabe/Documents/git/FIVM/examples/cavier"
+        self.base_dir = "/Users/johannschwabe/Documents/git/FIVM/examples/cavier" if platform.system() == "Darwin" else "/home/user/jschwabe/FIVM/examples/cavier"
         self.filetype = filetype
         for generator in self.m3_generators:
             generator.self_init(var_types)
