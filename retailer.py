@@ -148,7 +148,7 @@ def retailer_1():
         )
         multigenerator.generate(batch=True)
 
-        res.graph_viz("Retailer_1", join_order=True)
+        #res.graph_viz("Retailer_1", join_order=True)
     else:
         print("No result")
 
@@ -230,7 +230,7 @@ def retailer_2():
         )
         multigenerator.generate(batch=True)
 
-        res.graph_viz("Retailer_2")
+        #res.graph_viz("Retailer_2")
     else:
         print("No result")
 
@@ -262,7 +262,7 @@ def retailer_3():
         )
         multigenerator.generate(batch=True)
 
-        res.graph_viz("Retailer_3", join_order=True)
+        #res.graph_viz("Retailer_3", join_order=True)
     else:
         print("No result")
 
@@ -292,7 +292,7 @@ def retailer_4():
         )
         multigenerator.generate(batch=True)
 
-        res.graph_viz("Retailer_4", join_order=True)
+        #res.graph_viz("Retailer_4", join_order=True)
     else:
         print("No result")
 
