@@ -96,9 +96,10 @@ def example_1():
     if res:
         for tpch in TPCH_sizes:
             multigenerator = M3MultiQueryGenerator(
-                f'tpch{tpch}',
+                'tpch',
+                "3",
+                str(tpch),
                 'RingFactorizedRelation',
-                f'tpch_3x{tpch}',
                 res,
                 datatypes,
                 "tbl"
@@ -120,9 +121,10 @@ def example_2():
     if res:
         for tpch in TPCH_sizes:
             multigenerator = M3MultiQueryGenerator(
-                f'tpch{tpch}',
+                'tpch',
+                "1",
+                str(tpch),
                 'RingFactorizedRelation',
-                f'tpch_1x{tpch}',
                 res,
                 datatypes,
                 "tbl"
@@ -145,9 +147,10 @@ def example_3():
     if res:
         for tpch in TPCH_sizes:
             multigenerator = M3MultiQueryGenerator(
-                f'tpch{tpch}',
+                'tpch',
+                "2",
+                str(tpch),
                 'RingFactorizedRelation',
-                f'tpch_2x{tpch}',
                 res,
                 datatypes,
                 "tbl"

@@ -140,8 +140,9 @@ def retailer_1():
     if res:
         multigenerator = M3MultiQueryGenerator(
             'retailer',
+            "1",
+            "",
             'RingFactorizedRelation',
-            'retailer_1',
             res,
             datatypes
         )
@@ -221,8 +222,9 @@ def retailer_2():
     if res:
         multigenerator = M3MultiQueryGenerator(
             'retailer',
+            "2",
+            "",
             'RingFactorizedRelation',
-            'retailer_2',
             res,
             datatypes
         )
@@ -252,8 +254,9 @@ def retailer_3():
     if res:
         multigenerator = M3MultiQueryGenerator(
             'retailer',
+            "3",
+            "",
             'RingFactorizedRelation',
-            'retailer_3',
             res,
             datatypes
         )
@@ -281,8 +284,9 @@ def retailer_4():
     if res:
         multigenerator = M3MultiQueryGenerator(
             'retailer',
+            "4",
+            "",
             'RingFactorizedRelation',
-            'retailer_4',
             res,
             datatypes
         )

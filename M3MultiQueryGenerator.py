@@ -11,9 +11,10 @@ if TYPE_CHECKING:
     from Query import Query, QuerySet
 
 class M3MultiQueryGenerator:
-    def __init__(self, dataset: str, ring:str, example: str, query_set: "QuerySet", var_types: "dict[str,str]", filetype: str = "tbl"):
-        self.example: str = example
+    def __init__(self, dataset: str, query_example: str, dataset_version:str, ring:str, query_set: "QuerySet", var_types: "dict[str,str]", filetype: str = "tbl"):
+        self.query_example: str = query_example
         self.dataset: str = dataset
+        self.dataset_version: str = dataset_version
         self.join_order_nodes: "dict[Query, JoinOrderNode]" = {query: JoinOrderNode.generate(query.variable_order, query) for query in query_set.queries}
         self.m3_generators = [M3Generator(dataset, ring, query, filetype) for query in self.join_order_nodes.keys()]
         self.base_dir = "/Users/johannschwabe/Documents/git/FIVM/examples/cavier" if platform.system() == "Darwin" else "/home/user/jschwabe/FIVM/examples/cavier"
@@ -76,8 +77,8 @@ class M3MultiQueryGenerator:
 
         all_relations = {relation.name for query in query_list for relation in query.relations}
         enumerated_queries = {f"{relation.name}:{','.join(relation.free_variables)}" for query in query_list for relation in query.atoms if relation.name not in all_relations}
-        res = f"{self.example}\n"
-        res += f"{self.dataset}\n"
+        res = f"{self.dataset}_{self.query_example}\n"
+        res += f"{self.dataset}{self.dataset_version}\n"
         res += f"{self.filetype}\n"
         res += f"CAVIER\n"
         res += '|'.join([f"{query.name}|{len(query_names[query])}|{'1' if any(map(lambda x:query in x.dependant_on,query_names.keys())) else '0'}" for query in query_list]) + '\n'
@@ -86,8 +87,8 @@ class M3MultiQueryGenerator:
         for query in query_list:
             for query_name in query_names[query]:
                 res += f"{query_name}\n"
-        os.path.isdir(f"{self.base_dir}/config/{self.example}") or os.makedirs(f"{self.base_dir}/config/{self.example}")
-        with open(f"{self.base_dir}/config/{self.example}/{self.example}.txt", "w") as f:
+        os.path.isdir(f"{self.base_dir}/config/{self.dataset}_{self.query_example}") or os.makedirs(f"{self.base_dir}/config/{self.dataset}_{self.query_example}")
+        with open(f"{self.base_dir}/config/{self.dataset}_{self.query_example}/{self.dataset}_{self.query_example}{f'*{self.dataset_version}' if self.dataset_version else '' }.txt", "w") as f:
             f.write(res)
     def generate(self, batch: bool):
         self.assign_index()
@@ -112,8 +113,8 @@ WITH PARAMETER SCHEMA (dynamic_min);
 ON SYSTEM READY {
 
 }'''
-        os.path.isdir(f"{self.base_dir}/m3/{self.example}") or os.makedirs(f"{self.base_dir}/m3/{self.example}")
-        with open(f"{self.base_dir}/m3/{self.example}/{self.example}_{'BATCH' if batch else 'SINGLE'}.m3", "w") as f:
+        os.path.isdir(f"{self.base_dir}/m3/{self.dataset}_{self.query_example}") or os.makedirs(f"{self.base_dir}/m3/{self.dataset}_{self.query_example}")
+        with open(f"{self.base_dir}/m3/{self.dataset}_{self.query_example}/{self.dataset}_{self.query_example}_{'BATCH' if batch else 'SINGLE'}.m3", "w") as f:
             f.write(res)
         self.generate_config(query_names)
 
