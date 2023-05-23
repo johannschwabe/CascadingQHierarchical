@@ -11,7 +11,14 @@ if TYPE_CHECKING:
     from Query import Query, QuerySet
 
 class M3MultiQueryGenerator:
-    def __init__(self, dataset: str, query_example: str, dataset_version:str, ring:str, query_set: "QuerySet", var_types: "dict[str,str]", filetype: str = "tbl"):
+    def __init__(self, dataset: str,
+                 query_example: str,
+                 dataset_version:str,
+                 ring:str,
+                 query_set: "QuerySet",
+                 var_types: "dict[str,str]",
+                 filetype: str = "tbl",
+                 propagation_size: int = 1000):
         self.query_example: str = query_example
         self.dataset: str = dataset
         self.dataset_version: str = dataset_version
@@ -19,6 +26,7 @@ class M3MultiQueryGenerator:
         self.m3_generators = [M3Generator(dataset, ring, query, filetype) for query in self.join_order_nodes.keys()]
         self.base_dir = "/Users/johannschwabe/Documents/git/FIVM/examples/cavier" if platform.system() == "Darwin" else "/home/user/jschwabe/FIVM/examples/cavier"
         self.filetype = filetype
+        self.propagation_size = propagation_size
         for generator in self.m3_generators:
             generator.self_init(var_types)
 
@@ -81,6 +89,7 @@ class M3MultiQueryGenerator:
         res += f"{self.dataset}{self.dataset_version}\n"
         res += f"{self.filetype}\n"
         res += f"CAVIER\n"
+        res += f"{self.propagation_size}\n"
         res += '|'.join([f"{query.name}|{len(query_names[query])}|{'1' if any(map(lambda x:query in x.dependant_on,query_names.keys())) else '0'}" for query in query_list]) + '\n'
         res += '|'.join(all_relations) + '\n'
         res += '|'.join(enumerated_queries) + '\n'
