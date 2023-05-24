@@ -62,10 +62,10 @@ class M3Generator:
         return res
 
     def generate_tmp_maps(self, join_tree_node: "JoinOrderNode"):
-        child_names, res = self.generate_tmp_maps_recursive(join_tree_node)
+        child_names, res = self.generate_tmp_maps_recursive(join_tree_node, root=True)
         return res
 
-    def generate_tmp_maps_recursive(self, join_tree_node: "JoinOrderNode"):
+    def generate_tmp_maps_recursive(self, join_tree_node: "JoinOrderNode", root: bool = False):
         lifted_variables = join_tree_node.aggregated_variables.intersection(self.query.free_variables)
         res = ""
         new_child_names = []
@@ -89,23 +89,23 @@ class M3Generator:
                 else:
                     _map += f"{joined_views};\n"
                 res += _map
-
-        for relation in join_tree_node.relations:
-            view_names = list(map(lambda x: f'{x.M3ViewName(self.ring, self.vars)}<Local>', join_tree_node.children))
-            relation_names = list(map(lambda x: x.M3ViewName(), join_tree_node.relations.difference({relation})))
-            joined_views = ' * '.join([f"(DELTA {relation.name})({','.join(relation.free_variables)})"] + view_names + relation_names)
-            new_child_name = f"TMP_{relation.name}_{join_tree_node.M3ViewName(self.ring, self.vars, declaration=False)}"
-            new_child_names.append(new_child_name)
-            _map = f"DECLARE MAP TMP_{relation.name}_{join_tree_node.M3ViewName(self.ring, self.vars, declaration=True)} :=\n"
-            if join_tree_node.aggregated_variables:
-                if lifted_variables:
-                    lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, lifted_variables))}]>]({','.join(lifted_variables)})"
-                    _map += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n (({joined_views}) * {lift})\n);\n"
+        if not root:
+            for relation in join_tree_node.relations:
+                view_names = list(map(lambda x: f'{x.M3ViewName(self.ring, self.vars)}<Local>', join_tree_node.children))
+                relation_names = list(map(lambda x: x.M3ViewName(), join_tree_node.relations.difference({relation})))
+                joined_views = ' * '.join([f"(DELTA {relation.name})({','.join(relation.free_variables)})"] + view_names + relation_names)
+                new_child_name = f"TMP_{relation.name}_{join_tree_node.M3ViewName(self.ring, self.vars, declaration=False)}"
+                new_child_names.append(new_child_name)
+                _map = f"DECLARE MAP TMP_{relation.name}_{join_tree_node.M3ViewName(self.ring, self.vars, declaration=True)} :=\n"
+                if join_tree_node.aggregated_variables:
+                    if lifted_variables:
+                        lift = f"[lift<{join_tree_node.M3_index}>: {self.ring}<[{join_tree_node.M3_index}, {','.join(map(lambda x: self.vars[x].var_type, lifted_variables))}]>]({','.join(lifted_variables)})"
+                        _map += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n (({joined_views}) * {lift})\n);\n"
+                    else:
+                        _map += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n ({joined_views})\n);\n"
                 else:
-                    _map += f"AggSum([{', '.join(join_tree_node.free_variables)}],\n ({joined_views})\n);\n"
-            else:
-                _map += f"{joined_views};\n"
-            res += _map
+                    _map += f"{joined_views};\n"
+                res += _map
         return new_child_names, res
     def generate_queries(self, join_tree_node: "JoinOrderNode"):
         query_name = f"{join_tree_node.child_rel_names}"
