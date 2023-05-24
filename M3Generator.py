@@ -123,9 +123,10 @@ class M3Generator:
         names, additions = self.generate_triggers_batch_recursive(join_tree_node)
         for rel, value in additions.items():
             res += f"ON BATCH UPDATE OF {rel.name} {{ \n "
-            for path in value['path']:
+            for path in value['path'][:-1]:
                 res += f"{path}\n"
-            for update in value['update']:
+            res += f"{value['update'][-1].split('+=')[0]} += {value['path'][-1].split(':=')[1]}\n"
+            for update in value['update'][:-1]:
                 res += f"{update}\n"
             res += "}\n"
 
