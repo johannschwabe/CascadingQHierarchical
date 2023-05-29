@@ -92,6 +92,9 @@ class M3MultiQueryGenerator:
         res += f"{self.propagation_size}\n"
         res += '|'.join([f"{query.name}|{len(query_names[query])}|{'1' if any(map(lambda x:query in x.dependant_on,query_names.keys())) else '0'}" for query in query_list]) + '\n'
         res += '|'.join(all_relations) + '\n'
+
+        res += '|'.join([f"{query.name}:{','.join([atom.name for atom in query.atoms])}" for query in query_list]) + '\n'
+
         res += '|'.join(enumerated_queries) + '\n'
         for query in query_list:
             for query_name in query_names[query]:

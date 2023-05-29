@@ -267,25 +267,5 @@ def example_32():
     M3Gen.generate(join_order_node_root, True)
 
 
-# example_0()
-# example_1()
-# example_2()
-# example_3()
-# example_4()
-# example_5()
-# example_6(30000, 89, _print=True, _break=True)
-example_7()
-example_8()
-example_9()
-example_10()
-example_11()
-example_12()
-# example_13()
-# example_15()
-# example_16()
-# example_17()
-# example_30()
-# example_32()
-
 
 print("done")

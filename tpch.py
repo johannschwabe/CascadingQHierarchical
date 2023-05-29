@@ -163,7 +163,7 @@ def example_3():
     else:
         print("No result")
 
-
-example_1()
-example_2()
-example_3()
+if __name__ == "__main__":
+    example_1()
+    example_2()
+    example_3()

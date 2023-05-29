@@ -78,16 +78,18 @@ Item = Relation("ITEM", {"ksn": "int", "subcategory": "int", "category": "int", 
                          "prize": "double"},{"ksn"})
 Weather = Relation("WEATHER", {"locn": "int", "dateid": "int", "rain": "int", "snow": "int", "maxtemp": "int",
                                 "mintemp": "int", "meanwind": "double", "thunder": "int"},{"locn", "dateid"})
+Retailer_1_Q2 = Relation("q2", {"ksn": "int", "locn": "int", "dateid": "int", "maxtemp": "int", "zip": "int", "rain":"int"}, {"ksn"})
 
 
-Part = Relation("PART", {"PARTKEY": "int", "P_NAME": "string", "P_MFGR": "string", "P_BRAND": "string", "P_TYPE": "string", "P_SIZE": "int", "P_CONTAINER": "string", "P_RETAILPRICE": "double", "P_COMMENT": "string"}, {"PARTKEY"})
-Supplier= Relation("SUPPLIER", {"SUPPKEY": "int", "S_NAME": "string", "S_ADDRESS": "string", "NATIONKEY": "int", "S_PHONE": "string", "S_ACCTBAL": "double", "S_COMMENT": "string"},{"SUPPKEY"})
-PartSupp= Relation("PARTSUPP", {"PARTKEY": "int", "SUPPKEY": "int", "PS_AVAILQTY": "int", "PS_SUPPLYCOST": "double", "PS_COMMENT": "string"}, {"PARTKEY", "SUPPKEY"})
-Customer= Relation("CUSTOMER", {"CUSTKEY": "int", "C_NAME": "string", "C_ADDRESS": "string", "NATIONKEY": "int", "C_PHONE": "string", "C_ACCTBAL": "double", "C_MKTSEGMENT": "string", "C_COMMENT": "string"},{"CUSTKEY"})
-Orders= Relation("ORDERS", {"ORDERKEY": "int", "CUSTKEY": "int", "O_ORDERSTATUS": "string", "O_TOTALPRICE": "double", "O_ORDERDATE": "string", "O_ORDERPRIORITY": "string", "O_CLERK": "string", "O_SHIPPRIORITY": "int", "O_COMMENT": "string"}, {"ORDERKEY"})
-LineItem= Relation("LINEITEM", {"ORDERKEY": "int", "PARTKEY": "int", "SUPPKEY": "int", "L_LINENUMBER": "int", "L_QUANTITY": "double", "L_EXTENDEDPRICE": "double", "L_DISCOUNT": "double", "L_TAX": "double", "L_RETURNFLAG": "string", "L_LINESTATUS": "string", "L_SHIPDATE": "string", "L_COMMITDATE": "string", "L_RECEIPTDATE": "string", "L_SHIPINSTRUCT": "string", "L_SHIPMODE": "string", "L_COMMENT": "string"},{"ORDERKEY", "PARTKEY", "SUPPKEY"})
-Nation= Relation("NATION", {"NATIONKEY": "int", "N_NAME": "string", "REGIONKEY": "int", "N_COMMENT": "string"}, {"NATIONKEY"}  )
-Region= Relation("REGION", {"REGIONKEY": "int", "R_NAME": "string", "R_COMMENT": "string"}, {"REGIONKEY"}  )
+Part = Relation("part", {"partkey": "int", "p_name": "string", "p_mfgr": "string", "p_brand": "string", "p_type": "string", "p_size": "int", "p_container": "string", "p_retailprice": "double", "p_comment": "string"}, {"partkey"})
+Supplier= Relation("supplier", {"suppkey": "int", "s_name": "string", "s_address": "string", "nationkey": "int", "s_phone": "string", "s_acctbal": "double", "s_comment": "string"},{"suppkey"})
+PartSupp= Relation("partsupp", {"partkey": "int", "suppkey": "int", "ps_availqty": "int", "ps_supplycost": "double", "ps_comment": "string"}, {"partkey", "suppkey"})
+Customer= Relation("customer", {"o_custkey": "int", "c_name": "string", "c_address": "string", "nationkey": "int", "c_phone": "string", "c_acctbal": "double", "c_mktsegment": "string", "c_comment": "string"},{"custkey"})
+Orders= Relation("orders", {"orderkey": "int", "o_custkey": "int", "o_orderstatus": "char", "o_totalprice": "double", "o_orderdate": "string", "o_orderpriority": "string", "o_clerk": "string", "o_shippriority": "int", "o_comment": "string"}, {"orderkey"})
+Lineitem= Relation("lineitem", {"orderkey": "int", "partkey": "int", "suppkey": "int", "l_linenumber": "int", "l_quantity": "double", "l_extendedprice": "double", "l_discount": "double", "l_tax": "double", "l_returnflag": "char", "l_linestatus": "char", "l_shipdate": "string", "l_commitdate": "string", "l_receiptdate": "string", "l_shipinstruct": "string", "l_shipmode": "string", "l_comment": "string"},{"orderkey", "partkey", "suppkey"})
+Nation= Relation("nation", {"nationkey": "int", "n_name": "string", "regionkey": "int", "n_comment": "string"}, {"nationkey"}  )
+Region= Relation("region", {"regionkey": "int", "r_name": "string", "r_comment": "string"}, {"regionkey"}  )
+TPCH_1_Q2 = Relation("q2", {"orderkey": "int", "partkey": "int", "suppkey": "int", "l_quantity": "double", "o_totalprice": "double"}, {"partkey", "suppkey"})
 def generate_txt(all_relations: "List[Relation]", root: "VariableOrderNode", free_variables: set[str]):
     for relation in all_relations:
         iterator = root
@@ -177,12 +179,38 @@ def generate_retailer_1Q1b():
     res = generate_txt(relations, root, free_vars)
     return res
 
+def generate_retailer_1Q1c():
+    root = VariableOrderNode("ksn")
+    relations = [Item, Retailer_1_Q2]
+    free_vars = {"locn", "ksn", "category", "dateid", "rain", "zip"}
+    res = generate_txt(relations, root, free_vars)
+    return res
 def generate_TPCH_3Q2():
     root = VariableOrderNode("suppkey")
     part = VariableOrderNode("partkey")
     root.add_child(part)
-    relations = [Supplier, PartSupp, LineItem]
+    relations = [Supplier, PartSupp, Lineitem]
     free_vars = {"suppkey", "partkey", "l_quantity", "ps_availqty", "ps_supplycost", "s_name"}
+    res = generate_txt(relations, root, free_vars)
+    return res
+
+def generate_TPCH_1Q1b():
+    root = VariableOrderNode("partkey")
+    supp = VariableOrderNode("suppkey")
+    order = VariableOrderNode("orderkey")
+    root.add_child(supp)
+    supp.add_child(order)
+    relations = [Part, PartSupp, Lineitem, Orders]
+    free_vars = {"orderkey","suppkey", "partkey", "l_quantity", "ps_availqty", "p_name", "o_totalprice"}
+    res = generate_txt(relations, root, free_vars)
+    return res
+
+def generate_TPCH_1Q1c():
+    root = VariableOrderNode("partkey")
+    supp = VariableOrderNode("suppkey")
+    root.add_child(supp)
+    relations = [Part, PartSupp, TPCH_1_Q2]
+    free_vars = {"orderkey","suppkey", "partkey", "l_quantity", "ps_availqty", "p_name", "o_totalprice"}
     res = generate_txt(relations, root, free_vars)
     return res
 
@@ -190,5 +218,8 @@ def generate_TPCH_3Q2():
 # generate_retailer_4Q1b()
 # generate_retailer_4Q2()
 # generate_retailer_1Q1b()
-generate_TPCH_3Q2()
+generate_retailer_1Q1c()
+# generate_TPCH_3Q2()
+# generate_TPCH_1Q1b()
+# generate_TPCH_1Q1c()
 print("done")

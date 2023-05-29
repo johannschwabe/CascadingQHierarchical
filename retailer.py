@@ -296,7 +296,38 @@ def retailer_4():
     else:
         print("No result")
 
-retailer_1()
-retailer_2()
-retailer_3()
-retailer_4()
+def retailer_5():
+    Q1 = Query("Q1", OrderedSet([Inventory, Item, Weather, Location]), OrderedSet([
+        "Ksn",
+        "DateId",
+        "Locn",
+    ]))
+    Q2 = Query("Q2", OrderedSet([Inventory, Weather, Location]), OrderedSet([
+        "Ksn",
+        "Locn",
+        "DateId",
+    ]))
+
+    res = run([Q1, Q2])
+    if res:
+        multigenerator = M3MultiQueryGenerator(
+            'retailer',
+            "5",
+            "",
+            'RingFactorizedRelation',
+            res,
+            datatypes
+        )
+        multigenerator.generate(batch=True)
+
+        res.graph_viz("Retailer_5", join_order=True)
+    else:
+        print("No result")
+
+
+if __name__ == "__main__":
+    retailer_1()
+    retailer_2()
+    retailer_3()
+    retailer_4()
+    retailer_5()
