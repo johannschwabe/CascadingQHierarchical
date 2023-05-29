@@ -320,7 +320,7 @@ def retailer_5():
         )
         multigenerator.generate(batch=True)
 
-        res.graph_viz("Retailer_5", join_order=True)
+        # res.graph_viz("Retailer_5", join_order=True)
     else:
         print("No result")
 
