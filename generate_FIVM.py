@@ -82,10 +82,10 @@ Retailer_1_Q2 = Relation("q2", {"ksn": "int", "locn": "int", "dateid": "int", "m
 
 
 Part = Relation("part", {"partkey": "int", "p_name": "string", "p_mfgr": "string", "p_brand": "string", "p_type": "string", "p_size": "int", "p_container": "string", "p_retailprice": "double", "p_comment": "string"}, {"partkey"})
-Supplier= Relation("supplier", {"suppkey": "int", "s_name": "string", "s_address": "string", "nationkey": "int", "s_phone": "string", "s_acctbal": "double", "s_comment": "string"},{"suppkey"})
+Supplier= Relation("supplier", {"suppkey": "int", "s_name": "string", "s_address": "string", "nationkey": "int", "s_phone": "string", "s_acctbal": "double", "s_comment": "string"},{"suppkey", "nationkey"})
 PartSupp= Relation("partsupp", {"partkey": "int", "suppkey": "int", "ps_availqty": "int", "ps_supplycost": "double", "ps_comment": "string"}, {"partkey", "suppkey"})
-Customer= Relation("customer", {"o_custkey": "int", "c_name": "string", "c_address": "string", "nationkey": "int", "c_phone": "string", "c_acctbal": "double", "c_mktsegment": "string", "c_comment": "string"},{"custkey"})
-Orders= Relation("orders", {"orderkey": "int", "o_custkey": "int", "o_orderstatus": "char", "o_totalprice": "double", "o_orderdate": "string", "o_orderpriority": "string", "o_clerk": "string", "o_shippriority": "int", "o_comment": "string"}, {"orderkey"})
+Customer= Relation("customer", {"custkey": "int", "c_name": "string", "c_address": "string", "nationkey": "int", "c_phone": "string", "c_acctbal": "double", "c_mktsegment": "string", "c_comment": "string"},{"custkey", "nationkey"})
+Orders= Relation("orders", {"orderkey": "int", "custkey": "int", "o_orderstatus": "char", "o_totalprice": "double", "o_orderdate": "string", "o_orderpriority": "string", "o_clerk": "string", "o_shippriority": "int", "o_comment": "string"}, {"orderkey"})
 Lineitem= Relation("lineitem", {"orderkey": "int", "partkey": "int", "suppkey": "int", "l_linenumber": "int", "l_quantity": "double", "l_extendedprice": "double", "l_discount": "double", "l_tax": "double", "l_returnflag": "char", "l_linestatus": "char", "l_shipdate": "string", "l_commitdate": "string", "l_receiptdate": "string", "l_shipinstruct": "string", "l_shipmode": "string", "l_comment": "string"},{"orderkey", "partkey", "suppkey"})
 Nation= Relation("nation", {"nationkey": "int", "n_name": "string", "regionkey": "int", "n_comment": "string"}, {"nationkey"}  )
 Region= Relation("region", {"regionkey": "int", "r_name": "string", "r_comment": "string"}, {"regionkey"}  )
@@ -214,12 +214,32 @@ def generate_TPCH_1Q1c():
     res = generate_txt(relations, root, free_vars)
     return res
 
+def generate_TPCH_4Q3():
+    root = VariableOrderNode("custkey")
+    relations = [Customer, Orders]
+    free_vars = {"custkey", "orderkey", "nationkey"}
+    res = generate_txt(relations, root, free_vars)
+    return res
+
+def generate_TPCH_5_Q1():
+    nation = VariableOrderNode("nationkey")
+    part = VariableOrderNode("partkey")
+    supp = VariableOrderNode("suppkey")
+    supp.add_child(part)
+    supp.add_child(nation)
+    relations = [Nation,Supplier,Customer,Part, PartSupp]
+    free_vars = {"nationkey", "partkey", "suppkey", "n_name", "s_name", "p_name", "ps_availqty"}
+    res = generate_txt(relations, supp, free_vars)
+    return res
+
 # generate_retailer_4Q1a()
 # generate_retailer_4Q1b()
 # generate_retailer_4Q2()
 # generate_retailer_1Q1b()
-generate_retailer_1Q1c()
+# generate_retailer_1Q1c()
 # generate_TPCH_3Q2()
 # generate_TPCH_1Q1b()
 # generate_TPCH_1Q1c()
+# generate_TPCH_4Q3()
+# generate_TPCH_5_Q1()
 print("done")

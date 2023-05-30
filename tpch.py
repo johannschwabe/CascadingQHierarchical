@@ -163,7 +163,57 @@ def example_3():
     else:
         print("No result")
 
+def example_4():
+    Q1 = Query("Q1", OrderedSet([PartSupp, LineItem, Orders, Customer, Supplier]), OrderedSet(["SUPPKEY", "PARTKEY", "ORDERKEY", "CUSTKEY", "NATIONKEY"]))
+    Q2 = Query("Q2", OrderedSet([PartSupp, LineItem, Supplier]), OrderedSet(["SUPPKEY", "PARTKEY", "ORDERKEY", "NATIONKEY"]))
+    Q3 = Query("Q3", OrderedSet([Customer, Orders]), OrderedSet(["CUSTKEY", "ORDERKEY", "NATIONKEY"]))
+    res = run([Q1, Q2, Q3])
+    if res:
+        for tpch in TPCH_sizes:
+            multigenerator = M3MultiQueryGenerator(
+                'tpch',
+                "4",
+                str(tpch),
+                'RingFactorizedRelation',
+                res,
+                datatypes,
+                "tbl"
+            )
+            multigenerator.generate(batch=True)
+
+        # res.graph_viz("TPCH_4")
+        print("Success")
+
+    else:
+        print("No result")
+
+def example_5():
+    Q1 = Query("Q1", OrderedSet([Part, PartSupp, Supplier, Customer, Nation]), OrderedSet(["PARTKEY", "NATIONKEY", "SUPPKEY", "N_NAME", "S_NAME", "P_NAME", "PS_AVAILQTY"]))
+    Q2 = Query("Q2", OrderedSet([Supplier, Customer, Nation]), OrderedSet(["NATIONKEY","SUPPKEY", "S_NAME", "N_NAME", "S_ADDRESS"]))
+    Q3 = Query("Q3", OrderedSet([Part, PartSupp]), OrderedSet(["PARTKEY","SUPPKEY", "PS_AVAILQTY", "P_NAME"]))
+    res = run([Q1, Q2, Q3])
+    if res:
+        for tpch in TPCH_sizes:
+            multigenerator = M3MultiQueryGenerator(
+                'tpch',
+                "5",
+                str(tpch),
+                'RingFactorizedRelation',
+                res,
+                datatypes,
+                "tbl"
+            )
+            multigenerator.generate(batch=True)
+
+        # res.graph_viz("TPCH_5")
+        print("Success")
+
+    else:
+        print("No result")
+
 if __name__ == "__main__":
-    example_1()
-    example_2()
-    example_3()
+    # example_1()
+    # example_2()
+    # example_3()
+    example_4()
+    # example_5()
