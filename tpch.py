@@ -165,7 +165,7 @@ def example_3():
 
 def example_4():
     Q1 = Query("Q1", OrderedSet([PartSupp, LineItem, Orders, Customer, Supplier]), OrderedSet(["SUPPKEY", "PARTKEY", "ORDERKEY", "CUSTKEY", "NATIONKEY"]))
-    Q2 = Query("Q2", OrderedSet([PartSupp, LineItem, Supplier]), OrderedSet(["SUPPKEY", "PARTKEY", "ORDERKEY", "NATIONKEY"]))
+    Q2 = Query("Q2", OrderedSet([PartSupp, LineItem, Supplier]), OrderedSet(["SUPPKEY", "PARTKEY", "ORDERKEY", "NATIONKEY", "L_QUANTITY", "PS_SUPPLYCOST", "PS_AVAILQTY", "S_NAME"]))
     Q3 = Query("Q3", OrderedSet([Customer, Orders]), OrderedSet(["CUSTKEY", "ORDERKEY", "NATIONKEY"]))
     res = run([Q1, Q2, Q3])
     if res:
@@ -189,7 +189,7 @@ def example_4():
 
 def example_5():
     Q1 = Query("Q1", OrderedSet([Part, PartSupp, Supplier, Customer, Nation]), OrderedSet(["PARTKEY", "NATIONKEY", "SUPPKEY", "N_NAME", "S_NAME", "P_NAME", "PS_AVAILQTY"]))
-    Q2 = Query("Q2", OrderedSet([Supplier, Customer, Nation]), OrderedSet(["NATIONKEY","SUPPKEY", "S_NAME", "N_NAME", "S_ADDRESS"]))
+    Q2 = Query("Q2", OrderedSet([Supplier, Customer, Nation]), OrderedSet(["NATIONKEY","SUPPKEY", "S_NAME", "N_NAME", "S_ADDRESS", "CUSTKEY"]))
     Q3 = Query("Q3", OrderedSet([Part, PartSupp]), OrderedSet(["PARTKEY","SUPPKEY", "PS_AVAILQTY", "P_NAME"]))
     res = run([Q1, Q2, Q3])
     if res:

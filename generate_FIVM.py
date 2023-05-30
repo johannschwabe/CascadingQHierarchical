@@ -232,6 +232,20 @@ def generate_TPCH_5_Q1():
     res = generate_txt(relations, supp, free_vars)
     return res
 
+def generate_TPCH_5_Q2():
+    nation = VariableOrderNode("nationkey")
+    relations = [Nation,Supplier,Customer]
+    free_vars = {"nationkey", "suppkey", "n_name", "s_name", "s_address", "custkey"}
+    res = generate_txt(relations, nation, free_vars)
+    return res
+
+def generate_TPCH_5_Q3():
+    part = VariableOrderNode("partkey")
+    relations = [Part, PartSupp]
+    free_vars = {"partkey","suppkey", "ps_availqty", "p_name"}
+    res = generate_txt(relations, part, free_vars)
+    return res
+
 # generate_retailer_4Q1a()
 # generate_retailer_4Q1b()
 # generate_retailer_4Q2()
@@ -242,4 +256,6 @@ def generate_TPCH_5_Q1():
 # generate_TPCH_1Q1c()
 # generate_TPCH_4Q3()
 # generate_TPCH_5_Q1()
+generate_TPCH_5_Q2()
+#generate_TPCH_5_Q3()
 print("done")
