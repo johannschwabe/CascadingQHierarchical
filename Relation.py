@@ -37,8 +37,13 @@ class Relation:
             res.union(source.all_variables())
         return res
 
-    def M3ViewName(self, ):
+    def M3ViewName(self):
         return f"{self.name}({','.join(self.free_variables)})"
+
+    def viz_label(self, minimized=False):
+        if minimized:
+            return f"{self.name}({','.join(self.free_variables[:4])}...)"
+        return self.disp_name
 
     def __eq__(self, other):
         return self.hash_val == other.hash_val

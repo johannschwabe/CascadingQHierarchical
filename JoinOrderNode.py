@@ -24,13 +24,13 @@ class JoinOrderNode:
         self.parent: "JoinOrderNode|None" = None
         self.free_variables: "OrderedSet[str]" = free_vars
         self.aggregated_variables: "OrderedSet[str]" = aggregated_vars
-        self.lifted_variables: "OrderedSet[str]" = aggregated_vars.intersection(query.free_variables) if query else OrderedSet()
+        self.lifted_variables: "OrderedSet[str]" = aggregated_vars.intersection(
+            query.free_variables) if query else OrderedSet()
         self.M3_index: "int" = -1
         self._all_relations_sources: "OrderedSet[Relation]" = OrderedSet()
         self._all_relations_no_sources: "OrderedSet[Relation]" = OrderedSet()
 
-
-    def all_relations(self, source_only = False) -> "OrderedSet[Relation]":
+    def all_relations(self, source_only=False) -> "OrderedSet[Relation]":
         if source_only and self._all_relations_sources:
             return self._all_relations_sources
         if not source_only and self._all_relations_no_sources:
@@ -50,16 +50,26 @@ class JoinOrderNode:
         return res
 
     def M3ViewName(self, ring: str, vars: "dict[str, M3Variable]", declaration: bool = False):
-        key_variables = ','.join(map(lambda x: f'{vars[x].name}: {vars[x].var_type}' if declaration else vars[x].name, self.free_variables))
+        key_variables = ','.join(
+            map(lambda x: f'{vars[x].name}: {vars[x].var_type}' if declaration else vars[x].name, self.free_variables))
         if self.lifted_variables:
             return f"V_{self.child_rel_names}({ring}<[{self.M3_index}, {','.join(map(lambda x: vars[x].var_type, self.lifted_variables))}]>)[][{key_variables}]"
         return f"V_{self.child_rel_names}(long)[][{key_variables}]"
 
-    def graph_viz_name(self):
+    def graph_viz_name(self, minimized: bool = False):
+        if minimized:
+            _aggr_vars = self.aggregated_variables if len(self.aggregated_variables) < 4 else self.aggregated_variables[:3].union(OrderedSet(["..."]))
+            _free_vars = self.free_variables if len(self.free_variables) < 4 else self.free_variables[:3].union(OrderedSet(["..."]))
+            filtered = [c for c in self.child_rel_names if c.isupper()]
+            _child_rels = self.child_rel_names if len(self.child_rel_names) < 8 else ''.join(filtered)[:6] + ("..." if len(filtered) > 6 else "")
+        else:
+            _aggr_vars = self.aggregated_variables
+            _free_vars = self.free_variables
+            _child_rels = self.child_rel_names
         if self.aggregated_variables:
-            return f"<V<SUB>{self.child_rel_names}</SUB><SUP>@{''.join(self.aggregated_variables)}</SUP>({','.join(sorted(self.free_variables))})>"
+            return f"<V<SUB>{_child_rels}</SUB><SUP>@{''.join(_aggr_vars)}</SUP>({','.join(sorted(_free_vars))})>"
 
-        return f"<V<SUB>{self.child_rel_names}</SUB>({','.join(self.free_variables)})>"
+        return f"<V<SUB>{_child_rels}</SUB>({','.join(_free_vars)})>"
 
     def __repr__(self):
         if self.aggregated_variables:
@@ -86,7 +96,6 @@ class JoinOrderNode:
                                    free_vars=free_vars,
                                    aggregated_vars=aggregated_vars)
 
-
             child_nodes = []
             for child in variable_order_node.children:
                 child_node = JoinOrderNode.generate_recursion(child, query)
@@ -107,10 +116,10 @@ class JoinOrderNode:
         elif len(variable_order_node.children) == 0:
             aggregated_vars = OrderedSet([variable_order_node.name])
             h_node = JoinOrderNode(query=query,
-                                 child_rel_names=child_relation_names,
-                                 relations=variable_order_node.relations,
-                                 free_vars=parent_vars.difference(aggregated_vars),
-                                 aggregated_vars=aggregated_vars)
+                                   child_rel_names=child_relation_names,
+                                   relations=variable_order_node.relations,
+                                   free_vars=parent_vars.difference(aggregated_vars),
+                                   aggregated_vars=aggregated_vars)
 
             return h_node
 
@@ -143,13 +152,12 @@ class JoinOrderNode:
             strict_parent_vars = parent_vars.difference({variable_order_node.name})
             bound_vars = simple_vars.difference(strict_parent_vars)
             h_node = JoinOrderNode(query=query,
-                                 child_rel_names=child_relation_names,
-                                 relations=_iter.relations,
-                                 free_vars=strict_parent_vars,
-                                 aggregated_vars=bound_vars)
+                                   child_rel_names=child_relation_names,
+                                   relations=_iter.relations,
+                                   free_vars=strict_parent_vars,
+                                   aggregated_vars=bound_vars)
 
             return_node = h_node
-
 
         for child in _iter.children:
             sub = JoinOrderNode.generate_recursion(child, query)
@@ -157,15 +165,16 @@ class JoinOrderNode:
             v_node.children.add(sub)
         return return_node
 
-    def viz(self, graph: "Digraph", query: "Query", roots: "dict[Query, JoinOrderNode]"):
-        graph.node(str(self), label=self.graph_viz_name(), shape="none")
+    def viz(self, graph: "Digraph", query: "Query", roots: "dict[Query, JoinOrderNode]", minimized=False):
+        graph.node(str(self), label=self.graph_viz_name(minimized), shape="none")
         for child in self.children:
-            child.viz(graph, query, roots)
+            child.viz(graph, query, roots, minimized)
             graph.edge(str(self), str(child))
         for relation in self.relations:
             rel_name = f"{query.name}_{relation.name}"
-            graph.node(rel_name, label=str(relation), shape="none")
+            label = relation.viz_label(minimized=minimized)
+            graph.node(rel_name, label=str(label), shape="none")
             graph.edge(str(self), rel_name)
             if relation.source_query:
                 root_node_name = str(roots[relation.source_query])
-                graph.edge(rel_name, root_node_name , style="dashed")
+                graph.edge(rel_name, root_node_name, style="dashed")

@@ -110,7 +110,7 @@ class M3Generator:
     def generate_queries(self, join_tree_node: "JoinOrderNode"):
         query_name = f"{join_tree_node.child_rel_names}"
         res = f"DECLARE QUERY V_{query_name} := {join_tree_node.M3ViewName(self.ring, self.vars)}<Local>;\n"
-        query_config = f"{query_name}|{','.join(join_tree_node.free_variables)}|{','.join(join_tree_node.lifted_variables)}|{'1' if join_tree_node.lifted_variables else '1'}"
+        query_config = f"{query_name}|{','.join(join_tree_node.free_variables)}|{','.join(join_tree_node.lifted_variables)}|{'1' if len(join_tree_node.relations) else '0'}"
         query_names = [query_config]
         for child in join_tree_node.children:
             child_res, child_query_names = self.generate_queries(child)

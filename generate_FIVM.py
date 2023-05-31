@@ -63,20 +63,20 @@ class VariableOrderNode:
     def __repr__(self):
         return self.name
 
-Inventory = Relation("INVENTORY", {"locn": "int", "dateid": "int", "ksn": "int", "inventoryunits": "int"}, {"locn", "dateid", "ksn"})
-Location = Relation("LOCATION",
+Inventory = Relation("Inventory", {"locn": "int", "dateid": "int", "ksn": "int", "inventoryunits": "int"}, {"locn", "dateid", "ksn"})
+Location = Relation("Location",
                     {"locn": "int", "zip": "int", "rgn_cd": "int", "clim_zn_nbr": "int", "tot_area_sq_ft": "int",
                      "sell_area_sq_ft": "int", "avghhi": "int", "supertargetdistance": "double",
                      "supertargetdrivetime": "double", "targetdistance": "double", "targetdrivetime": "double",
                      "walmartdistance": "double", "walmartdrivetime": "double",
                      "walmartsupercenterdistance": "double", "walmartsupercenterdrivetime": "double"}, {"locn"})
-Census = Relation("CENSUS", {"zip": "int", "population": "int", "white": "int", "asian": "int", "pacific": "int",
+Census = Relation("Census", {"zip": "int", "population": "int", "white": "int", "asian": "int", "pacific": "int",
                              "blackafrican": "int", "medianage": "double", "occupiedhouseunits": "int",
                              "houseunits": "int", "families": "int", "households": "int", "husbwife": "int",
                              "males": "int", "females": "int", "householdschildren": "int", "hispanic": "int"},{"zip"})
-Item = Relation("ITEM", {"ksn": "int", "subcategory": "int", "category": "int", "categoryCluster": "int",
+Item = Relation("Item", {"ksn": "int", "subcategory": "int", "category": "int", "categoryCluster": "int",
                          "prize": "double"},{"ksn"})
-Weather = Relation("WEATHER", {"locn": "int", "dateid": "int", "rain": "int", "snow": "int", "maxtemp": "int",
+Weather = Relation("Weather", {"locn": "int", "dateid": "int", "rain": "int", "snow": "int", "maxtemp": "int",
                                 "mintemp": "int", "meanwind": "double", "thunder": "int"},{"locn", "dateid"})
 Retailer_1_Q2 = Relation("q2", {"ksn": "int", "locn": "int", "dateid": "int", "maxtemp": "int", "zip": "int", "rain":"int"}, {"ksn"})
 
@@ -246,6 +246,13 @@ def generate_TPCH_5_Q3():
     res = generate_txt(relations, part, free_vars)
     return res
 
+def generate_retailer_aggr_Q1():
+    root = VariableOrderNode("ksn")
+    relations = [Inventory]
+    free_vars = {"ksn"}
+    res = generate_txt(relations, root, free_vars)
+    return res
+
 # generate_retailer_4Q1a()
 # generate_retailer_4Q1b()
 # generate_retailer_4Q2()
@@ -256,6 +263,7 @@ def generate_TPCH_5_Q3():
 # generate_TPCH_1Q1c()
 # generate_TPCH_4Q3()
 # generate_TPCH_5_Q1()
-generate_TPCH_5_Q2()
+# generate_TPCH_5_Q2()
 #generate_TPCH_5_Q3()
+generate_retailer_aggr_Q1()
 print("done")

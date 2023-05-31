@@ -30,7 +30,7 @@ def tpch_1():
     ps1.parent = lps1
 
     graph = Digraph(name="base", graph_attr={"compound": "true", "spline": "false"})
-    root.viz(graph,Q1,{})
+    root.viz(graph,Q1,{},minimized=True)
     graph.view("FIVM_tpch_1")
 
 def retailer_1Q1a():
@@ -54,7 +54,7 @@ def retailer_1Q1a():
     IT1.parent = INIT1
 
     graph = Digraph(name="base", graph_attr={"compound": "true", "spline": "false"})
-    INITWL1.viz(graph,Q1,{})
+    INITWL1.viz(graph,Q1,{},minimized=True)
     graph.view("FIVM_retailer_1_Q1a")
 
 def retailer_1Q1b():
@@ -79,18 +79,23 @@ def retailer_1Q1b():
 
 
     graph = Digraph(name="base", graph_attr={"compound": "true", "spline": "false"})
-    INWLI1.viz(graph,Q1,{})
+    INWLI1.viz(graph,Q1,{},minimized=True)
     graph.view("FIVM_retailer_1_Q1b")
 
-# def retailer_1Q1c():
-#     Q2 = Relation("Q2", OrderedSet(["Locn", "DateId","Ksn","Zip","MaxTemp","Rain"]))
-#     Q1 = Query("Q1", OrderedSet([Q2, Item]), OrderedSet(["Locn", "DateId","Ksn","Zip","Category","Rain"]))
-#
-#     IT1 = JoinOrderNode(Q1, "Item", OrderedSet([Item]), OrderedSet(["Ksn"]),OrderedSet(["SubCategory", "Category","CategoryCluster","Prize"]))
-#     Q21 = JoinOrderNode(Q1, "Q2", OrderedSet([Q2]), OrderedSet(["Ksn"]),OrderedSet(["Locn", "DateId","Ksn","Zip","Category","Rain"]))
-#
-#     graph = Digraph(name="base", graph_attr={"compound": "true", "spline": "false"})
-#     INWLI1.viz(graph,Q1,{})
-#     graph.view("FIVM_retailer_1_Q1b")
+def retailer_1Q1c():
+    Q2 = Relation("Q2", OrderedSet(["Locn", "DateId","Ksn","Zip","MaxTemp","Rain"]))
+    Q1 = Query("Q1", OrderedSet([Q2, Item]), OrderedSet(["Locn", "DateId","Ksn","Zip","Category","Rain"]))
 
+    IT1 = JoinOrderNode(Q1, "Item", OrderedSet([Item]), OrderedSet(["Ksn"]),OrderedSet(["SubCategory", "Category","CategoryCluster","Prize"]))
+    Q21 = JoinOrderNode(Q1, "Q2", OrderedSet([Q2]), OrderedSet(["Ksn"]),OrderedSet(["Locn","DateId","Zip","MaxTemp","Rain"]))
+    ITQ21 = JoinOrderNode(Q1, "ItemQ2", OrderedSet([]), OrderedSet(),OrderedSet(["Ksn"]))
+    ITQ21.children = {IT1, Q21}
+    IT1.parent = ITQ21
+    Q21.parent = ITQ21
+    graph = Digraph(name="base", graph_attr={"compound": "true", "spline": "false"})
+    ITQ21.viz(graph,Q1,{}, minimized=True)
+    graph.view("FIVM_retailer_1_Q1c")
+
+retailer_1Q1a()
 retailer_1Q1b()
+retailer_1Q1c()
