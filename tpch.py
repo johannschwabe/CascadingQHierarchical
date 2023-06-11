@@ -8,6 +8,7 @@ from Query import Query
 from Relation import Relation
 
 TPCH_sizes = [1,10]
+base_dataset = "tpch_unordered"
 
 Part = Relation("part", OrderedSet(
     ["PARTKEY", "P_NAME", "P_MFGR", "P_BRAND", "P_TYPE", "P_SIZE", "P_CONTAINER", "P_RETAILPRICE", "P_COMMENT"]))
@@ -96,7 +97,7 @@ def example_1():
     if res:
         for tpch in TPCH_sizes:
             multigenerator = M3MultiQueryGenerator(
-                'tpch',
+                base_dataset,
                 "3",
                 str(tpch),
                 'RingFactorizedRelation',
@@ -121,7 +122,7 @@ def example_2():
     if res:
         for tpch in TPCH_sizes:
             multigenerator = M3MultiQueryGenerator(
-                'tpch',
+                base_dataset,
                 "1",
                 str(tpch),
                 'RingFactorizedRelation',
@@ -147,7 +148,7 @@ def example_3():
     if res:
         for tpch in TPCH_sizes:
             multigenerator = M3MultiQueryGenerator(
-                'tpch',
+                base_dataset,
                 "2",
                 str(tpch),
                 'RingFactorizedRelation',
@@ -171,7 +172,7 @@ def example_4():
     if res:
         for tpch in TPCH_sizes:
             multigenerator = M3MultiQueryGenerator(
-                'tpch',
+                base_dataset,
                 "4",
                 str(tpch),
                 'RingFactorizedRelation',
@@ -195,7 +196,7 @@ def example_5():
     if res:
         for tpch in TPCH_sizes:
             multigenerator = M3MultiQueryGenerator(
-                'tpch',
+                base_dataset,
                 "5",
                 str(tpch),
                 'RingFactorizedRelation',

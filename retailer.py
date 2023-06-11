@@ -1,17 +1,14 @@
 import random
 
-from graphviz import Digraph
 from ordered_set import OrderedSet
 
-from JoinOrderNode import JoinOrderNode
-from M3Generator import M3Generator
 from M3MultiQueryGenerator import M3MultiQueryGenerator
-from QueryGenerator import generate
+from Query import Query
 from Relation import Relation
-from Query import Query, QuerySet
 from cascade import run
 
 random.seed(22)
+base_dataset = "retailer_unordered"
 
 Census = Relation("Census", OrderedSet([
     "Zip",
@@ -139,7 +136,7 @@ def retailer_1():
     res = run([Q1, Q2])
     if res:
         multigenerator = M3MultiQueryGenerator(
-            'retailer',
+            base_dataset,
             "1",
             "",
             'RingFactorizedRelation',
@@ -221,7 +218,7 @@ def retailer_2():
     res = run([Q1, Q2])
     if res:
         multigenerator = M3MultiQueryGenerator(
-            'retailer',
+            base_dataset,
             "2",
             "",
             'RingFactorizedRelation',
@@ -253,7 +250,7 @@ def retailer_3():
     res = run([Q1, Q2])
     if res:
         multigenerator = M3MultiQueryGenerator(
-            'retailer',
+            base_dataset,
             "3",
             "",
             'RingFactorizedRelation',
@@ -283,7 +280,7 @@ def retailer_4():
     res = run([Q1, Q2])
     if res:
         multigenerator = M3MultiQueryGenerator(
-            'retailer',
+            base_dataset,
             "4",
             "",
             'RingFactorizedRelation',
@@ -311,7 +308,7 @@ def retailer_5():
     res = run([Q1, Q2])
     if res:
         multigenerator = M3MultiQueryGenerator(
-            'retailer',
+            base_dataset,
             "5",
             "",
             'RingFactorizedRelation',
