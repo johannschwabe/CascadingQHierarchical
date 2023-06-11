@@ -1,0 +1,24 @@
+digraph base {
+	graph [compound=true spline=false]
+	"Q1-V_InventoryWeatherLocationItem@Locn()" [label=<V<SUB>IWLI</SUB><SUP>@Locn</SUP>()> shape=none]
+	"Q1-V_InventoryItemWeather@DateId(Locn)" [label=<V<SUB>IIW</SUB><SUP>@DateId</SUP>(Locn)> shape=none]
+	"Q1-V_Weather@MaxTempMinTempRainSnowThunderMeanWind(Locn,DateId)" [label=<V<SUB>Weather</SUB><SUP>@MaxTempMinTempRain...</SUP>(DateId,Locn)> shape=none]
+	Q1_Weather [label="Weather(Locn,DateId,Rain,Snow...)" shape=none]
+	"Q1-V_Weather@MaxTempMinTempRainSnowThunderMeanWind(Locn,DateId)" -> Q1_Weather
+	"Q1-V_InventoryItemWeather@DateId(Locn)" -> "Q1-V_Weather@MaxTempMinTempRainSnowThunderMeanWind(Locn,DateId)"
+	"Q1-V_InventoryItem@Ksn(Locn,DateId)" [label=<V<SUB>II</SUB><SUP>@Ksn</SUP>(DateId,Locn)> shape=none]
+	"Q1-V_Item@SubCategoryCategoryCategoryClusterPrize(Ksn)" [label=<V<SUB>Item</SUB><SUP>@SubCategoryCategoryCategoryCluster...</SUP>(Ksn)> shape=none]
+	Q1_Item [label="Item(Ksn,SubCategory,Category,CategoryCluster...)" shape=none]
+	"Q1-V_Item@SubCategoryCategoryCategoryClusterPrize(Ksn)" -> Q1_Item
+	"Q1-V_InventoryItem@Ksn(Locn,DateId)" -> "Q1-V_Item@SubCategoryCategoryCategoryClusterPrize(Ksn)"
+	"Q1-V_Inventory@InventoryUnits(Ksn,Locn,DateId)" [label=<V<SUB>I</SUB><SUP>@InventoryUnits</SUP>(DateId,Ksn,Locn)> shape=none]
+	Q1_Inventory [label="Inventory(Locn,DateId,Ksn,InventoryUnits...)" shape=none]
+	"Q1-V_Inventory@InventoryUnits(Ksn,Locn,DateId)" -> Q1_Inventory
+	"Q1-V_InventoryItem@Ksn(Locn,DateId)" -> "Q1-V_Inventory@InventoryUnits(Ksn,Locn,DateId)"
+	"Q1-V_InventoryItemWeather@DateId(Locn)" -> "Q1-V_InventoryItem@Ksn(Locn,DateId)"
+	"Q1-V_InventoryWeatherLocationItem@Locn()" -> "Q1-V_InventoryItemWeather@DateId(Locn)"
+	"Q1-V_Location@ZipRgnCdClimbZnNbrTotalAreaSqFtSellAreaSqFtAvgHighSuperTargetDistanceSuperTargetDriveTimeTargetDistanceTargetDriveTimeWalmartDistanceWalmartDriveTimeWalmartSuperCenterDistanceWalmartSuperCenterDriveTime(Locn)" [label=<V<SUB>L</SUB><SUP>@ZipRgnCdClimbZnNbr...</SUP>(Locn)> shape=none]
+	Q1_Location [label="Location(Locn,Zip,RgnCd,ClimbZnNbr...)" shape=none]
+	"Q1-V_Location@ZipRgnCdClimbZnNbrTotalAreaSqFtSellAreaSqFtAvgHighSuperTargetDistanceSuperTargetDriveTimeTargetDistanceTargetDriveTimeWalmartDistanceWalmartDriveTimeWalmartSuperCenterDistanceWalmartSuperCenterDriveTime(Locn)" -> Q1_Location
+	"Q1-V_InventoryWeatherLocationItem@Locn()" -> "Q1-V_Location@ZipRgnCdClimbZnNbrTotalAreaSqFtSellAreaSqFtAvgHighSuperTargetDistanceSuperTargetDriveTimeTargetDistanceTargetDriveTimeWalmartDistanceWalmartDriveTimeWalmartSuperCenterDistanceWalmartSuperCenterDriveTime(Locn)"
+}

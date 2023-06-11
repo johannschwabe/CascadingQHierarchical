@@ -79,6 +79,7 @@ Item = Relation("Item", {"ksn": "int", "subcategory": "int", "category": "int", 
 Weather = Relation("Weather", {"locn": "int", "dateid": "int", "rain": "int", "snow": "int", "maxtemp": "int",
                                 "mintemp": "int", "meanwind": "double", "thunder": "int"},{"locn", "dateid"})
 Retailer_1_Q2 = Relation("q2", {"ksn": "int", "locn": "int", "dateid": "int", "maxtemp": "int", "zip": "int", "rain":"int"}, {"ksn"})
+Retailer_3_Q2 = Relation("R3q2", {"ksn": "int", "locn": "int", "dateid": "int", "price":"double", "category": "int"}, {"ksn", "locn", "dateid"})
 
 
 Part = Relation("part", {"partkey": "int", "p_name": "string", "p_mfgr": "string", "p_brand": "string", "p_type": "string", "p_size": "int", "p_container": "string", "p_retailprice": "double", "p_comment": "string"}, {"partkey"})
@@ -185,6 +186,16 @@ def generate_retailer_1Q1c():
     free_vars = {"locn", "ksn", "category", "dateid", "rain", "zip"}
     res = generate_txt(relations, root, free_vars)
     return res
+
+def generate_retailer_3Q1c():
+    root = VariableOrderNode("locn")
+    dateid = VariableOrderNode("dateid")
+    root.add_child(dateid)
+    relations = [Retailer_3_Q2, Weather, Location]
+    free_vars = {"locn", "dateid", "rain", "zip","category", "ksn"}
+    res = generate_txt(relations, root, free_vars)
+    return res
+
 def generate_TPCH_3Q2():
     root = VariableOrderNode("suppkey")
     part = VariableOrderNode("partkey")
@@ -258,6 +269,7 @@ def generate_retailer_aggr_Q1():
 # generate_retailer_4Q2()
 # generate_retailer_1Q1b()
 # generate_retailer_1Q1c()
+generate_retailer_3Q1c()
 # generate_TPCH_3Q2()
 # generate_TPCH_1Q1b()
 # generate_TPCH_1Q1c()
@@ -265,5 +277,5 @@ def generate_retailer_aggr_Q1():
 # generate_TPCH_5_Q1()
 # generate_TPCH_5_Q2()
 #generate_TPCH_5_Q3()
-generate_retailer_aggr_Q1()
+# generate_retailer_aggr_Q1()
 print("done")

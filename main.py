@@ -266,6 +266,41 @@ def example_32():
     QS.graph_viz(1)
     M3Gen.generate(join_order_node_root, True)
 
+def example_234():
+    R1 = Relation("R1", OrderedSet(["x", "y"]))
+    R2 = Relation("R2", OrderedSet(["y", "z"]))
+    R3 = Relation("R3", OrderedSet(["z", "w"]))
+    R4 = Relation("R4", OrderedSet(["w", "v"]))
+    R5 = Relation("R5", OrderedSet(["v", "u"]))
 
+    Q1 = Query("Q1", OrderedSet([R1, R2, R3, R4, R5]), OrderedSet(["x", "y", "z", "w", "v", "u"]))
+    Q2 = Query("Q2", OrderedSet([R1, R2, R3]), OrderedSet(["x", "y", "z", "w"]))
+    Q3 = Query("Q3", OrderedSet([ R2, R3]), OrderedSet([ "y", "z", "w"]))
+    Q4 = Query("Q4", OrderedSet([R3, R4, R5]), OrderedSet(["z", "w", "v", "u"]))
+    Q5 = Query("Q5", OrderedSet([R3, R4]), OrderedSet(["z", "w", "v"]))
 
+    res = run([Q1, Q2, Q3, Q4, Q5])
+    if res:
+        print("success")
+        res.graph_viz()
+
+def example_235():
+    R1 = Relation("R1", OrderedSet(["x", "y"]))
+    R2 = Relation("R2", OrderedSet(["y", "z"]))
+    R3 = Relation("R3", OrderedSet(["z", "w"]))
+    R4 = Relation("R4", OrderedSet(["w", "v"]))
+    R5 = Relation("R5", OrderedSet(["v", "u"]))
+
+    Q1 = Query("Q1", OrderedSet([R1, R2, R3, R4, R5]), OrderedSet([]))
+    Q2 = Query("Q2", OrderedSet([R1, R2, R3]), OrderedSet(["x", "y", "z", "w"]))
+    Q3 = Query("Q3", OrderedSet([ R2, R3]), OrderedSet([ "y", "z", "w"]))
+    Q4 = Query("Q4", OrderedSet([R3, R4, R5]), OrderedSet(["z", "w", "v", "u"]))
+    Q5 = Query("Q5", OrderedSet([R3, R4]), OrderedSet(["z", "w", "v"]))
+
+    res = run([Q1, Q2, Q3, Q4, Q5])
+    if res:
+        print("success")
+        res.graph_viz()
+
+example_235()
 print("done")

@@ -120,7 +120,7 @@ class QuerySet:
             for query in next_queries:
                 QGraph = Digraph(name=f"cluster_{query.name}", graph_attr={"label":f"{query.name}({','.join(sorted(query.free_variables))}) = {','.join(sorted(map(lambda x: str(x), query.relations)))}"})
                 if join_order:
-                    roots_join[query].viz(QGraph, query, roots_join)
+                    roots_join[query].viz(QGraph, query, roots_join, minimized=True)
                 else:
                     roots_viz[query].viz(QGraph, query, roots_viz)
                 graph.subgraph(QGraph)

@@ -96,6 +96,32 @@ def retailer_1Q1c():
     ITQ21.viz(graph,Q1,{}, minimized=True)
     graph.view("FIVM_retailer_1_Q1c")
 
-retailer_1Q1a()
-retailer_1Q1b()
-retailer_1Q1c()
+def retailer_3Q1():
+    Q1 = Query("Q1", OrderedSet([Inventory, Item, Weather, Location]), OrderedSet(["Locn", "DateId","Ksn","Zip","Category","Rain"]))
+    L1 = JoinOrderNode(Q1, "Location", OrderedSet([Location]), OrderedSet(["Locn"]),OrderedSet(["Zip", "RgnCd", "ClimbZnNbr","TotalAreaSqFt","SellAreaSqFt","AvgHigh","SuperTargetDistance","SuperTargetDriveTime","TargetDistance","TargetDriveTime","WalmartDistance","WalmartDriveTime","WalmartSuperCenterDistance","WalmartSuperCenterDriveTime"]))
+    W1 = JoinOrderNode(Q1, "Weather", OrderedSet([Weather]), OrderedSet(["Locn","DateId"]),OrderedSet(["MaxTemp","MinTemp","Rain","Snow","Thunder","MeanWind","Thunder"]))
+    IN1 = JoinOrderNode(Q1, "Inventory", OrderedSet([Inventory]), OrderedSet(["Ksn","Locn","DateId"]),OrderedSet(["InventoryUnits"]))
+    IT1 = JoinOrderNode(Q1, "Item", OrderedSet([Item]), OrderedSet(["Ksn"]),OrderedSet(["SubCategory", "Category","CategoryCluster","Prize"]))
+    INIT1 = JoinOrderNode(Q1, "InventoryItem", OrderedSet([]), OrderedSet(["Locn", "DateId"]),OrderedSet(["Ksn"]))
+    INITW1 = JoinOrderNode(Q1, "InventoryItemWeather", OrderedSet([]), OrderedSet(["Locn"]),OrderedSet(["DateId"]))
+    INITWL1 = JoinOrderNode(Q1, "InventoryWeatherLocationItem", OrderedSet([]), OrderedSet(),OrderedSet(["Locn"]))
+
+    INITWL1.children = {INITW1, L1}
+    INITW1.parent = INITWL1
+    L1.parent = INITWL1
+    INITW1.children = {INIT1, W1}
+    INIT1.parent = INITW1
+    W1.parent = INITW1
+    INIT1.children = {IN1, IT1}
+    IN1.parent = INIT1
+    IT1.parent = INIT1
+
+    graph = Digraph(name="base", graph_attr={"compound": "true", "spline": "false"})
+    INITWL1.viz(graph, Q1, {}, minimized=True)
+    graph.view("FIVM_retailer_3_Q1")
+
+# retailer_3Q1()
+
+# retailer_1Q1a()
+# retailer_1Q1b()
+# retailer_1Q1c()
