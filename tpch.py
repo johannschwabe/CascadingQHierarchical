@@ -7,7 +7,7 @@ from cascade import run
 from Query import Query
 from Relation import Relation
 
-dataset_version = ["unordered1", "unordered10"]
+dataset_version = ["_unordered1", "_unordered10"]
 base_dataset = "tpch"
 
 Part = Relation("part", OrderedSet(
