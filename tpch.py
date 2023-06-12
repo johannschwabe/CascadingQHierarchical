@@ -7,8 +7,8 @@ from cascade import run
 from Query import Query
 from Relation import Relation
 
-TPCH_sizes = [1,10]
-base_dataset = "tpch_unordered"
+dataset_version = ["unordered1", "unordered10"]
+base_dataset = "tpch"
 
 Part = Relation("part", OrderedSet(
     ["PARTKEY", "P_NAME", "P_MFGR", "P_BRAND", "P_TYPE", "P_SIZE", "P_CONTAINER", "P_RETAILPRICE", "P_COMMENT"]))
@@ -95,7 +95,7 @@ def example_1():
     print(Q2.is_q_hierarchical())
     res = run([Q1, Q2])
     if res:
-        for tpch in TPCH_sizes:
+        for tpch in dataset_version:
             multigenerator = M3MultiQueryGenerator(
                 base_dataset,
                 "3",
@@ -120,7 +120,7 @@ def example_2():
     print(Q2.is_q_hierarchical())
     res = run([Q1, Q2])
     if res:
-        for tpch in TPCH_sizes:
+        for tpch in dataset_version:
             multigenerator = M3MultiQueryGenerator(
                 base_dataset,
                 "1",
@@ -146,7 +146,7 @@ def example_3():
     print(Q2.is_q_hierarchical())
     res = run([Q1, Q2])
     if res:
-        for tpch in TPCH_sizes:
+        for tpch in dataset_version:
             multigenerator = M3MultiQueryGenerator(
                 base_dataset,
                 "2",
@@ -170,7 +170,7 @@ def example_4():
     Q3 = Query("Q3", OrderedSet([Customer, Orders]), OrderedSet(["CUSTKEY", "ORDERKEY", "NATIONKEY"]))
     res = run([Q1, Q2, Q3])
     if res:
-        for tpch in TPCH_sizes:
+        for tpch in dataset_version:
             multigenerator = M3MultiQueryGenerator(
                 base_dataset,
                 "4",
@@ -194,7 +194,7 @@ def example_5():
     Q3 = Query("Q3", OrderedSet([Part, PartSupp]), OrderedSet(["PARTKEY","SUPPKEY", "PS_AVAILQTY", "P_NAME"]))
     res = run([Q1, Q2, Q3])
     if res:
-        for tpch in TPCH_sizes:
+        for tpch in dataset_version:
             multigenerator = M3MultiQueryGenerator(
                 base_dataset,
                 "5",

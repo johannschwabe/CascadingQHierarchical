@@ -8,7 +8,8 @@ from Relation import Relation
 from cascade import run
 
 random.seed(22)
-base_dataset = "retailer_unordered"
+base_dataset = "retailer"
+dataset_version = ["unordered"]
 
 Census = Relation("Census", OrderedSet([
     "Zip",
@@ -135,15 +136,16 @@ def retailer_1():
 
     res = run([Q1, Q2])
     if res:
-        multigenerator = M3MultiQueryGenerator(
-            base_dataset,
-            "1",
-            "",
-            'RingFactorizedRelation',
-            res,
-            datatypes
-        )
-        multigenerator.generate(batch=True)
+        for version in dataset_version:
+            multigenerator = M3MultiQueryGenerator(
+                base_dataset,
+                "1",
+                version,
+                'RingFactorizedRelation',
+                res,
+                datatypes
+            )
+            multigenerator.generate(batch=True)
 
         # res.graph_viz("Retailer_1", join_order=True)
     else:
@@ -217,15 +219,17 @@ def retailer_2():
 
     res = run([Q1, Q2])
     if res:
-        multigenerator = M3MultiQueryGenerator(
-            base_dataset,
-            "2",
-            "",
-            'RingFactorizedRelation',
-            res,
-            datatypes
-        )
-        multigenerator.generate(batch=True)
+        for version in dataset_version:
+
+            multigenerator = M3MultiQueryGenerator(
+                base_dataset,
+                "2",
+                version,
+                'RingFactorizedRelation',
+                res,
+                datatypes
+            )
+            multigenerator.generate(batch=True)
 
         #res.graph_viz("Retailer_2")
     else:
@@ -249,15 +253,16 @@ def retailer_3():
     ]))
     res = run([Q1, Q2])
     if res:
-        multigenerator = M3MultiQueryGenerator(
-            base_dataset,
-            "3",
-            "",
-            'RingFactorizedRelation',
-            res,
-            datatypes
-        )
-        multigenerator.generate(batch=True)
+        for version in dataset_version:
+            multigenerator = M3MultiQueryGenerator(
+                base_dataset,
+                "3",
+                version,
+                'RingFactorizedRelation',
+                res,
+                datatypes
+            )
+            multigenerator.generate(batch=True)
 
         # res.graph_viz("Retailer_3", join_order=True)
     else:
@@ -279,15 +284,16 @@ def retailer_4():
     ]))
     res = run([Q1, Q2])
     if res:
-        multigenerator = M3MultiQueryGenerator(
-            base_dataset,
-            "4",
-            "",
-            'RingFactorizedRelation',
-            res,
-            datatypes
-        )
-        multigenerator.generate(batch=True)
+        for version in dataset_version:
+            multigenerator = M3MultiQueryGenerator(
+                base_dataset,
+                "4",
+                version,
+                'RingFactorizedRelation',
+                res,
+                datatypes
+            )
+            multigenerator.generate(batch=True)
 
         #res.graph_viz("Retailer_4", join_order=True)
     else:
@@ -307,15 +313,17 @@ def retailer_5():
 
     res = run([Q1, Q2])
     if res:
-        multigenerator = M3MultiQueryGenerator(
-            base_dataset,
-            "5",
-            "",
-            'RingFactorizedRelation',
-            res,
-            datatypes
-        )
-        multigenerator.generate(batch=True)
+        for version in dataset_version:
+
+            multigenerator = M3MultiQueryGenerator(
+                base_dataset,
+                "5",
+                version,
+                'RingFactorizedRelation',
+                res,
+                datatypes
+            )
+            multigenerator.generate(batch=True)
 
         # res.graph_viz("Retailer_5", join_order=True)
     else:
