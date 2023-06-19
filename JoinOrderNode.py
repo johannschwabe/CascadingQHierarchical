@@ -16,6 +16,7 @@ class JoinOrderNode:
                  relations: "OrderedSet[Relation]",
                  free_vars: "OrderedSet[str]",
                  aggregated_vars: "OrderedSet[str]",
+                 view_prefix: str = "V"
                  ):
         self.query_name: str = query.name if query else "None"
         self.child_rel_names: str = child_rel_names
@@ -26,6 +27,7 @@ class JoinOrderNode:
         self.aggregated_variables: "OrderedSet[str]" = aggregated_vars
         self.lifted_variables: "OrderedSet[str]" = aggregated_vars.intersection(
             query.free_variables) if query else OrderedSet()
+        self.view_prefix: str = view_prefix
         self.M3_index: "int" = -1
         self._all_relations_sources: "OrderedSet[Relation]" = OrderedSet()
         self._all_relations_no_sources: "OrderedSet[Relation]" = OrderedSet()
@@ -53,8 +55,8 @@ class JoinOrderNode:
         key_variables = ','.join(
             map(lambda x: f'{vars[x].name}: {vars[x].var_type}' if declaration else vars[x].name, self.free_variables))
         if self.lifted_variables:
-            return f"V_{self.child_rel_names}({ring}<[{self.M3_index}, {','.join(map(lambda x: vars[x].var_type, self.lifted_variables))}]>)[][{key_variables}]"
-        return f"V_{self.child_rel_names}(long)[][{key_variables}]"
+            return f"{self.view_prefix}_{self.child_rel_names}({ring}<[{self.M3_index}, {','.join(map(lambda x: vars[x].var_type, self.lifted_variables))}]>)[][{key_variables}]"
+        return f"{self.view_prefix}_{self.child_rel_names}(long)[][{key_variables}]"
 
     def graph_viz_name(self, minimized: bool = False):
         if minimized:
@@ -67,14 +69,14 @@ class JoinOrderNode:
             _free_vars = self.free_variables
             _child_rels = self.child_rel_names
         if self.aggregated_variables:
-            return f"<V<SUB>{_child_rels}</SUB><SUP>@{''.join(_aggr_vars)}</SUP>({','.join(sorted(_free_vars))})>"
+            return f"<{self.view_prefix}<SUB>{_child_rels}</SUB><SUP>@{''.join(_aggr_vars)}</SUP>({','.join(sorted(_free_vars))})>"
 
-        return f"<V<SUB>{_child_rels}</SUB>({','.join(_free_vars)})>"
+        return f"<{self.view_prefix}<SUB>{_child_rels}</SUB>({','.join(_free_vars)})>"
 
     def __repr__(self):
         if self.aggregated_variables:
-            return f"{self.query_name}-V_{self.child_rel_names}@{''.join(self.aggregated_variables)}({','.join(self.free_variables)})"
-        return f"{self.query_name}-V_{self.child_rel_names}({','.join(self.free_variables)})"
+            return f"{self.query_name}-{self.view_prefix}_{self.child_rel_names}@{''.join(self.aggregated_variables)}({','.join(self.free_variables)})"
+        return f"{self.query_name}-{self.view_prefix}_{self.child_rel_names}({','.join(self.free_variables)})"
 
     @staticmethod
     def generate(variable_order_node: "VariableOrderNode", query: "Query"):

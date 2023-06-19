@@ -1,0 +1,24 @@
+graph base {
+	graph [compound=true spline=false]
+	"Q-V_R1R2R3@y()" [label=<V<SUB>R1R2R3</SUB><SUP>@y</SUP>()> shape=none]
+	"Q-H_R1R2R3(y)" [label=<H<SUB>R1R2R3</SUB>(y)> shape=none]
+	"Q-V_R2R3@w(y)" [label=<V<SUB>R2R3</SUB><SUP>@w</SUP>(y)> shape=none]
+	"Q-H_R2R3(y,w)" [label=<H<SUB>R2R3</SUB>(y,w)> shape=none]
+	"Q-V_R2@z(y,w)" [label=<V<SUB>R2</SUB><SUP>@z</SUP>(w,y)> shape=none]
+	"Q-V_R2@v(y,w,z)" [label=<V<SUB>R2</SUB><SUP>@v</SUP>(w,y,z)> shape=none]
+	Q_R2 [label="R2(y,z,w,v)" shape=none]
+	"Q-V_R2@v(y,w,z)" -- Q_R2
+	"Q-V_R2@z(y,w)" -- "Q-V_R2@v(y,w,z)"
+	"Q-H_R2R3(y,w)" -- "Q-V_R2@z(y,w)"
+	"Q-V_R3(y,w)" [label=<V<SUB>R3</SUB>(y,w)> shape=none]
+	Q_R3 [label="R3(y,w)" shape=none]
+	"Q-V_R3(y,w)" -- Q_R3
+	"Q-H_R2R3(y,w)" -- "Q-V_R3(y,w)"
+	"Q-V_R2R3@w(y)" -- "Q-H_R2R3(y,w)"
+	"Q-H_R1R2R3(y)" -- "Q-V_R2R3@w(y)"
+	"Q-V_R1@x(y)" [label=<V<SUB>R1</SUB><SUP>@x</SUP>(y)> shape=none]
+	Q_R1 [label="R1(x,y)" shape=none]
+	"Q-V_R1@x(y)" -- Q_R1
+	"Q-H_R1R2R3(y)" -- "Q-V_R1@x(y)"
+	"Q-V_R1R2R3@y()" -- "Q-H_R1R2R3(y)"
+}
