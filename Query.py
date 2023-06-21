@@ -118,7 +118,8 @@ class QuerySet:
         while True:
             next_queries = filter(lambda x: x not in done and x.dependant_on.issubset(done), self.queries)
             for query in next_queries:
-                QGraph = Digraph(name=f"cluster_{query.name}", graph_attr={"label":f"{query.name}({','.join(sorted(query.free_variables))}) = {','.join(sorted(map(lambda x: str(x), query.relations)))}"})
+                relations = sorted(map(lambda x: x.viz_label(minimized=True), query.relations))
+                QGraph = Digraph(name=f"cluster_{query.name}", graph_attr={"label":f"{query.name}({','.join(sorted(query.free_variables))}) = {','.join(relations)}"})
                 if join_order:
                     roots_join[query].viz(QGraph, query, roots_join, minimized=True)
                 else:

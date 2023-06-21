@@ -9,7 +9,8 @@ from cascade import run
 
 random.seed(22)
 base_dataset = "retailer"
-dataset_version = [""]
+dataset_version = ["_unordered"]
+view = False
 
 Census = Relation("Census", OrderedSet([
     "Zip",
@@ -146,8 +147,8 @@ def retailer_1():
                 datatypes
             )
             multigenerator.generate(batch=True)
-
-        # res.graph_viz("Retailer_1", join_order=True)
+        if view:
+            res.graph_viz("Retailer_1", join_order=True)
     else:
         print("No result")
 
@@ -231,7 +232,8 @@ def retailer_2():
             )
             multigenerator.generate(batch=True)
 
-        #res.graph_viz("Retailer_2")
+        if view:
+            res.graph_viz("Retailer_2")
     else:
         print("No result")
 
@@ -263,8 +265,8 @@ def retailer_3():
                 datatypes
             )
             multigenerator.generate(batch=True)
-
-        res.graph_viz("Retailer_3", join_order=True)
+        if view:
+            res.graph_viz("Retailer_3", join_order=True)
     else:
         print("No result")
 
@@ -295,7 +297,8 @@ def retailer_4():
             )
             multigenerator.generate(batch=True)
 
-        #res.graph_viz("Retailer_4", join_order=True)
+        if view:
+            res.graph_viz("Retailer_4", join_order=True)
     else:
         print("No result")
 
@@ -325,7 +328,8 @@ def retailer_5():
             )
             multigenerator.generate(batch=True)
 
-        # res.graph_viz("Retailer_5", join_order=True)
+        if view:
+            res.graph_viz("Retailer_5", join_order=True)
     else:
         print("No result")
 
