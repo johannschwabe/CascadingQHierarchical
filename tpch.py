@@ -9,6 +9,7 @@ from Relation import Relation
 
 dataset_version = ["_unordered1", "_unordered10"]
 base_dataset = "tpch"
+view = False
 
 Part = Relation("part", OrderedSet(
     ["PARTKEY", "P_NAME", "P_MFGR", "P_BRAND", "P_TYPE", "P_SIZE", "P_CONTAINER", "P_RETAILPRICE", "P_COMMENT"]))
@@ -107,7 +108,8 @@ def example_1():
             )
             multigenerator.generate(batch=True)
 
-        #res.graph_viz("TPCH_3")
+        if view:
+            res.graph_viz("TPCH_3")
     else:
         print("No result")
 
@@ -132,7 +134,8 @@ def example_2():
             )
             multigenerator.generate(batch=True)
 
-        #res.graph_viz("TPCH_1")
+        if view:
+            res.graph_viz("TPCH_1")
         print("Success")
     else:
         print("No result")
@@ -158,7 +161,8 @@ def example_3():
             )
             multigenerator.generate(batch=True)
 
-        #res.graph_viz("TPCH_2")
+        if view:
+            res.graph_viz("TPCH_2")
         print("Success")
 
     else:
@@ -182,7 +186,8 @@ def example_4():
             )
             multigenerator.generate(batch=True)
 
-        # res.graph_viz("TPCH_4")
+        if view:
+            res.graph_viz("TPCH_4")
         print("Success")
 
     else:
@@ -206,7 +211,8 @@ def example_5():
             )
             multigenerator.generate(batch=True)
 
-        # res.graph_viz("TPCH_5")
+        if view:
+            res.graph_viz("TPCH_5")
         print("Success")
 
     else:
