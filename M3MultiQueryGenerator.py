@@ -18,7 +18,8 @@ class M3MultiQueryGenerator:
                  query_set: "QuerySet",
                  var_types: "dict[str,str]",
                  filetype: str = "tbl",
-                 propagation_size: int = 1000):
+                 propagation_size: int = 1000,
+                 query_version: str = ""):
         self.query_example: str = query_example
         self.dataset: str = dataset
         self.dataset_version: str = dataset_version
@@ -27,6 +28,7 @@ class M3MultiQueryGenerator:
         self.base_dir = "/Users/johannschwabe/Documents/git/FIVM/examples/cavier" if platform.system() == "Darwin" else "/home/user/jschwabe/FIVM/examples/cavier"
         self.filetype = filetype
         self.propagation_size = propagation_size
+        self.query_version = query_version
         for generator in self.m3_generators:
             generator.self_init(var_types)
 
@@ -100,7 +102,7 @@ class M3MultiQueryGenerator:
             for query_name in query_names[query]:
                 res += f"{query_name}\n"
         os.path.isdir(f"{self.base_dir}/config/{self.dataset}_{self.query_example}") or os.makedirs(f"{self.base_dir}/config/{self.dataset}_{self.query_example}")
-        with open(f"{self.base_dir}/config/{self.dataset}_{self.query_example}/{self.dataset}_{self.query_example}{f'*{self.dataset_version}' if self.dataset_version else '' }.txt", "w") as f:
+        with open(f"{self.base_dir}/config/{self.dataset}_{self.query_example}/{self.dataset}_{self.query_example}{f'*{self.dataset_version}' if self.dataset_version else '' }{self.query_version}.txt", "w") as f:
             f.write(res)
     def generate(self, batch: bool):
         self.assign_index()

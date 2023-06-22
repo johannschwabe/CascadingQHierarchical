@@ -333,6 +333,73 @@ def retailer_5():
     else:
         print("No result")
 
+def retailer_6():
+    foreign_keys = ["ksn", "locn", "dateid"]
+    bound_variables = list((Inventory.free_variables.union(Weather.free_variables).union(Location.free_variables)).difference(foreign_keys))
+    Q1 = Query("Q1", OrderedSet([Inventory, Item, Weather, Location]), OrderedSet([
+        "Ksn",
+        "DateId",
+        "Locn",
+    ]))
+    step = 8
+    for i in range(0, len(bound_variables) + 1,step):
+        Q2 = Query("Q2", OrderedSet([Inventory, Weather, Location]), OrderedSet([
+            "Ksn",
+            "Locn",
+            "DateId",
+            ] + bound_variables[0:i]))
+
+        res = run([Q1, Q2])
+        if res:
+            for version in dataset_version:
+                multigenerator = M3MultiQueryGenerator(
+                    base_dataset,
+                    f"6",
+                    version,
+                    'RingFactorizedRelation',
+                    res,
+                    datatypes,
+                    query_version=f"{len(Q1.free_variables) - 3}"
+
+                )
+                multigenerator.generate(batch=True)
+        else:
+            print("No result")
+
+
+def retailer_7():
+    foreign_keys = ["ksn", "locn", "dateid"]
+    bound_variables = list((Inventory.free_variables.union(Weather.free_variables).union(Location.free_variables)).difference(foreign_keys))
+    Q2 = Query("Q2", OrderedSet([Inventory, Weather, Location]), OrderedSet([
+        "Ksn",
+        "Locn",
+        "DateId",
+    ] + bound_variables))
+    step = 8
+    for i in range(0, len(bound_variables) + 1,step):
+        Q1 = Query("Q1", OrderedSet([Inventory, Item, Weather, Location]), OrderedSet([
+            "Ksn",
+            "Locn",
+            "DateId",
+            ] + bound_variables[0:i]))
+
+        res = run([Q1, Q2])
+        if res:
+            for version in dataset_version:
+                multigenerator = M3MultiQueryGenerator(
+                    base_dataset,
+                    f"7",
+                    version,
+                    'RingFactorizedRelation',
+                    res,
+                    datatypes,
+                    query_version=f"{len(Q1.free_variables)-3}"
+                )
+                multigenerator.generate(batch=True)
+        else:
+            print("No result")
+
+
 
 if __name__ == "__main__":
     retailer_1()
@@ -340,3 +407,5 @@ if __name__ == "__main__":
     retailer_3()
     retailer_4()
     retailer_5()
+    retailer_6()
+    retailer_7()
