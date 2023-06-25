@@ -128,7 +128,7 @@ ON SYSTEM READY {
 
 }'''
         os.path.isdir(f"{self.base_dir}/m3/{self.dataset}_{self.query_example}") or os.makedirs(f"{self.base_dir}/m3/{self.dataset}_{self.query_example}")
-        with open(f"{self.base_dir}/m3/{self.dataset}_{self.query_example}/{self.dataset}_{self.query_example}_{'BATCH' if batch else 'SINGLE'}.m3", "w") as f:
+        with open(f"{self.base_dir}/m3/{self.dataset}_{self.query_example}/{self.dataset}_{self.query_example}{f'*{self.dataset_version}' if self.dataset_version else '' }{self.query_version}.m3", "w") as f:
             f.write(res)
         self.generate_config(query_names)
 

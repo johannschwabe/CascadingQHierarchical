@@ -359,7 +359,7 @@ def retailer_6():
                     'RingFactorizedRelation',
                     res,
                     datatypes,
-                    query_version=f"{len(Q1.free_variables) - 3}"
+                    query_version=f"{len(Q2.free_variables) - 3}"
 
                 )
                 multigenerator.generate(batch=True)
