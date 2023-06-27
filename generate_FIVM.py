@@ -264,18 +264,26 @@ def generate_retailer_aggr_Q1():
     res = generate_txt(relations, root, free_vars)
     return res
 
+def generate_TPCH_3_Q3():
+    root = VariableOrderNode("suppkey")
+    relations = [Supplier, PartSupp]
+    free_vars = {"suppkey", "ps_availqty", "ps_supplycost", "s_name"}
+    res = generate_txt(relations, root, free_vars)
+    return res
+
 # generate_retailer_4Q1a()
 # generate_retailer_4Q1b()
 # generate_retailer_4Q2()
 # generate_retailer_1Q1b()
 # generate_retailer_1Q1c()
-generate_retailer_3Q1c()
+# generate_retailer_3Q1c()
 # generate_TPCH_3Q2()
 # generate_TPCH_1Q1b()
 # generate_TPCH_1Q1c()
 # generate_TPCH_4Q3()
 # generate_TPCH_5_Q1()
 # generate_TPCH_5_Q2()
-#generate_TPCH_5_Q3()
+# generate_TPCH_5_Q3()
 # generate_retailer_aggr_Q1()
+generate_TPCH_3_Q3()
 print("done")

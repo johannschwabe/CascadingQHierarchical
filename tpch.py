@@ -9,7 +9,7 @@ from Relation import Relation
 
 dataset_version = ["1", "10"]
 base_dataset = "tpch"
-view = False
+view = True
 
 Part = Relation("part", OrderedSet(
     ["PARTKEY", "P_NAME", "P_MFGR", "P_BRAND", "P_TYPE", "P_SIZE", "P_CONTAINER", "P_RETAILPRICE", "P_COMMENT"]))
@@ -109,7 +109,7 @@ def example_1():
             multigenerator.generate(batch=True)
 
         if view:
-            res.graph_viz("TPCH_3")
+            res.graph_viz("TPCH_3", join_order=True)
     else:
         print("No result")
 
@@ -135,7 +135,7 @@ def example_2():
             multigenerator.generate(batch=True)
 
         if view:
-            res.graph_viz("TPCH_1")
+            res.graph_viz("TPCH_1", join_order=True)
         print("Success")
     else:
         print("No result")
@@ -162,7 +162,7 @@ def example_3():
             multigenerator.generate(batch=True)
 
         if view:
-            res.graph_viz("TPCH_2")
+            res.graph_viz("TPCH_2", join_order=True)
         print("Success")
 
     else:
@@ -187,7 +187,7 @@ def example_4():
             multigenerator.generate(batch=True)
 
         if view:
-            res.graph_viz("TPCH_4")
+            res.graph_viz("TPCH_4", join_order=True)
         print("Success")
 
     else:
@@ -212,15 +212,43 @@ def example_5():
             multigenerator.generate(batch=True)
 
         if view:
-            res.graph_viz("TPCH_5")
+            res.graph_viz("TPCH_5", join_order=True)
         print("Success")
 
     else:
         print("No result")
 
+def example_6():
+    Q1 = Query("Q1", OrderedSet([Part, PartSupp, LineItem, Supplier]),
+               OrderedSet(["P_NAME", "S_NAME", "PS_AVAILQTY", "L_QUANTITY", "PARTKEY", "SUPPKEY"]))
+    Q2 = Query("Q3", OrderedSet([PartSupp, Supplier]),
+               OrderedSet(["S_NAME", "PS_AVAILQTY", "PS_SUPPLYCOST", "PARTKEY", "SUPPKEY"]))
+    print(Q1.is_q_hierarchical())
+    print(Q2.is_q_hierarchical())
+    res = run([Q1, Q2])
+    if res:
+        for tpch in dataset_version:
+            multigenerator = M3MultiQueryGenerator(
+                base_dataset,
+                "6",
+                str(tpch),
+                'RingFactorizedRelation',
+                res,
+                datatypes,
+                "tbl"
+            )
+            multigenerator.generate(batch=True)
+
+        if view:
+            res.graph_viz("TPCH_6", join_order=True)
+    else:
+        print("No result")
+
+
 if __name__ == "__main__":
-    example_1()
-    example_2()
-    example_3()
-    example_4()
-    example_5()
+    # example_1()
+    # example_2()
+    # example_3()
+    # example_4()
+    # example_5()
+    example_6()

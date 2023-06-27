@@ -5,7 +5,7 @@ from JoinOrderNode import JoinOrderNode
 from Query import Query, QuerySet
 from Relation import Relation
 from VariableOrder import VariableOrderNode
-from tpch import Part, PartSupp, LineItem, Orders
+from tpch import Part, PartSupp, LineItem, Orders, Supplier
 from retailer import Inventory, Item, Weather, Location, Census
 
 def tpch_1():
@@ -187,6 +187,9 @@ def example():
     graph2.view("unoptimized_viewtree")
     graph3.view("optimized_viewtree")
 
+def tpch_6():
+    Q3 = Query("Q3", OrderedSet([PartSupp, Supplier]), OrderedSet(["PARTKEY", "SUPPKEY", "PS_AVAILQTY", "PS_SUPPLYCOST", "S_NAME"]))
+    supp = JoinOrderNode(Q3, "Supplier", OrderedSet([Supplier]), OrderedSet(["SUPPKEY"]), OrderedSet(["S_NAME"]))
 
 # retailer_3Q1()
 example()

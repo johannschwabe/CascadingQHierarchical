@@ -9,7 +9,7 @@ from cascade import run
 
 random.seed(22)
 base_dataset = "retailer"
-dataset_version = [""]
+dataset_version = ["_ordered"]
 view = False
 
 Census = Relation("Census", OrderedSet([
