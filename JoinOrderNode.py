@@ -87,7 +87,7 @@ class JoinOrderNode:
     def generate_recursion(variable_order_node: "VariableOrderNode", query: "Query"):
         child_relations = variable_order_node.all_relations(source_only=False)
         child_relation_names = "".join(sorted(map(lambda x: x.name, child_relations)))
-        parent_vars = variable_order_node.parent_variables()
+        parent_vars = variable_order_node.parent_variables()[::-1]
         if len(variable_order_node.children) + len(variable_order_node.relations) > 1:
             free_vars = parent_vars.difference({variable_order_node.name})
             aggregated_vars = OrderedSet([variable_order_node.name])

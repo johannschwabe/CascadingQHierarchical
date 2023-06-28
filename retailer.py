@@ -9,7 +9,7 @@ from cascade import run
 
 random.seed(22)
 base_dataset = "retailer"
-dataset_version = ["_ordered"]
+dataset_version = ["_unordered"]
 view = False
 
 Census = Relation("Census", OrderedSet([
@@ -403,9 +403,9 @@ def retailer_7():
 
 if __name__ == "__main__":
     retailer_1()
-    retailer_2()
-    retailer_3()
-    retailer_4()
-    retailer_5()
-    retailer_6()
-    retailer_7()
+    # retailer_2()
+    # retailer_3()
+    # retailer_4()
+    # retailer_5()
+    # retailer_6()
+    # retailer_7()
