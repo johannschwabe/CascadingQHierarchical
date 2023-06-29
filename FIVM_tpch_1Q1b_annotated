@@ -1,0 +1,46 @@
+digraph base {
+	graph [compound=true spline=false]
+	"Q1b-V_LOPsP@partkey()" [label=<V<SUB>LOPsP</SUB><SUP>@partkey</SUP>()   <font color="blue">0</font>> shape=none]
+	"Q1b-V_P@p_name...(partkey)" [label=<V<SUB>P</SUB><SUP>@p_name...</SUP>(partkey)   <font color="blue">0.2M</font>> shape=none]
+	Q1b_part [label="part(partkey,p_name,...)" shape=none]
+	"Q1b-V_P@p_name...(partkey)" -> Q1b_part
+	"Q1b-V_LOPsP@partkey()" -> "Q1b-V_P@p_name...(partkey)"
+	"Q1b-V_LOPs@suppkey(partkey)" [label=<V<SUB>LOPs</SUB><SUP>@suppkey</SUP>(partkey)   <font color="blue">0.2M</font>> shape=none]
+	"Q1b-V_Ps@ps_availqty...(partkey,suppkey)" [label=<V<SUB>Ps</SUB><SUP>@ps_availqty...</SUP>(partkey,suppkey)   <font color="blue">0.8M</font>> shape=none]
+	Q1b_partsupp [label="partsupp(partkey,suppkey,ps_availqty,...)" shape=none]
+	"Q1b-V_Ps@ps_availqty...(partkey,suppkey)" -> Q1b_partsupp
+	"Q1b-V_LOPs@suppkey(partkey)" -> "Q1b-V_Ps@ps_availqty...(partkey,suppkey)"
+	"Q1b-V_LO@orderkey(partkey,suppkey)" [label=<V<SUB>LO</SUB><SUP>@orderkey</SUP>(partkey,suppkey)   <font color="blue">0.8M</font>> shape=none]
+	"Q1b-V_O@o_totalprice...(orderkey)" [label=<V<SUB>O</SUB><SUP>@o_totalprice...</SUP>(orderkey)   <font color="blue">1.5M</font>> shape=none]
+	Q1b_orders [label="orders(orderkey,o_totalprice...)" shape=none]
+	"Q1b-V_O@o_totalprice...(orderkey)" -> Q1b_orders
+	"Q1b-V_LO@orderkey(partkey,suppkey)" -> "Q1b-V_O@o_totalprice...(orderkey)"
+	"Q1b-V_L@l_quantity...(orderkey,partkey,suppkey)" [label=<V<SUB>L</SUB><SUP>@l_quantity...</SUP>(orderkey,partkey,suppkey)   <font color="blue">6M</font>> shape=none]
+	Q1b_lineitem [label="lineitem(orderkey,partkey,suppkey,l_quantity...)" shape=none]
+	"Q1b-V_L@l_quantity...(orderkey,partkey,suppkey)" -> Q1b_lineitem
+	"Q1b-V_LO@orderkey(partkey,suppkey)" -> "Q1b-V_L@l_quantity...(orderkey,partkey,suppkey)"
+	"Q1b-V_LOPs@suppkey(partkey)" -> "Q1b-V_LO@orderkey(partkey,suppkey)"
+	"Q1b-V_LOPsP@partkey()" -> "Q1b-V_LOPs@suppkey(partkey)"
+	
+    "Q1a-V_partpartsupplineitemorders@orderkey()" [label=<V<SUB>PartPartsuppLineitemOrders</SUB><SUP>@orderkey</SUP>()   <font color="blue">0</font>> shape=none]
+	"Q1a-V_orders@o_totalpriceO_ORDERDATEO_ORDERSTATUSO_CLERKO_SHIPPRIORITYO_COMMENTO_ORDERPRIORITYCUSTKEY(orderkey)" [label=<V<SUB>Orders</SUB><SUP>@o_totalprice...</SUP>(orderkey)   <font color="blue">1.5M</font>> shape=none]
+	Q1a_orders [label="Orders(orderkey,o_totalprice,...)" shape=none]
+	"Q1a-V_orders@o_totalpriceO_ORDERDATEO_ORDERSTATUSO_CLERKO_SHIPPRIORITYO_COMMENTO_ORDERPRIORITYCUSTKEY(orderkey)" -> Q1a_orders
+	"Q1a-V_partpartsupplineitemorders@orderkey()" -> "Q1a-V_orders@o_totalpriceO_ORDERDATEO_ORDERSTATUSO_CLERKO_SHIPPRIORITYO_COMMENTO_ORDERPRIORITYCUSTKEY(orderkey)"
+	"Q1a-V_lineitempartsupppart@partkey(orderkey)" [label=<V<SUB>LineitemPartsuppPart</SUB><SUP>@partkey</SUP>(orderkey)   <font color="blue">1.5M</font>> shape=none]
+	"Q1a-V_lineitempartsupp@suppkey(partkey,orderkey)" [label=<V<SUB>LineitemPartsupp</SUB><SUP>@suppkey</SUP>(orderkey,partkey)   <font color="blue">6M</font>> shape=none]
+	"Q1a-V_partsupp@ps_availqtyPS_SUPPLYCOSTPS_COMMENT(partkey,suppkey)" [label=<V<SUB>Partsupp</SUB><SUP>@ps_availqty...</SUP>(partkey,suppkey)   <font color="blue">0.8M</font>> shape=none]
+	Q1a_partsupp [label="Partsupp(partkey,suppkey,ps_availqty,...)" shape=none]
+	"Q1a-V_partsupp@ps_availqtyPS_SUPPLYCOSTPS_COMMENT(partkey,suppkey)" -> Q1a_partsupp
+	"Q1a-V_lineitempartsupp@suppkey(partkey,orderkey)" -> "Q1a-V_partsupp@ps_availqtyPS_SUPPLYCOSTPS_COMMENT(partkey,suppkey)"
+	"Q1a-V_lineitem@L_LINENUMBERl_quantityL_EXTENDEDPRICEL_DISCOUNTL_TAXL_RETURNFLAGL_LINESTATUSL_SHIPDATEL_COMMITDATEL_RECEIPTDATEL_SHIPINSTRUCTL_SHIPMODEL_COMMENT(orderkey,partkey,suppkey)" [label=<V<SUB>Lineitem</SUB><SUP>@l_quantity...</SUP>(orderkey,partkey,suppkey)   <font color="blue">6M</font>> shape=none]
+	Q1a_lineitem [label="Lineitem(orderkey,partkey,suppkey,l_quantity,...)" shape=none]
+	"Q1a-V_lineitem@L_LINENUMBERl_quantityL_EXTENDEDPRICEL_DISCOUNTL_TAXL_RETURNFLAGL_LINESTATUSL_SHIPDATEL_COMMITDATEL_RECEIPTDATEL_SHIPINSTRUCTL_SHIPMODEL_COMMENT(orderkey,partkey,suppkey)" -> Q1a_lineitem
+	"Q1a-V_lineitempartsupp@suppkey(partkey,orderkey)" -> "Q1a-V_lineitem@L_LINENUMBERl_quantityL_EXTENDEDPRICEL_DISCOUNTL_TAXL_RETURNFLAGL_LINESTATUSL_SHIPDATEL_COMMITDATEL_RECEIPTDATEL_SHIPINSTRUCTL_SHIPMODEL_COMMENT(orderkey,partkey,suppkey)"
+	"Q1a-V_lineitempartsupppart@partkey(orderkey)" -> "Q1a-V_lineitempartsupp@suppkey(partkey,orderkey)"
+	"Q1a-V_part@p_nameP_MFGRP_BRANDP_TYPEP_SIZEP_CONTAINERP_RETAILPRICEP_COMMENT(partkey)" [label=<V<SUB>Part</SUB><SUP>@p_name...</SUP>(partkey)   <font color="blue">0.2M</font>> shape=none]
+	Q1a_part [label="Part(partkey,p_name,...)" shape=none]
+	"Q1a-V_part@p_nameP_MFGRP_BRANDP_TYPEP_SIZEP_CONTAINERP_RETAILPRICEP_COMMENT(partkey)" -> Q1a_part
+	"Q1a-V_lineitempartsupppart@partkey(orderkey)" -> "Q1a-V_part@p_nameP_MFGRP_BRANDP_TYPEP_SIZEP_CONTAINERP_RETAILPRICEP_COMMENT(partkey)"
+	"Q1a-V_partpartsupplineitemorders@orderkey()" -> "Q1a-V_lineitempartsupppart@partkey(orderkey)"
+}

@@ -34,6 +34,33 @@ def tpch_1():
     root.viz(graph,Q1,{},minimized=True)
     graph.view("FIVM_tpch_1")
 
+
+def tpch_1Q1b():
+    Q1 = Query("Q1", OrderedSet([Part, PartSupp, LineItem, Orders]),
+                   OrderedSet(["p_name", "o_totalprice", "ps_availqty", "l_quantity", "partkey", "suppkey", "orderkey"]))
+
+    o1 = JoinOrderNode(Q1,"O", OrderedSet([Orders]), OrderedSet(["orderkey"]),OrderedSet(["o_totalprice","..."]))
+    p1 = JoinOrderNode(Q1,"P", OrderedSet([Part]), OrderedSet(["partkey"]),OrderedSet(["p_name","..."]))
+    ps1 = JoinOrderNode(Q1, "Ps", OrderedSet([PartSupp]), OrderedSet(["partkey", "suppkey"]),OrderedSet(["ps_availqty","..."]))
+    l1 = JoinOrderNode(Q1, "L", OrderedSet([LineItem]), OrderedSet(["orderkey", "partkey", "suppkey"]),OrderedSet(["l_quantity","..."]))
+    lo1 = JoinOrderNode(Q1, "LO", OrderedSet([]), OrderedSet(["partkey", "suppkey"]),OrderedSet(["orderkey"]))
+    lops1 = JoinOrderNode(Q1, "LOPs", OrderedSet([]), OrderedSet(["partkey"]),OrderedSet(["suppkey"]))
+    lopsp1 = JoinOrderNode(Q1, "LOPsP", OrderedSet([]), OrderedSet(),OrderedSet(["partkey"]))
+
+    lopsp1.children = {lops1, p1}
+    lops1.parent = lopsp1
+    p1.parent = lopsp1
+    lops1.children = {lo1, ps1}
+    lo1.parent = lops1
+    ps1.parent = lops1
+    lo1.children = {l1, o1}
+    l1.parent = lo1
+    o1.parent = lo1
+
+    graph = Digraph(name="base", graph_attr={"compound": "true", "spline": "false"})
+    lopsp1.viz(graph,Q1,{},minimized=True)
+    graph.view("FIVM_tpch_1Q1b")
+
 def retailer_1Q1a():
     Q1 = Query("Q1", OrderedSet([Inventory, Item, Weather, Location]), OrderedSet(["Locn", "DateId","Ksn","Zip","Category","Rain"]))
     L1 = JoinOrderNode(Q1, "Location", OrderedSet([Location]), OrderedSet(["Locn"]),OrderedSet(["Zip", "RgnCd", "ClimbZnNbr","TotalAreaSqFt","SellAreaSqFt","AvgHigh","SuperTargetDistance","SuperTargetDriveTime","TargetDistance","TargetDriveTime","WalmartDistance","WalmartDriveTime","WalmartSuperCenterDistance","WalmartSuperCenterDriveTime"]))
@@ -192,7 +219,8 @@ def tpch_6():
     supp = JoinOrderNode(Q3, "Supplier", OrderedSet([Supplier]), OrderedSet(["SUPPKEY"]), OrderedSet(["S_NAME"]))
 
 # retailer_3Q1()
-example()
+# example()
 # retailer_1Q1a()
 # retailer_1Q1b()
 # retailer_1Q1c()
+tpch_1Q1b()

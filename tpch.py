@@ -8,7 +8,8 @@ from Query import Query
 from Relation import Relation
 
 dataset_version = ["_unordered1", "_unordered10"]
-base_dataset = "tpch"
+# base_dataset = "tpch"
+base_dataset = "jcch"
 view = False
 
 Part = Relation("part", OrderedSet(
