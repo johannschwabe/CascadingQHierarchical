@@ -4,12 +4,12 @@ from ordered_set import OrderedSet
 
 from M3MultiQueryGenerator import M3MultiQueryGenerator
 from cascade import run
-from Query import Query
+from Query import Query, QuerySet
 from Relation import Relation
 
 dataset_version = ["_unordered1", "_unordered10"]
-# base_dataset = "tpch"
-base_dataset = "jcch"
+base_dataset = "tpch"
+# base_dataset = "jcch"
 view = False
 
 Part = Relation("part", OrderedSet(
@@ -245,11 +245,32 @@ def example_6():
     else:
         print("No result")
 
+def tpch_haozhe():
+    Q1 = Query("Q1", OrderedSet([PartSupp, LineItem]),
+               OrderedSet(["PS_AVAILQTY", "PARTKEY", "SUPPKEY", "L_LINENUMBER", "ORDERKEY"]))
+    Q1Relation = Relation("Q1", OrderedSet(["PS_AVAILQTY", "PARTKEY", "SUPPKEY", "L_LINENUMBER", "ORDERKEY"]), None, Q1)
+    Q4 = Query("Q4", OrderedSet([PartSupp, LineItem, Part]),
+               OrderedSet(["PS_AVAILQTY", "PARTKEY", "SUPPKEY", "L_LINENUMBER", "ORDERKEY", "P_NAME"]),
+               OrderedSet([Q1Relation, Part]))
+    res = QuerySet({Q1, Q4})
+    if res:
+        multigenerator = M3MultiQueryGenerator(
+            base_dataset,
+            "7",
+            "1",
+            'RingFactorizedRelation',
+            res,
+            datatypes,
+            "tbl"
+        )
+        multigenerator.generate(batch=True)
+        res.graph_viz("TPCH_6", join_order=True)
 
 if __name__ == "__main__":
-    example_1()
-    example_2()
-    example_3()
-    example_4()
-    example_5()
-    example_6()
+    # example_1()
+    # example_2()
+    # example_3()
+    # example_4()
+    # example_5()
+    # example_6()
+    tpch_haozhe()

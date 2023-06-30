@@ -218,9 +218,13 @@ def tpch_6():
     Q3 = Query("Q3", OrderedSet([PartSupp, Supplier]), OrderedSet(["PARTKEY", "SUPPKEY", "PS_AVAILQTY", "PS_SUPPLYCOST", "S_NAME"]))
     supp = JoinOrderNode(Q3, "Supplier", OrderedSet([Supplier]), OrderedSet(["SUPPKEY"]), OrderedSet(["S_NAME"]))
 
+
+
+
+
 # retailer_3Q1()
 # example()
 # retailer_1Q1a()
 # retailer_1Q1b()
 # retailer_1Q1c()
-tpch_1Q1b()
+# tpch_1Q1b()
