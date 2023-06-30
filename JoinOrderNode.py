@@ -55,8 +55,8 @@ class JoinOrderNode:
         key_variables = ','.join(
             map(lambda x: f'{vars[x].name}: {vars[x].var_type}' if declaration else vars[x].name, self.free_variables))
         if self.lifted_variables:
-            return f"{self.view_prefix}_{self.child_rel_names}({ring}<[{self.M3_index}, {','.join(map(lambda x: vars[x].var_type, self.lifted_variables))}]>)[][{key_variables}]"
-        return f"{self.view_prefix}_{self.child_rel_names}(long)[][{key_variables}]"
+            return f"{self.view_prefix}_{self.child_rel_names}_{self.query_name}({ring}<[{self.M3_index}, {','.join(map(lambda x: vars[x].var_type, self.lifted_variables))}]>)[][{key_variables}]"
+        return f"{self.view_prefix}_{self.child_rel_names}_{self.query_name}(long)[][{key_variables}]"
 
     def graph_viz_name(self, minimized: bool = False):
         if minimized:
