@@ -266,11 +266,48 @@ def tpch_haozhe():
         multigenerator.generate(batch=True)
         res.graph_viz("TPCH_6", join_order=True)
 
+
+def example_9():
+    Q2 = Query("Q2", OrderedSet([Orders, Customer]),
+               OrderedSet(["O_ORDERSTATUS", "C_NAME", "ORDERKEY", "CUSTKEY"]))
+    Q2Relation = Relation("Q2", OrderedSet(
+        ["O_ORDERSTATUS", "C_NAME", "ORDERKEY", "CUSTKEY"]), None, Q2)
+    Q1 = Query("Q1", OrderedSet([Orders, LineItem]),
+               OrderedSet(["O_ORDERSTATUS", "ORDERKEY", "L_LINENUMBER"]))
+    Q1Relation = Relation("Q1", OrderedSet(
+        ["O_ORDERSTATUS", "ORDERKEY", "L_LINENUMBER"]), None, Q1)
+    Q3 = Query("Q3", OrderedSet([Orders, LineItem, Customer]),
+               OrderedSet(["O_ORDERSTATUS", "ORDERKEY", "L_LINENUMBER", "CUSTKEY", "C_NAME"]),
+               OrderedSet([Q1Relation, Q2Relation]))
+    Q3.dependant_on.update({Q1, Q2})
+    res = QuerySet({Q1, Q2, Q3})
+    res_list = [res]
+
+    for (i, res) in enumerate(res_list):
+        for tpch in dataset_version:
+            multigenerator = M3MultiQueryGenerator(
+                base_dataset,
+                f"9_{i}",
+                str(tpch),
+                'RingFactorizedRelation',
+                res,
+                datatypes,
+                "tbl"
+            )
+            multigenerator.generate(batch=True)
+
+        if view:
+            res.graph_viz(f"TPCH_9_{i}")
+
+    if len(res_list) == 0:
+        print("No result")
+
 if __name__ == "__main__":
-    example_1()
-    example_2()
-    example_3()
-    example_4()
-    example_5()
-    example_6()
+    # example_1()
+    # example_2()
+    # example_3()
+    # example_4()
+    # example_5()
+    # example_6()
     # tpch_haozhe()
+    example_9()

@@ -73,12 +73,18 @@ class M3MultiQueryGenerator:
         return res, query_names
     def generate_triggers(self, batch: bool):
         res = ""
+        reses = {}
         for generator in self.m3_generators:
-            res += f"-- {generator.query.name}\n"
             if batch:
-                res += generator.generate_triggers_batch(self.join_order_nodes[generator.query])
+                generator.generate_triggers_batch(self.join_order_nodes[generator.query], reses)
             else:
-                res += generator.generate_triggers(self.join_order_nodes[generator.query])
+                generator.generate_triggers(self.join_order_nodes[generator.query], reses)
+
+        for relation, update in reses.items():
+            if batch:
+                res += f"ON BATCH UPDATE OF {relation} {{ \n {update} \n}}\n"
+            else:
+                res += f"{relation}{update}}}\n"
 
         return res
 

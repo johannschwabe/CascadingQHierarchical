@@ -118,19 +118,20 @@ class M3Generator:
             query_names += child_query_names
         return res, query_names
 
-    def generate_triggers_batch(self, join_tree_node: "JoinOrderNode"):
-        res = ""
+    def generate_triggers_batch(self, join_tree_node: "JoinOrderNode", reses: dict[str, str]):
         names, additions = self.generate_triggers_batch_recursive(join_tree_node)
         for rel, value in additions.items():
-            res += f"ON BATCH UPDATE OF {rel.name} {{ \n "
+            res = f"-- {self.query.name}\n"
             for path in value['path'][:-1]:
                 res += f"{path}\n"
             res += f"{value['update'][-1].split('+=')[0]} += {value['path'][-1].split(':=')[1]}\n"
             for update in value['update'][:-1]:
                 res += f"{update}\n"
-            res += "}\n"
+            if rel.name not in reses:
+                reses[rel.name] = res
+            else:
+                reses[rel.name] += res
 
-        return res
     def generate_triggers_batch_recursive(self, join_tree_node: "JoinOrderNode"):
         res = {}
         new_child_names = {}
@@ -181,24 +182,31 @@ class M3Generator:
                 update = f"{join_tree_node.M3ViewName(self.ring, self.vars)}<Local> += {tmp};"
                 res[rel] = {"path": [path], "update": [update]}
         return new_child_names, res
-    def generate_triggers(self, join_tree_node: "JoinOrderNode"):
+    def generate_triggers(self, join_tree_node: "JoinOrderNode", reses: dict[str, str]):
         top = JoinOrderNode(None, "", OrderedSet(), OrderedSet(), OrderedSet())
         top.children = {join_tree_node}
-        res = ""
         additions = self.generate_triggers_recursive(top, "+")
         for rel, value in additions.items():
-            res += f"ON + {rel.name} ({', '.join(rel.free_variables)}) {{ \n "
+            res_add = f"-- {self.query.name}\n"
+            res_remove = f"-- {self.query.name}\n"
+            key = f"ON + {rel.name} ({', '.join(rel.free_variables)}) {{ \n "
             for update in value:
-                res += f"{update};\n"
-            res += "}\n"
-
+                res_add += f"{update};\n"
+            # res += "}\n"
+            if rel not in reses:
+                reses[key] = res_add
+            else:
+                reses[key] += res_add
         removals = self.generate_triggers_recursive(join_tree_node, "-")
         for rel, value in removals.items():
-            res += f"ON - {rel.name} ({', '.join(rel.free_variables)}) {{ \n "
+            key = f"ON - {rel.name} ({', '.join(rel.free_variables)}) {{ \n "
             for update in value:
-                res += f"{update};\n"
-            res += "}\n"
-        return res
+                res_remove += f"{update};\n"
+            # res += "}\n"
+            if rel not in reses:
+                reses[key] = res_add
+            else:
+                reses[key] += res_add
 
     def generate_triggers_recursive(self, join_tree_node: "JoinOrderNode", operator: str)->"dict[Relation,list[str]]":
         res = {}
@@ -260,7 +268,8 @@ ON SYSTEM READY {
         with open("output.m3", "w") as f:
             f.write(res)
         # print(res)
-
+    def __repr__(self):
+        return f"Gen: {self.query.name}"
 
 
 
