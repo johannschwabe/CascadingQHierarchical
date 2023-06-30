@@ -269,8 +269,6 @@ def retailer_3():
             res.graph_viz("Retailer_3", join_order=True)
     else:
         print("No result")
-
-
 def retailer_4():
     Q1 = Query("Q1", OrderedSet([Inventory, Item, Location]), OrderedSet([
         "Ksn",
@@ -301,7 +299,6 @@ def retailer_4():
             res.graph_viz("Retailer_4", join_order=True)
     else:
         print("No result")
-
 def retailer_5():
     Q1 = Query("Q1", OrderedSet([Inventory, Item, Weather, Location]), OrderedSet([
         "Ksn",
@@ -332,7 +329,6 @@ def retailer_5():
             res.graph_viz("Retailer_5", join_order=True)
     else:
         print("No result")
-
 def retailer_6():
     foreign_keys = ["ksn", "locn", "dateid"]
     bound_variables = list((Inventory.free_variables.union(Weather.free_variables).union(Location.free_variables)).difference(foreign_keys))
@@ -402,10 +398,10 @@ def retailer_7():
 
 
 if __name__ == "__main__":
-    retailer_1()
-    retailer_2()
-    retailer_3()
-    retailer_4()
-    retailer_5()
+    # retailer_1()
+    # retailer_2()
+    # retailer_3()
+    # retailer_4()
+    # retailer_5()
     retailer_6()
     retailer_7()
