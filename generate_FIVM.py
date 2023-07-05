@@ -205,6 +205,15 @@ def generate_TPCH_3Q2():
     res = generate_txt(relations, root, free_vars)
     return res
 
+def generate_TPCH_3Q1b():
+    root = VariableOrderNode("suppkey")
+    part = VariableOrderNode("partkey")
+    root.add_child(part)
+    relations = [Supplier, PartSupp, Lineitem, Part]
+    free_vars = {"suppkey", "partkey", "l_quantity", "ps_availqty", "s_name", "p_name"}
+    res = generate_txt(relations, root, free_vars)
+    return res
+
 def generate_TPCH_1Q1b():
     root = VariableOrderNode("partkey")
     supp = VariableOrderNode("suppkey")
@@ -285,5 +294,6 @@ def generate_TPCH_3_Q3():
 # generate_TPCH_5_Q2()
 # generate_TPCH_5_Q3()
 # generate_retailer_aggr_Q1()
-generate_TPCH_3_Q3()
+# generate_TPCH_3_Q3()
+generate_TPCH_3Q1b()
 print("done")

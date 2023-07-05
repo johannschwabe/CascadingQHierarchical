@@ -42,7 +42,7 @@ class Relation:
 
     def viz_label(self, minimized=False):
         if minimized:
-            return f"{self.name}({','.join(self.free_variables[:4])}...)"
+            return f"{self.name}({','.join([var.capitalize() for var in self.free_variables[:4]])}...)"
         return self.disp_name
 
     def __eq__(self, other):

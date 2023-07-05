@@ -214,13 +214,28 @@ def example():
     graph2.view("unoptimized_viewtree")
     graph3.view("optimized_viewtree")
 
-def tpch_6():
-    Q3 = Query("Q3", OrderedSet([PartSupp, Supplier]), OrderedSet(["PARTKEY", "SUPPKEY", "PS_AVAILQTY", "PS_SUPPLYCOST", "S_NAME"]))
-    supp = JoinOrderNode(Q3, "Supplier", OrderedSet([Supplier]), OrderedSet(["SUPPKEY"]), OrderedSet(["S_NAME"]))
+def tpch_3():
+    Q1 = Query("Q1", OrderedSet([LineItem, Part, Supplier, PartSupp]), OrderedSet(["partkey", "suppkey", "l_quantity", "p_name", "s_name"]))
 
+    p1 = JoinOrderNode(Q1, "Part", OrderedSet([Part]), OrderedSet(["partkey"]), OrderedSet(["p_name"]))
+    s1 = JoinOrderNode(Q1, "Supplier", OrderedSet([Supplier]), OrderedSet(["suppkey"]), OrderedSet(["s_name"]))
+    ps1 = JoinOrderNode(Q1, "PartSupp", OrderedSet([PartSupp]), OrderedSet(["partkey", "suppkey"]), OrderedSet(["ps_availqty"]))
+    l1 = JoinOrderNode(Q1, "LineItem", OrderedSet([LineItem]), OrderedSet(["partkey", "suppkey"]), OrderedSet(["l_quantity"]))
+    lps1 = JoinOrderNode(Q1, "LineItemPart", OrderedSet([]), OrderedSet(["partkey"]), OrderedSet(["suppkey"]))
+    lpsp1 = JoinOrderNode(Q1, "LineItemPartPartSupp", OrderedSet([]), OrderedSet(), OrderedSet(["partkey"]))
 
+    lpsp1.children = {ps1, lps1}
+    ps1.parent = lpsp1
+    lps1.parent = lpsp1
 
+    lps1.children = {l1, p1, s1}
+    l1.parent = lps1
+    p1.parent = lps1
+    s1.parent = lps1
 
+    graph = Digraph(name="base", graph_attr={"compound": "true", "spline": "false"})
+    lpsp1.viz(graph, Q1, {}, minimized=True)
+    graph.view("FIVM_tpch_3")
 
 # retailer_3Q1()
 # example()
@@ -228,3 +243,4 @@ def tpch_6():
 # retailer_1Q1b()
 # retailer_1Q1c()
 # tpch_1Q1b()
+tpch_3()

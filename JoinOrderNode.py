@@ -62,16 +62,16 @@ class JoinOrderNode:
         if minimized:
             _aggr_vars = self.aggregated_variables if len(self.aggregated_variables) < 4 else self.aggregated_variables[:3].union(OrderedSet(["..."]))
             _free_vars = self.free_variables if len(self.free_variables) < 4 else self.free_variables[:3].union(OrderedSet(["..."]))
-            filtered = [c for c in self.child_rel_names if c.isupper()]
+            filtered = ''.join([rel.name[0].upper() for rel in self.all_relations()])
             _child_rels = self.child_rel_names if len(self.child_rel_names) < 8 else ''.join(filtered)[:6] + ("..." if len(filtered) > 6 else "")
         else:
             _aggr_vars = self.aggregated_variables
             _free_vars = self.free_variables
             _child_rels = self.child_rel_names
         if self.aggregated_variables:
-            return f"<{self.view_prefix}<SUB>{_child_rels}</SUB><SUP>@{''.join(_aggr_vars)}</SUP>({','.join(sorted(_free_vars))})>"
+            return f"<{self.view_prefix}<SUB>{_child_rels}</SUB><SUP>@{''.join([var.capitalize() for var in _aggr_vars])}</SUP>({','.join(sorted([var.capitalize() for var in _free_vars]))})>"
 
-        return f"<{self.view_prefix}<SUB>{_child_rels}</SUB>({','.join(_free_vars)})>"
+        return f"<{self.view_prefix}<SUB>{_child_rels}</SUB>({','.join(sorted([var.capitalize() for var in _free_vars]))})>"
 
     def __repr__(self):
         if self.aggregated_variables:
