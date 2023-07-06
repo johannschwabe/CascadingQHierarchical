@@ -224,13 +224,13 @@ def tpch_3():
     lps1 = JoinOrderNode(Q1, "LineItemPart", OrderedSet([]), OrderedSet(["partkey"]), OrderedSet(["suppkey"]))
     lpsp1 = JoinOrderNode(Q1, "LineItemPartPartSupp", OrderedSet([]), OrderedSet(), OrderedSet(["partkey"]))
 
-    lpsp1.children = {ps1, lps1}
-    ps1.parent = lpsp1
+    lpsp1.children = {p1, lps1}
+    p1.parent = lpsp1
     lps1.parent = lpsp1
 
-    lps1.children = {l1, p1, s1}
+    lps1.children = {l1, ps1, s1}
     l1.parent = lps1
-    p1.parent = lps1
+    ps1.parent = lps1
     s1.parent = lps1
 
     graph = Digraph(name="base", graph_attr={"compound": "true", "spline": "false"})

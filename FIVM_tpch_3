@@ -1,22 +1,22 @@
 digraph base {
 	graph [compound=true spline=false]
-	"Q1-V_LineItemPartPartSupp@partkey()" [label=<V<SUB>LIPPS</SUB><SUP>@partkey</SUP>()> shape=none]
-	"Q1-V_PartSupp@ps_availqty(partkey,suppkey)" [label=<V<SUB>PS</SUB><SUP>@ps_availqty</SUP>(partkey,suppkey)> shape=none]
-	Q1_partsupp [label="partsupp(PARTKEY,SUPPKEY,PS_AVAILQTY,PS_SUPPLYCOST...)" shape=none]
-	"Q1-V_PartSupp@ps_availqty(partkey,suppkey)" -> Q1_partsupp
-	"Q1-V_LineItemPartPartSupp@partkey()" -> "Q1-V_PartSupp@ps_availqty(partkey,suppkey)"
-	"Q1-V_LineItemPart@suppkey(partkey)" [label=<V<SUB>LIP</SUB><SUP>@suppkey</SUP>(partkey)> shape=none]
-	"Q1-V_LineItem@l_quantity(partkey,suppkey)" [label=<V<SUB>LI</SUB><SUP>@l_quantity</SUP>(partkey,suppkey)> shape=none]
-	Q1_lineitem [label="lineitem(ORDERKEY,PARTKEY,SUPPKEY,L_LINENUMBER...)" shape=none]
+	"Q1-V_LineItemPartPartSupp@partkey()" [label=<V<SUB>PLSP</SUB><SUP>@Partkey</SUP>()> shape=none]
+	"Q1-V_Part@p_name(partkey)" [label=<V<SUB>Part</SUB><SUP>@P_name</SUP>(Partkey)> shape=none]
+	Q1_part [label="part(Partkey,P_name,P_mfgr,P_brand...)" shape=none]
+	"Q1-V_Part@p_name(partkey)" -> Q1_part
+	"Q1-V_LineItemPartPartSupp@partkey()" -> "Q1-V_Part@p_name(partkey)"
+	"Q1-V_LineItemPart@suppkey(partkey)" [label=<V<SUB>LSP</SUB><SUP>@Suppkey</SUP>(Partkey)> shape=none]
+	"Q1-V_LineItem@l_quantity(partkey,suppkey)" [label=<V<SUB>L</SUB><SUP>@L_quantity</SUP>(Partkey,Suppkey)> shape=none]
+	Q1_lineitem [label="lineitem(Orderkey,Partkey,Suppkey,L_linenumber...)" shape=none]
 	"Q1-V_LineItem@l_quantity(partkey,suppkey)" -> Q1_lineitem
 	"Q1-V_LineItemPart@suppkey(partkey)" -> "Q1-V_LineItem@l_quantity(partkey,suppkey)"
-	"Q1-V_Supplier@s_name(suppkey)" [label=<V<SUB>S</SUB><SUP>@s_name</SUP>(suppkey)> shape=none]
-	Q1_supplier [label="supplier(SUPPKEY,S_NAME,S_ADDRESS,NATIONKEY...)" shape=none]
+	"Q1-V_Supplier@s_name(suppkey)" [label=<V<SUB>S</SUB><SUP>@S_name</SUP>(Suppkey)> shape=none]
+	Q1_supplier [label="supplier(Suppkey,S_name,S_address,Nationkey...)" shape=none]
 	"Q1-V_Supplier@s_name(suppkey)" -> Q1_supplier
 	"Q1-V_LineItemPart@suppkey(partkey)" -> "Q1-V_Supplier@s_name(suppkey)"
-	"Q1-V_Part@p_name(partkey)" [label=<V<SUB>Part</SUB><SUP>@p_name</SUP>(partkey)> shape=none]
-	Q1_part [label="part(PARTKEY,P_NAME,P_MFGR,P_BRAND...)" shape=none]
-	"Q1-V_Part@p_name(partkey)" -> Q1_part
-	"Q1-V_LineItemPart@suppkey(partkey)" -> "Q1-V_Part@p_name(partkey)"
+	"Q1-V_PartSupp@ps_availqty(partkey,suppkey)" [label=<V<SUB>P</SUB><SUP>@Ps_availqty</SUP>(Partkey,Suppkey)> shape=none]
+	Q1_partsupp [label="partsupp(Partkey,Suppkey,Ps_availqty,Ps_supplycost...)" shape=none]
+	"Q1-V_PartSupp@ps_availqty(partkey,suppkey)" -> Q1_partsupp
+	"Q1-V_LineItemPart@suppkey(partkey)" -> "Q1-V_PartSupp@ps_availqty(partkey,suppkey)"
 	"Q1-V_LineItemPartPartSupp@partkey()" -> "Q1-V_LineItemPart@suppkey(partkey)"
 }

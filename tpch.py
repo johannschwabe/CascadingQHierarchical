@@ -7,7 +7,7 @@ from cascade import run
 from Query import Query, QuerySet
 from Relation import Relation
 
-dataset_version = ["_unordered1", "_unordered10"]
+dataset_version = ["_unordered10"]
 base_dataset = "tpch"
 # base_dataset = "jcch"
 view = True
@@ -345,11 +345,11 @@ def example_10():
 
 if __name__ == "__main__":
     # example_1()
-    example_2()
+    # example_2()
     # example_3()
     # example_4()
     # example_5()
-    # example_6()
+    example_6()
     # tpch_haozhe()
     # example_9()
     # example_10()
