@@ -245,6 +245,28 @@ def example_6():
     else:
         print("No result")
 
+def example_7():
+    Q2 = Query("Q2", OrderedSet([PartSupp, Supplier]),
+               OrderedSet(["P_NAME", "PS_AVAILQTY", "PS_SUPPLYCOST", "PARTKEY", "SUPPKEY"]))
+    RQ2 = Relation("Q3", OrderedSet(["P_NAME", "PS_AVAILQTY", "PS_SUPPLYCOST", "PARTKEY", "SUPPKEY"]), None, Q2)
+    Q3 = Query("Q3", OrderedSet([PartSupp,Supplier, LineItem]),
+               OrderedSet([ "P_NAME", "PS_AVAILQTY", "L_QUANTITY", "PARTKEY", "SUPPKEY", "ORDERKEY"]), OrderedSet([RQ2, LineItem]))
+
+    res = QuerySet({Q2, Q3})
+    multigenerator = M3MultiQueryGenerator(
+        base_dataset,
+        "7",
+        "_unordered10",
+        'RingFactorizedRelation',
+        res,
+        datatypes,
+        "tbl"
+    )
+    multigenerator.generate(batch=True)
+    view = True
+    if view:
+        res.graph_viz("TPCH_7", join_order=True)
+
 def tpch_haozhe():
     Q1 = Query("Q1", OrderedSet([PartSupp, LineItem]),
                OrderedSet(["PS_AVAILQTY", "PARTKEY", "SUPPKEY", "L_LINENUMBER", "ORDERKEY"]))
@@ -265,8 +287,6 @@ def tpch_haozhe():
         )
         multigenerator.generate(batch=True)
         res.graph_viz("TPCH_6", join_order=True)
-
-
 def example_9():
     Q2 = Query("Q2", OrderedSet([Orders, Customer]),
                OrderedSet(["O_ORDERSTATUS", "C_NAME", "ORDERKEY", "CUSTKEY"]))
@@ -301,8 +321,6 @@ def example_9():
 
     if len(res_list) == 0:
         print("No result")
-
-
 def example_10():
     Q1 = Query("Q1", OrderedSet([Orders, LineItem]),
                OrderedSet(["O_ORDERSTATUS", "ORDERKEY", "L_LINENUMBER", "PARTKEY", "SUPPKEY", "CUSTKEY"]))
@@ -349,7 +367,8 @@ if __name__ == "__main__":
     # example_3()
     # example_4()
     # example_5()
-    example_6()
+    # example_6()
+    example_7()
     # tpch_haozhe()
     # example_9()
     # example_10()
