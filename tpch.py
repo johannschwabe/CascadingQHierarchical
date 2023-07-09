@@ -263,7 +263,6 @@ def example_7():
         "tbl"
     )
     multigenerator.generate(batch=True)
-    view = True
     if view:
         res.graph_viz("TPCH_7", join_order=True)
 
