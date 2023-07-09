@@ -10,7 +10,7 @@ from Relation import Relation
 dataset_version = ["_unordered10"]
 base_dataset = "tpch"
 # base_dataset = "jcch"
-view = True
+view = False
 
 Part = Relation("part", OrderedSet(
     ["PARTKEY", "P_NAME", "P_MFGR", "P_BRAND", "P_TYPE", "P_SIZE", "P_CONTAINER", "P_RETAILPRICE", "P_COMMENT"]))
