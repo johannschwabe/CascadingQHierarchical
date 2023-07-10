@@ -248,7 +248,7 @@ def example_6():
 def example_7():
     Q3 = Query("Q3", OrderedSet([PartSupp, Supplier]),
                OrderedSet(["PS_AVAILQTY", "PS_SUPPLYCOST", "PARTKEY", "SUPPKEY", "S_NAME"]))
-    RQ3 = Relation("Q3", OrderedSet(["PS_AVAILQTY", "PS_SUPPLYCOST", "PARTKEY", "SUPPKEY"]), None, Q3)
+    RQ3 = Relation("Q3", OrderedSet(["PS_AVAILQTY", "PS_SUPPLYCOST", "PARTKEY", "SUPPKEY","S_NAME"]), None, Q3)
     Q2 = Query("Q2", OrderedSet([PartSupp,Supplier, LineItem]),
                OrderedSet(["PS_AVAILQTY", "L_QUANTITY", "PARTKEY", "SUPPKEY", "PS_SUPPLYCOST", "S_NAME"]), OrderedSet([RQ3, LineItem]))
     Q2.dependant_on = {Q3}
