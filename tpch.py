@@ -251,7 +251,7 @@ def example_7():
     RQ3 = Relation("Q3", OrderedSet(["PS_AVAILQTY", "PS_SUPPLYCOST", "PARTKEY", "SUPPKEY"]), None, Q3)
     Q2 = Query("Q2", OrderedSet([PartSupp,Supplier, LineItem]),
                OrderedSet(["PS_AVAILQTY", "L_QUANTITY", "PARTKEY", "SUPPKEY", "PS_SUPPLYCOST", "S_NAME"]), OrderedSet([RQ3, LineItem]))
-    Q3.dependant_on = {Q2}
+    Q2.dependant_on = {Q3}
     res = QuerySet({Q2, Q3})
     multigenerator = M3MultiQueryGenerator(
         base_dataset,
