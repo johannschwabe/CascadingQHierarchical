@@ -248,7 +248,7 @@ def example_6():
 def example_7():
     Q2 = Query("Q2", OrderedSet([PartSupp, Supplier]),
                OrderedSet(["P_NAME", "PS_AVAILQTY", "PS_SUPPLYCOST", "PARTKEY", "SUPPKEY"]))
-    RQ2 = Relation("Q3", OrderedSet(["P_NAME", "PS_AVAILQTY", "PS_SUPPLYCOST", "PARTKEY", "SUPPKEY"]), None, Q2)
+    RQ2 = Relation("Q2", OrderedSet(["P_NAME", "PS_AVAILQTY", "PS_SUPPLYCOST", "PARTKEY", "SUPPKEY"]), None, Q2)
     Q3 = Query("Q3", OrderedSet([PartSupp,Supplier, LineItem]),
                OrderedSet([ "P_NAME", "PS_AVAILQTY", "L_QUANTITY", "PARTKEY", "SUPPKEY", "ORDERKEY"]), OrderedSet([RQ2, LineItem]))
 
@@ -361,12 +361,12 @@ def example_10():
         print("No result")
 
 if __name__ == "__main__":
-    example_1()
-    example_2()
-    example_3()
-    example_4()
+    # example_1()
+    # example_2()
+    # example_3()
+    # example_4()
     # example_5()
-    example_6()
+    # example_6()
     example_7()
     # tpch_haozhe()
     # example_9()
