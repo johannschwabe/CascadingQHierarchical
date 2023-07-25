@@ -360,6 +360,33 @@ def example_10():
     if len(res_list) == 0:
         print("No result")
 
+def example_11():
+    Q1 = Query("Q1", OrderedSet([Part, PartSupp, LineItem, Supplier]),
+               OrderedSet(["P_NAME", "S_NAME", "PS_AVAILQTY", "L_QUANTITY", "PARTKEY", "SUPPKEY"]))
+    Q2 = Query("Q2", OrderedSet([PartSupp, LineItem, Supplier]),
+               OrderedSet(["S_NAME", "PS_AVAILQTY", "L_QUANTITY", "PS_SUPPLYCOST", "PARTKEY", "SUPPKEY", "ORDERKEY", "L_LINENUMBER"]))
+    print(Q1.is_q_hierarchical())
+    print(Q2.is_q_hierarchical())
+    res = run([Q1, Q2])
+    if res:
+        for tpch in dataset_version:
+            multigenerator = M3MultiQueryGenerator(
+                base_dataset,
+                "11",
+                str(tpch),
+                'RingFactorizedRelation',
+                res,
+                datatypes,
+                "tbl"
+            )
+            multigenerator.generate(batch=True)
+
+        if view:
+            res.graph_viz("TPCH_11", join_order=True)
+    else:
+        print("No result")
+
+
 if __name__ == "__main__":
     # example_1()
     # example_2()
